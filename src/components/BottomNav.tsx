@@ -6,10 +6,9 @@ import { motion } from 'framer-motion';
 interface BottomNavProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
-  isVisible?: boolean;
 }
 
-export function BottomNav({ activeTab, onTabChange, isVisible = true }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const tabs = [
     { id: 'auto', label: 'Auto', icon: Car },
     { id: 'rower', label: 'rower', icon: Bike },
@@ -19,10 +18,7 @@ export function BottomNav({ activeTab, onTabChange, isVisible = true }: BottomNa
   return (
     <motion.div 
       initial={{ y: 150, opacity: 0 }}
-      animate={{ 
-        y: isVisible ? 0 : 120, 
-        opacity: isVisible ? 1 : 0 
-      }}
+      animate={{ y: 0, opacity: 1 }}
       exit={{ y: 150, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50 w-max"

@@ -15,7 +15,7 @@ interface ScannerProps {
   mode?: 'audio' | 'visual';
 }
 
-export function Scanner({ 
+export function Scanner({
   mode = 'audio'
 }: ScannerProps) {
   const [vehicleMake, setVehicleMake] = useState("");
@@ -36,7 +36,7 @@ export function Scanner({
   const animationRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Refs for the concentric rings
   const ringsRef = useRef<(HTMLDivElement | null)[]>([]);
   // Store current scales for smooth lerping
@@ -55,12 +55,12 @@ export function Scanner({
           const noise = Math.random() * 40;
           const engineThump = Math.sin(time * 15) * 80 + 80; // Low frequency thump
           const mechanicalWhine = Math.sin(time * 2 + i * 0.1) * 40 + 40;
-          
+
           // Bass gets the thump, higher freqs get the whine
           let val = 0;
           if (i < 15) val = engineThump + noise;
           else val = mechanicalWhine + noise;
-          
+
           const dropoff = Math.pow(1 - (i / 128), 1.5);
           dataArray[i] = Math.min(255, Math.max(0, val * dropoff));
         }
@@ -92,18 +92,18 @@ export function Scanner({
       // Smoothly interpolate scales
       for (let i = 0; i < 5; i++) {
         currentScales.current[i] = lerp(currentScales.current[i], targetScales[i], 0.05); // Extremely slow lerp for liquid feel
-        
+
         if (ringsRef.current[i]) {
           const scale = currentScales.current[i];
           const intensity = targetScales[i] - 1; // How loud this band is
-          
+
           // Opacity fades out as scale increases, but gets a boost from intensity
           const baseOpacity = 0.15 - (i * 0.02);
           const opacity = Math.max(0, baseOpacity - (scale - 1) * 0.04 + (intensity * 0.05));
-          
+
           ringsRef.current[i]!.style.transform = `translate(-50%, -50%) scale(${scale})`;
           ringsRef.current[i]!.style.opacity = opacity.toString();
-          
+
           // Dynamic color shifting based on intensity (deep blue to bright cyan)
           const r = Math.min(255, intensity * 80);
           const g = Math.min(255, 209 + intensity * 46); // #00D1FF is rgb(0, 209, 255)
@@ -132,13 +132,13 @@ export function Scanner({
       // 2. Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
+
       // 3. Set up analyzer
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.9; // Extremely high smoothing for liquid, non-jittery reaction
       analyserRef.current = analyser;
-      
+
       const source = audioCtx.createMediaStreamSource(stream);
       source.connect(analyser);
 
@@ -157,10 +157,10 @@ export function Scanner({
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
     if (audioContextRef.current) audioContextRef.current.close();
-    
+
     setIsRecording(false);
     setIsDemoMode(false);
-    
+
     // Reset rings to idle state smoothly
     for (let i = 0; i < 5; i++) {
       currentScales.current[i] = 1;
@@ -205,7 +205,7 @@ export function Scanner({
   const simulateProcessing = () => {
     setIsAnalyzing(true);
     setAnalyzingText("Izolowanie szumów tła...");
-    
+
     setTimeout(() => {
       setAnalyzingText("Przeszukiwanie bazy usterek...");
     }, 1500);
@@ -239,28 +239,28 @@ export function Scanner({
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-[#00D1FF]/30">
       {/* Premium Deep Navy Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#13172B_0%,#06080F_100%)] pointer-events-none" />
-      
-      <motion.div 
-        animate={{ 
+
+      <motion.div
+        animate={{
           scale: [1, 1.1, 1],
           opacity: [0.08, 0.15, 0.08],
           rotate: [0, 45, 0]
         }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gradient-to-br from-[#00D1FF] to-transparent rounded-full blur-[120px] pointer-events-none" 
+        className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gradient-to-br from-[#00D1FF] to-transparent rounded-full blur-[120px] pointer-events-none"
       />
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           scale: [1, 1.2, 1],
           opacity: [0.05, 0.1, 0.05],
           rotate: [0, -45, 0]
         }}
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-gradient-to-tl from-[#00D1FF] to-transparent rounded-full blur-[120px] pointer-events-none" 
+        className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-gradient-to-tl from-[#00D1FF] to-transparent rounded-full blur-[120px] pointer-events-none"
       />
 
       {/* Mobile-perfect container */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
 
         {/* Cancel button during recording — top left */}
         <AnimatePresence>
@@ -278,12 +278,12 @@ export function Scanner({
             </motion.button>
           )}
         </AnimatePresence>
-        
+
         {/* Top Inputs + Protipy Button */}
-        <motion.div 
+        <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex flex-col items-center pt-4 pb-1 relative z-20 gap-3"
+          className="w-full px-6 flex flex-col items-center pt-4 pb-1 relative z-20 gap-3 shrink-0"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
           <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-4 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-3">
@@ -309,7 +309,7 @@ export function Scanner({
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => setShowInstructions(true)}
             className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-5 py-2.5 rounded-full shadow-sm"
           >
@@ -318,110 +318,110 @@ export function Scanner({
         </motion.div>
 
         {/* Center Concentric Visualizer & Button */}
-      <div className={`z-10 flex flex-col items-center w-full relative ${(isRecording || isAnalyzing) ? 'justify-center flex-1' : 'justify-start pt-2'}`}>
-        
-        {/* Status Text (Moved above the button for better visibility like Shazam) */}
-        <div className="h-12 mb-4 flex flex-col items-center justify-end z-10">
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={isRecording ? 'recording' : 'idle'}
-              initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center"
-            >
-              <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing ? 'text-foreground' : 'text-foreground/90'}`}>
-                {isAnalyzing ? 'Trwa Analiza AI...' : mode === 'visual' 
-                  ? (isRecording ? 'Twieranie...' : 'Zrób zdjęcie lub nagraj wideo')
-                  : (isRecording ? (isDemoMode ? 'Tryb Demo...' : 'Nasłuchiwanie...') : 'Dotknij, aby diagnozować')}
-              </h2>
-              <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
-                {mode === 'visual'
-                  ? 'Rozpoznawanie na podstawie uszkodzeń wizualnych'
-                  : (isRecording 
-                      ? (isDemoMode ? 'Symulacja dźwięku silnika (brak mikrofonu)' : 'Zbliż telefon do źródła dźwięku') 
-                      : 'Wymagany dostęp do mikrofonu')
-                }
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]`}>
 
-        <div className="relative flex items-center justify-center w-[200px] h-[200px]">
-          
-          {/* Concentric Rings (Solid circles expanding outwards and fading) */}
-          <div className="absolute inset-0 pointer-events-none" style={{ display: mode === 'visual' ? 'none' : 'block' }}>
-            {[...Array(5)].map((_, i) => (
-              <div 
-                key={i}
-                ref={(el) => { ringsRef.current[i] = el; }} 
-                className="absolute top-1/2 left-1/2 w-[160px] h-[160px] rounded-full bg-[#00D1FF] mix-blend-screen transition-opacity duration-200" 
-                style={{ 
-                  transform: 'translate(-50%, -50%) scale(1)', 
-                  opacity: 0,
-                  willChange: 'transform, opacity, background-color'
-                }} 
-              />
-            ))}
+          {/* Status Text (Moved above the button for better visibility like Shazam) */}
+          <div className="h-12 mb-4 flex flex-col items-center justify-end z-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={isRecording ? 'recording' : 'idle'}
+                initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center"
+              >
+                <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing ? 'text-foreground' : 'text-foreground/90'}`}>
+                  {isAnalyzing ? 'Trwa Analiza AI...' : mode === 'visual'
+                    ? (isRecording ? 'Twieranie...' : 'Zrób zdjęcie lub nagraj wideo')
+                    : (isRecording ? (isDemoMode ? 'Tryb Demo...' : 'Nasłuchiwanie...') : 'Dotknij, aby diagnozować')}
+                </h2>
+                <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
+                  {mode === 'visual'
+                    ? 'Rozpoznawanie na podstawie uszkodzeń wizualnych'
+                    : (isRecording
+                      ? (isDemoMode ? 'Symulacja dźwięku silnika (brak mikrofonu)' : 'Zbliż telefon do źródła dźwięku')
+                      : 'Wymagany dostęp do mikrofonu')
+                  }
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Continuous Subtle Waves (Emanating from center) */}
-          <AnimatePresence>
-            {isRecording && mode === 'audio' && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2 }}
+          <div className="relative flex items-center justify-center w-[200px] h-[200px]">
+
+            {/* Concentric Rings (Solid circles expanding outwards and fading) */}
+            <div className="absolute inset-0 pointer-events-none" style={{ display: mode === 'visual' ? 'none' : 'block' }}>
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  ref={(el) => { ringsRef.current[i] = el; }}
+                  className="absolute top-1/2 left-1/2 w-[160px] h-[160px] rounded-full bg-[#00D1FF] mix-blend-screen transition-opacity duration-200"
+                  style={{
+                    transform: 'translate(-50%, -50%) scale(1)',
+                    opacity: 0,
+                    willChange: 'transform, opacity, background-color'
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Continuous Subtle Waves (Emanating from center) */}
+            <AnimatePresence>
+              {isRecording && mode === 'audio' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2 }}
+                  className="absolute inset-0 pointer-events-none flex items-center justify-center"
+                >
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={`wave-${i}`}
+                      initial={{ scale: 1, opacity: 0 }}
+                      animate={{ scale: 4, opacity: [0, 0.15, 0, 0] }}
+                      transition={{
+                        scale: {
+                          duration: 6,
+                          repeat: Infinity,
+                          delay: i * 2,
+                          ease: "easeOut",
+                        },
+                        opacity: {
+                          duration: 6,
+                          repeat: Infinity,
+                          delay: i * 2,
+                          times: [0, 0.2, 0.8, 1], // Fades out completely before the scale ends to prevent popping
+                          ease: "easeInOut",
+                        }
+                      }}
+                      className="absolute w-[160px] h-[160px] rounded-full border-[1.5px] border-[#00D1FF]/40 mix-blend-screen"
+                      style={{ willChange: 'transform, opacity' }}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Idle Breathing Animation for Rings (only when not recording) */}
+            {!isRecording && mode === 'audio' && (
+              <motion.div
+                animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.1, 0.03] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute inset-0 pointer-events-none flex items-center justify-center"
               >
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={`wave-${i}`}
-                    initial={{ scale: 1, opacity: 0 }}
-                    animate={{ scale: 4, opacity: [0, 0.15, 0, 0] }}
-                    transition={{
-                      scale: {
-                        duration: 6,
-                        repeat: Infinity,
-                        delay: i * 2,
-                        ease: "easeOut",
-                      },
-                      opacity: {
-                        duration: 6,
-                        repeat: Infinity,
-                        delay: i * 2,
-                        times: [0, 0.2, 0.8, 1], // Fades out completely before the scale ends to prevent popping
-                        ease: "easeInOut",
-                      }
-                    }}
-                    className="absolute w-[160px] h-[160px] rounded-full border-[1.5px] border-[#00D1FF]/40 mix-blend-screen"
-                    style={{ willChange: 'transform, opacity' }}
-                  />
-                ))}
+                <div className="w-[180px] h-[180px] rounded-full bg-[#00D1FF] blur-md" />
               </motion.div>
             )}
-          </AnimatePresence>
 
-          {/* Idle Breathing Animation for Rings (only when not recording) */}
-          {!isRecording && mode === 'audio' && (
-            <motion.div 
-              animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.1, 0.03] }} 
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 pointer-events-none flex items-center justify-center"
-            >
-              <div className="w-[180px] h-[180px] rounded-full bg-[#00D1FF] blur-md" />
-            </motion.div>
-          )}
-
-          {/* Central Button (Steve Jobs / Apple Style with Logo) */}
-          <motion.button
-            onClick={toggleRecording}
-            style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
-            animate={
-              isRecording
-                ? {
+            {/* Central Button (Steve Jobs / Apple Style with Logo) */}
+            <motion.button
+              onClick={toggleRecording}
+              style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
+              animate={
+                isRecording
+                  ? {
                     scale: [0.98, 1.02, 0.98],
                     boxShadow: [
                       '0 0 30px rgba(0, 209, 255, 0.2), inset 0 2px 20px rgba(0, 209, 255, 0.1)',
@@ -429,97 +429,98 @@ export function Scanner({
                       '0 0 30px rgba(0, 209, 255, 0.2), inset 0 2px 20px rgba(0, 209, 255, 0.1)'
                     ]
                   }
-                : {
+                  : {
                     scale: 1,
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 2px 10px rgba(255,255,255,0.05)'
                   }
-            }
-            transition={
-              isRecording
-                ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
-            }
-            className="relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl border border-foreground/[0.08] group bg-surface-elevated/90"
-          >
-            {/* Inner Depth Shadow */}
-            <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
+              }
+              transition={
+                isRecording
+                  ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+              }
+              className="relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl border border-foreground/[0.08] group bg-surface-elevated/90"
+            >
+              {/* Inner Depth Shadow */}
+              <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
 
-            {/* Minimalist Mic Icon inside button */}
-            <div className="relative z-10 flex flex-col items-center justify-center select-none">
-              <motion.div
-                animate={isRecording ? { opacity: [0.6, 1, 0.6], scale: [0.95, 1.05, 0.95] } : { opacity: 1, scale: 1 }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative flex items-center justify-center p-4"
-              >
-                {isAnalyzing ? (
-                  <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
-                ) : mode === 'audio' ? (
-                  <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
-                ) : (
-                  <Camera className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-foreground' : 'text-foreground/80'}`} />
-                )}
-                
+              {/* Minimalist Mic Icon inside button */}
+              <div className="relative z-10 flex flex-col items-center justify-center select-none">
+                <motion.div
+                  animate={isRecording ? { opacity: [0.6, 1, 0.6], scale: [0.95, 1.05, 0.95] } : { opacity: 1, scale: 1 }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative flex items-center justify-center p-4"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
+                  ) : mode === 'audio' ? (
+                    <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
+                  ) : (
+                    <Camera className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-foreground' : 'text-foreground/80'}`} />
+                  )}
+
+                  {isAnalyzing && (
+                    <motion.div
+                      className="absolute inset-0 border-2 border-transparent border-t-purple-400 border-r-purple-400/50 rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+
+                  {(isRecording || isAnalyzing) && mode === 'audio' && (
+                    <motion.div
+                      className={`absolute inset-0 blur-xl rounded-full -z-10 ${isAnalyzing ? 'bg-purple-500' : 'bg-[#00D1FF]'}`}
+                      animate={{ opacity: [0.2, 0.5, 0.2] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                </motion.div>
+              </div>
+            </motion.button>
+
+            {/* Analyzing Text */}
+            <div className="absolute -bottom-12 left-0 right-0 flex justify-center">
+              <AnimatePresence>
                 {isAnalyzing && (
-                  <motion.div 
-                    className="absolute inset-0 border-2 border-transparent border-t-purple-400 border-r-purple-400/50 rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  />
+                  <motion.div
+                    key={analyzingText}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute text-[10px] md:text-xs font-semibold tracking-widest text-purple-400/80 uppercase whitespace-nowrap"
+                  >
+                    {analyzingText}
+                  </motion.div>
                 )}
-
-                {(isRecording || isAnalyzing) && mode === 'audio' && (
-                  <motion.div 
-                    className={`absolute inset-0 blur-xl rounded-full -z-10 ${isAnalyzing ? 'bg-purple-500' : 'bg-[#00D1FF]'}`}
-                    animate={{ opacity: [0.2, 0.5, 0.2] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-              </motion.div>
+              </AnimatePresence>
             </div>
-          </motion.button>
-          
-          {/* Analyzing Text */}
-          <div className="absolute -bottom-12 left-0 right-0 flex justify-center">
-             <AnimatePresence>
-               {isAnalyzing && (
-                 <motion.div
-                   key={analyzingText}
-                   initial={{ opacity: 0, y: 8 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   exit={{ opacity: 0, y: -8 }}
-                   transition={{ duration: 0.4 }}
-                   className="absolute text-[10px] md:text-xs font-semibold tracking-widest text-purple-400/80 uppercase whitespace-nowrap"
-                 >
-                   {analyzingText}
-                 </motion.div>
-               )}
-             </AnimatePresence>
+
+            <input type="file" accept="image/*,video/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+            <input type="file" accept="image/*,video/*" className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
+
+            {/* Error Message Display */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="absolute bottom-[-80px] flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 px-4 py-2 rounded-xl backdrop-blur-md z-50"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{error}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          
-          <input type="file" accept="image/*,video/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-          <input type="file" accept="image/*,video/*" className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
-          
-          {/* Error Message Display */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="absolute bottom-[-80px] flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 px-4 py-2 rounded-xl backdrop-blur-md z-50"
-              >
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">{error}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Bottom Buttons */}
-        <motion.div 
+        <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex gap-4 pb-[130px] pt-2 relative z-20"
+          className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
           <button onClick={() => mode === 'audio' ? undefined : galleryInputRef.current?.click()} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
@@ -534,7 +535,7 @@ export function Scanner({
               {mode === 'audio' ? 'Wgraj audio' : 'Wgraj pliki'}
             </span>
           </button>
-          
+
           <button onClick={() => setIsContextModalOpen(true)} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
@@ -544,7 +545,6 @@ export function Scanner({
             </span>
           </button>
         </motion.div>
-        </div>
       </div>
 
       <AnimatePresence>
