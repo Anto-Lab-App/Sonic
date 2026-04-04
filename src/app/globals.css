@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+}
+
+@layer base {
+  :root {
+    --background: #F8FAFC;
+    --foreground: #0F172A;
+    --surface: #FFFFFF;
+    --surface-hover: #F1F5F9;
+    --surface-elevated: #FFFFFF;
+    --border-subtle: #E2E8F0;
+    --primary: #0EA5E9;
+    --muted: #64748B;
+  }
+
+  .dark {
+    --background: #06080F;
+    --foreground: #FFFFFF;
+    --surface: #151B26;
+    --surface-hover: #232C3B;
+    --surface-elevated: #0A0D14;
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    /* For Scanner button and Chat mainly */
+    --primary: #00D1FF; 
+    --muted: rgba(255, 255, 255, 0.4);
+  }
+
+  .pink {
+    --background: #FFF1F2;
+    --foreground: #881337;
+    --surface: #FFE4E6;
+    --surface-hover: #FCE7F3;
+    --surface-elevated: #FFF1F2;
+    --border-subtle: rgba(225, 29, 72, 0.15);
+    --primary: #E11D48;
+    --muted: #FB7185;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

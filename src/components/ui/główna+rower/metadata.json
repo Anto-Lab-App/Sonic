@@ -1,0 +1,7 @@
+{
+  "name": "Engine Audio Analyzer",
+  "description": "A web application for detecting engine faults from audio recordings.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
