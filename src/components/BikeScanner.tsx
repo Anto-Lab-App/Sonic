@@ -86,7 +86,7 @@ export function BikeScanner({
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-between font-sans relative overflow-hidden selection:bg-orange-500/30">
+    <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-orange-500/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--color-surface)_0%,transparent_100%)] pointer-events-none opacity-50" />
       
       {/* Decorative Bike accents */}
@@ -100,7 +100,7 @@ export function BikeScanner({
         className="absolute top-[10%] left-[-10%] w-[60vw] h-[60vw] bg-gradient-to-br from-orange-500 to-transparent rounded-full blur-[100px] pointer-events-none" 
       />
 
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-screen flex-1">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide">
         
         {/* Top Dropdown */}
         <motion.div 
@@ -170,7 +170,7 @@ export function BikeScanner({
           </button>
         </motion.div>
 
-        <div className="z-10 flex flex-col items-center justify-center flex-1 w-full relative my-8">
+        <div className={`z-10 flex flex-col items-center flex-1 w-full relative ${isAnalyzing ? 'justify-center' : 'justify-center my-8'}`}>
           
           {/* Status Text  */}
           <div className="h-16 mb-8 flex flex-col items-center justify-end z-10">
@@ -288,7 +288,7 @@ export function BikeScanner({
           <motion.div 
             animate={{ opacity: isAnalyzing ? 0 : 1, y: isAnalyzing ? 20 : 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full px-6 flex gap-4 pb-12 mt-12 relative z-20"
+            className="w-full px-6 flex gap-4 pb-[140px] mt-8 relative z-20"
             style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
           >
             <button onClick={() => galleryInputRef.current?.click()} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-border-subtle backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
