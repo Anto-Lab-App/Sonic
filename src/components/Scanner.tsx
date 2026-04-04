@@ -7,6 +7,7 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
 import { DiagnosisReport } from './DiagnosisReport';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // Utility for smooth animation interpolation
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -18,6 +19,7 @@ interface ScannerProps {
 export function Scanner({
   mode = 'audio'
 }: ScannerProps) {
+  const { t } = useLanguage();
   const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleDetails, setVehicleDetails] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -28,7 +30,7 @@ export function Scanner({
   const [showInstructions, setShowInstructions] = useState(false);
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
-  const [analyzingText, setAnalyzingText] = useState("Inicjalizacja AI...");
+  const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -146,7 +148,7 @@ export function Scanner({
       startVisualizerLoop(false);
     } catch (err) {
       console.warn("Microphone access denied or error:", err);
-      setError("Brak mikrofonu. Uruchomiono tryb demonstracyjny.");
+      setError(t.auto.noMic);
       setIsDemoMode(true);
       setIsRecording(true);
       startVisualizerLoop(true);
@@ -204,14 +206,14 @@ export function Scanner({
 
   const simulateProcessing = () => {
     setIsAnalyzing(true);
-    setAnalyzingText("Izolowanie szumów tła...");
+    setAnalyzingText(t.auto.status.iso);
 
     setTimeout(() => {
-      setAnalyzingText("Przeszukiwanie bazy usterek...");
+      setAnalyzingText(t.auto.status.search);
     }, 1500);
 
     setTimeout(() => {
-      setAnalyzingText("Opracowywanie diagnozy...");
+      setAnalyzingText(t.auto.status.dev);
     }, 3000);
 
     setTimeout(() => {
@@ -288,20 +290,20 @@ export function Scanner({
         >
           <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-4 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-3">
             <div className="flex flex-col items-start px-2">
-              <span className="text-[10px] font-semibold tracking-widest text-[#00D1FF] uppercase mb-0.5">Dane pojazdu</span>
-              <span className="text-xs text-foreground/50">Wpisz ręcznie parametry, by pomóc diagnozie</span>
+              <span className="text-[10px] font-semibold tracking-widest text-[#00D1FF] uppercase mb-0.5">{t.auto.vehicleData}</span>
+              <span className="text-xs text-foreground/50">{t.auto.vehicleDataSub}</span>
             </div>
             <div className="flex flex-col gap-2">
               <input
                 type="text"
-                placeholder="Marka i Model (np. Passat B8)"
+                placeholder={t.auto.makeModelPlaceholder}
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
                 className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
               <input
                 type="text"
-                placeholder="Rok, Silnik (np. 2017 2.0 TDI)"
+                placeholder={t.auto.yearEnginePlaceholder}
                 value={vehicleDetails}
                 onChange={(e) => setVehicleDetails(e.target.value)}
                 className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
@@ -311,9 +313,9 @@ export function Scanner({
 
           <button
             onClick={() => setShowInstructions(true)}
-            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-5 py-2.5 rounded-full shadow-sm"
+            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-5 py-2.5 rounded-full shadow-sm max-w-full"
           >
-            <AlertCircle size={14} /> Protipy dla lepszych efektów
+            <AlertCircle size={14} className="shrink-0" /> <span className="truncate">{t.auto.protips}</span>
           </button>
         </motion.div>
 
@@ -329,19 +331,19 @@ export function Scanner({
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center text-center px-2"
               >
                 <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing ? 'text-foreground' : 'text-foreground/90'}`}>
-                  {isAnalyzing ? 'Trwa Analiza AI...' : mode === 'visual'
-                    ? (isRecording ? 'Twieranie...' : 'Zrób zdjęcie lub nagraj wideo')
-                    : (isRecording ? (isDemoMode ? 'Tryb Demo...' : 'Nasłuchiwanie...') : 'Dotknij, aby diagnozować')}
+                  {isAnalyzing ? t.loadingAI : mode === 'visual'
+                    ? (isRecording ? t.auto.audioOpening : t.auto.visualTitle)
+                    : (isRecording ? (isDemoMode ? t.demoMode : t.auto.audioListening) : t.auto.audioTap)}
                 </h2>
                 <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
                   {mode === 'visual'
-                    ? 'Rozpoznawanie na podstawie uszkodzeń wizualnych'
+                    ? t.auto.visualSub
                     : (isRecording
-                      ? (isDemoMode ? 'Symulacja dźwięku silnika (brak mikrofonu)' : 'Zbliż telefon do źródła dźwięku')
-                      : 'Wymagany dostęp do mikrofonu')
+                      ? (isDemoMode ? t.auto.audioSubDemo : t.auto.audioSubSrc)
+                      : t.auto.audioSubReq)
                   }
                 </p>
               </motion.div>
@@ -531,8 +533,8 @@ export function Scanner({
                 <ImageIcon className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
               )}
             </div>
-            <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2">
-              {mode === 'audio' ? 'Wgraj wideo' : 'Wgraj pliki'}
+            <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
+              {mode === 'audio' ? t.auto.uploadAudio : t.auto.uploadFiles}
             </span>
           </button>
 
@@ -540,8 +542,8 @@ export function Scanner({
             <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
             </div>
-            <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2">
-              Wgraj kontekst
+            <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
+              {t.auto.uploadContext}
             </span>
           </button>
         </motion.div>

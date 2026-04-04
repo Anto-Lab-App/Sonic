@@ -7,6 +7,7 @@ import { ChevronDown, AlertCircle, Camera, Image as ImageIcon, Loader2, BookOpen
 import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
 import { BikeDiagnosisReport } from './BikeDiagnosisReport';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface BikeScannerProps {
   targets?: string[];
@@ -14,17 +15,13 @@ interface BikeScannerProps {
 }
 
 export function BikeScanner({
-  targets = [
-    'Napęd (Rozciągnięcie, Przeskoki)',
-    'Hamulce (Piszczenie, Tracie)',
-    'Suport (Trzaski podczas pedałowania)',
-    'Przerzutka (Problem zrzucania)',
-    'Amortyzator / Łożyska ramy'
-  ],
-  defaultTarget = 'Napęd (Rozciągnięcie, Przeskoki)'
+  defaultTarget
 }: BikeScannerProps) {
+  const { t } = useLanguage();
+  const targets = t.bike.targets;
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [target, setTarget] = useState(defaultTarget);
+  const [target, setTarget] = useState(defaultTarget || targets[0]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,21 +30,21 @@ export function BikeScanner({
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
 
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
-  const [analyzingText, setAnalyzingText] = useState("Inicjalizacja AI...");
+  const [analyzingText, setAnalyzingText] = useState(t.bike.status.init);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const simulateProcessing = () => {
     setIsAnalyzing(true);
-    setAnalyzingText("Analiza struktury ze zdjęcia/wideo...");
+    setAnalyzingText(t.bike.status.analyze);
 
     setTimeout(() => {
-      setAnalyzingText("Sprawdzanie stanu zębatki i uszkodzeń...");
+      setAnalyzingText(t.bike.status.check);
     }, 1500);
 
     setTimeout(() => {
-      setAnalyzingText("Opracowywanie diagnozy rowerowej...");
+      setAnalyzingText(t.bike.status.dev);
     }, 3000);
 
     setTimeout(() => {
@@ -113,9 +110,9 @@ export function BikeScanner({
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center justify-between w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 px-6 py-4 rounded-[32px] border border-border-subtle backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group"
           >
-            <div className="flex flex-col items-start">
-              <span className="text-[10px] font-semibold tracking-widest text-muted uppercase mb-0.5 group-hover:text-foreground/80 transition-colors">Sekcja Roweru</span>
-              <span className="text-sm font-medium tracking-wide text-foreground">{target}</span>
+            <div className="flex flex-col items-start text-left">
+              <span className="text-[10px] font-semibold tracking-widest text-muted uppercase mb-0.5 group-hover:text-foreground/80 transition-colors">{t.bike.section}</span>
+              <span className="text-sm font-medium tracking-wide text-foreground truncate max-w-[200px] sm:max-w-[300px]">{target}</span>
             </div>
             <motion.div animate={{ rotate: isDropdownOpen ? 180 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
               <ChevronDown className="w-5 h-5 text-muted group-hover:text-foreground transition-colors" />
@@ -141,8 +138,8 @@ export function BikeScanner({
                         setIsDropdownOpen(false);
                       }}
                       className={`w-full text-left px-6 py-3.5 text-sm transition-all duration-300 flex items-center justify-between ${target === t
-                          ? 'bg-orange-500/10 text-orange-500 font-medium'
-                          : 'text-foreground/70 hover:bg-surface-hover hover:text-foreground'
+                        ? 'bg-orange-500/10 text-orange-500 font-medium'
+                        : 'text-foreground/70 hover:bg-surface-hover hover:text-foreground'
                         }`}
                     >
                       {t}
@@ -157,9 +154,9 @@ export function BikeScanner({
           {/* Protipy Button */}
           <button
             onClick={() => setShowInstructions(true)}
-            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-orange-500/50 hover:text-orange-500/80 transition-colors"
+            className="flex items-center justify-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-orange-500/50 hover:text-orange-500/80 transition-colors max-w-full"
           >
-            <AlertCircle size={12} /> Protipy: Jak ująć awarię na zdjęciu/wideo
+            <AlertCircle size={12} className="shrink-0" /> <span className="truncate">{t.bike.protips}</span>
           </button>
         </motion.div>
 
@@ -174,13 +171,13 @@ export function BikeScanner({
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center text-center px-2"
               >
                 <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isAnalyzing ? 'text-foreground' : 'text-foreground/90'}`}>
-                  {isAnalyzing ? 'Trwa Analiza...' : 'Zrób zdjęcie kasety / detalu'}
+                  {isAnalyzing ? t.loading : t.bike.title}
                 </h2>
                 <p className="text-sm text-muted font-medium tracking-wide text-center px-4">
-                  Szukamy zagiętych zębów, uszkodzeń ramy lub pęknięć. Zrób fotkę makro.
+                  {t.bike.subtitle}
                 </p>
               </motion.div>
             </AnimatePresence>
@@ -290,8 +287,8 @@ export function BikeScanner({
             <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
               <ImageIcon className="w-4 h-4 transition-colors text-foreground/60 group-hover:text-orange-500" />
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-widest px-2 transition-colors text-muted group-hover:text-orange-500">
-              Zdjęcie z galerii
+            <span className="text-[10px] font-semibold uppercase tracking-widest px-2 transition-colors text-muted group-hover:text-orange-500 truncate w-full text-center">
+              {t.bike.gallery}
             </span>
           </button>
 
@@ -299,8 +296,8 @@ export function BikeScanner({
             <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
               <BookOpen className="w-4 h-4 transition-colors text-foreground/60 group-hover:text-orange-500" />
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-widest px-2 transition-colors text-muted group-hover:text-orange-500">
-              Dodaj Kontekst
+            <span className="text-[10px] font-semibold uppercase tracking-widest px-2 transition-colors text-muted group-hover:text-orange-500 truncate w-full text-center">
+              {t.bike.addContext}
             </span>
           </button>
         </motion.div>

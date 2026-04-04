@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { 
-  User, 
-  Globe, 
-  Bell, 
-  Shield, 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { Language } from '@/lib/translations';
+import {
+  User,
+  Globe,
+  Bell,
+  Shield,
   LogOut,
   ChevronLeft,
   Check,
@@ -37,7 +39,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState('history');
-  const [language, setLanguage] = useState('pl');
+  const { language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -73,20 +75,19 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 ${
-                      isActive 
-                        ? 'bg-surface text-foreground shadow-sm border border-border-subtle' 
+                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive
+                        ? 'bg-surface text-foreground shadow-sm border border-border-subtle'
                         : 'text-muted hover:bg-surface/60 hover:text-foreground border border-transparent'
-                    }`}
+                      }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
                     <span className="font-medium">{tab.label}</span>
                   </button>
                 );
               })}
-              
+
               <div className="h-px bg-surface-hover my-4 mx-4" />
-              
+
               <button className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 text-red-400 hover:bg-red-500/10 border border-transparent">
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Wyloguj się</span>
@@ -117,10 +118,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     ].map((lang) => (
                       <button
                         key={lang.id}
-                        onClick={() => setLanguage(lang.id)}
-                        className={`w-full flex items-center justify-between p-5 rounded-2xl transition-all duration-200 ${
-                          language === lang.id ? 'bg-surface-hover/50' : 'hover:bg-surface-hover/30'
-                        }`}
+                        onClick={() => setLanguage(lang.id as Language)}
+                        className={`w-full flex items-center justify-between p-5 rounded-2xl transition-all duration-200 ${language === lang.id ? 'bg-surface-hover/50' : 'hover:bg-surface-hover/30'
+                          }`}
                       >
                         <div className="flex flex-col items-start gap-0.5">
                           <span className={`font-medium ${language === lang.id ? 'text-foreground' : 'text-muted'}`}>
@@ -147,49 +147,45 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <div className="p-8">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                       {/* Theme options */}
-                      <button 
+                      <button
                         onClick={() => setTheme('system')}
                         className="flex flex-col items-center gap-4 group"
                       >
-                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
-                          theme === 'system' ? 'border-primary bg-surface-hover/30' : 'border-border-subtle bg-background group-hover:border-foreground/20'
-                        }`}>
+                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${theme === 'system' ? 'border-primary bg-surface-hover/30' : 'border-border-subtle bg-background group-hover:border-foreground/20'
+                          }`}>
                           <Monitor className={`w-8 h-8 ${theme === 'system' ? 'text-primary' : 'text-muted'}`} />
                         </div>
                         <span className={`text-sm font-medium ${theme === 'system' ? 'text-foreground' : 'text-muted'}`}>Systemowy</span>
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={() => setTheme('light')}
                         className="flex flex-col items-center gap-4 group"
                       >
-                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
-                          theme === 'light' ? 'border-primary bg-[#F8FAFC]' : 'border-border-subtle bg-[#F8FAFC] group-hover:border-foreground/20'
-                        }`}>
+                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${theme === 'light' ? 'border-primary bg-[#F8FAFC]' : 'border-border-subtle bg-[#F8FAFC] group-hover:border-foreground/20'
+                          }`}>
                           <Sun className={`w-8 h-8 ${theme === 'light' ? 'text-primary' : 'text-[#8A94A6]'}`} />
                         </div>
                         <span className={`text-sm font-medium ${theme === 'light' ? 'text-foreground' : 'text-muted'}`}>Jasny</span>
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={() => setTheme('dark')}
                         className="flex flex-col items-center gap-4 group"
                       >
-                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
-                          theme === 'dark' ? 'border-primary bg-[#0B121A]' : 'border-border-subtle bg-[#0B121A] group-hover:border-foreground/20'
-                        }`}>
+                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${theme === 'dark' ? 'border-primary bg-[#0B121A]' : 'border-border-subtle bg-[#0B121A] group-hover:border-foreground/20'
+                          }`}>
                           <Moon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary' : 'text-[#64748B]'}`} />
                         </div>
                         <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-muted'}`}>Ciemny</span>
                       </button>
 
-                      <button 
+                      <button
                         onClick={() => setTheme('pink')}
                         className="flex flex-col items-center gap-4 group"
                       >
-                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
-                          theme === 'pink' ? 'border-primary bg-[#FFF1F2]' : 'border-border-subtle bg-[#FFF1F2] group-hover:border-foreground/20'
-                        }`}>
+                        <div className={`w-full aspect-[4/3] rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${theme === 'pink' ? 'border-primary bg-[#FFF1F2]' : 'border-border-subtle bg-[#FFF1F2] group-hover:border-foreground/20'
+                          }`}>
                           <Heart className={`w-8 h-8 ${theme === 'pink' ? 'text-[#E11D48]' : 'text-[#FB7185]'}`} />
                         </div>
                         <span className={`text-sm font-medium ${theme === 'pink' ? 'text-foreground' : 'text-muted'}`}>Różowy</span>
@@ -227,7 +223,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       <ChevronRight className="w-5 h-5" />
                     </div>
                   </div>
-                  
+
                   {/* Item 2 */}
                   <div className="bg-surface rounded-[1.5rem] border border-border-subtle p-5 flex items-center gap-5 hover:border-border-subtle transition-colors cursor-pointer group">
                     <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
@@ -272,12 +268,12 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             )}
 
             {activeTab === 'profile' && (
-               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                 <div>
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div>
                   <h2 className="text-3xl font-semibold mb-2 tracking-tight">Profil</h2>
                   <p className="text-muted text-lg">Zarządzaj swoimi danymi osobowymi.</p>
                 </div>
-                
+
                 <section className="bg-surface rounded-[2rem] border border-border-subtle p-8 space-y-8">
                   <div className="flex items-center gap-8">
                     <div className="w-24 h-24 rounded-full bg-surface-hover border-2 border-border-subtle flex items-center justify-center text-3xl font-semibold text-muted">
@@ -291,24 +287,24 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="h-px bg-surface-hover w-full" />
 
                   <div className="space-y-6">
                     <div className="space-y-2.5">
                       <label className="text-sm font-medium text-[#E2E8F0]">Imię i nazwisko</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Jan Kowalski" 
-                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3.5 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-blue-500 transition-all" 
+                      <input
+                        type="text"
+                        defaultValue="Jan Kowalski"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3.5 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                     </div>
                     <div className="space-y-2.5">
                       <label className="text-sm font-medium text-[#E2E8F0]">Adres email</label>
-                      <input 
-                        type="email" 
-                        defaultValue="jan.kowalski@example.com" 
-                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3.5 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-blue-500 transition-all" 
+                      <input
+                        type="email"
+                        defaultValue="jan.kowalski@example.com"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3.5 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                     </div>
                   </div>
@@ -319,7 +315,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     </button>
                   </div>
                 </section>
-               </div>
+              </div>
             )}
 
             {/* Other tabs placeholders */}
