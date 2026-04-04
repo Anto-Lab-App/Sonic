@@ -25,12 +25,12 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const TABS = [
-  { id: 'profile', label: 'Profil', icon: User },
-  { id: 'history', label: 'Historia analiz', icon: History },
-  { id: 'preferences', label: 'Preferencje', icon: Globe },
-  { id: 'notifications', label: 'Powiadomienia', icon: Bell },
-  { id: 'security', label: 'Bezpieczeństwo', icon: Shield },
+const getTabs = (t: any) => [
+  { id: 'profile', label: t.settings.tabs.profile, icon: User },
+  { id: 'history', label: t.settings.tabs.history, icon: History },
+  { id: 'preferences', label: t.settings.tabs.preferences, icon: Globe },
+  { id: 'notifications', label: t.settings.tabs.notifications, icon: Bell },
+  { id: 'security', label: t.settings.tabs.security, icon: Shield },
 ];
 
 interface SettingsModalProps {
@@ -38,10 +38,11 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
+  const { t, language, setLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState('history');
-  const { language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const TABS = getTabs(t);
 
   useEffect(() => {
     setMounted(true);
@@ -58,7 +59,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <button onClick={onClose} className="p-2.5 hover:bg-surface rounded-full transition-colors text-muted hover:text-foreground border border-transparent hover:border-border-subtle">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-semibold tracking-tight">Ustawienia</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t.settings.title}</h1>
           </div>
         </div>
       </header>
@@ -76,8 +77,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive
-                        ? 'bg-surface text-foreground shadow-sm border border-border-subtle'
-                        : 'text-muted hover:bg-surface/60 hover:text-foreground border border-transparent'
+                      ? 'bg-surface text-foreground shadow-sm border border-border-subtle'
+                      : 'text-muted hover:bg-surface/60 hover:text-foreground border border-transparent'
                       }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
@@ -90,7 +91,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
               <button className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200 text-red-400 hover:bg-red-500/10 border border-transparent">
                 <LogOut className="w-5 h-5" />
-                <span className="font-medium">Wyloguj się</span>
+                <span className="font-medium">{t.settings.logout}</span>
               </button>
             </nav>
           </aside>
@@ -100,15 +101,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             {activeTab === 'preferences' && (
               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">Preferencje</h2>
-                  <p className="text-muted text-lg">Zarządzaj ustawieniami języka, wyglądu i regionu.</p>
+                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">{t.settings.preferences.title}</h2>
+                  <p className="text-muted text-lg">{t.settings.preferences.desc}</p>
                 </div>
 
                 {/* Language Section */}
                 <section className="bg-surface rounded-[2rem] border border-border-subtle overflow-hidden">
                   <div className="p-8 border-b border-border-subtle">
-                    <h3 className="text-xl font-medium mb-2">Język aplikacji</h3>
-                    <p className="text-muted">Wybierz język, w którym chcesz korzystać z interfejsu.</p>
+                    <h3 className="text-xl font-medium mb-2">{t.settings.preferences.langTitle}</h3>
+                    <p className="text-muted">{t.settings.preferences.langDesc}</p>
                   </div>
                   <div className="p-3">
                     {[
@@ -141,8 +142,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 {/* Theme Section */}
                 <section className="bg-surface rounded-[2rem] border border-border-subtle overflow-hidden">
                   <div className="p-8 border-b border-border-subtle">
-                    <h3 className="text-xl font-medium mb-2">Motyw</h3>
-                    <p className="text-muted">Dostosuj wygląd aplikacji do swoich preferencji.</p>
+                    <h3 className="text-xl font-medium mb-2">{t.settings.preferences.themeTitle}</h3>
+                    <p className="text-muted">{t.settings.preferences.themeDesc}</p>
                   </div>
                   <div className="p-8">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -155,7 +156,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                           }`}>
                           <Monitor className={`w-8 h-8 ${theme === 'system' ? 'text-primary' : 'text-muted'}`} />
                         </div>
-                        <span className={`text-sm font-medium ${theme === 'system' ? 'text-foreground' : 'text-muted'}`}>Systemowy</span>
+                        <span className={`text-sm font-medium ${theme === 'system' ? 'text-foreground' : 'text-muted'}`}>{t.settings.preferences.themes.system}</span>
                       </button>
 
                       <button
@@ -166,7 +167,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                           }`}>
                           <Sun className={`w-8 h-8 ${theme === 'light' ? 'text-primary' : 'text-[#8A94A6]'}`} />
                         </div>
-                        <span className={`text-sm font-medium ${theme === 'light' ? 'text-foreground' : 'text-muted'}`}>Jasny</span>
+                        <span className={`text-sm font-medium ${theme === 'light' ? 'text-foreground' : 'text-muted'}`}>{t.settings.preferences.themes.light}</span>
                       </button>
 
                       <button
@@ -177,7 +178,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                           }`}>
                           <Moon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary' : 'text-[#64748B]'}`} />
                         </div>
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-muted'}`}>Ciemny</span>
+                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-muted'}`}>{t.settings.preferences.themes.dark}</span>
                       </button>
 
                       <button
@@ -188,7 +189,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                           }`}>
                           <Heart className={`w-8 h-8 ${theme === 'pink' ? 'text-[#E11D48]' : 'text-[#FB7185]'}`} />
                         </div>
-                        <span className={`text-sm font-medium ${theme === 'pink' ? 'text-foreground' : 'text-muted'}`}>Różowy</span>
+                        <span className={`text-sm font-medium ${theme === 'pink' ? 'text-foreground' : 'text-muted'}`}>{t.settings.preferences.themes.pink}</span>
                       </button>
                     </div>
                   </div>
@@ -199,8 +200,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             {activeTab === 'history' && (
               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">Historia analiz</h2>
-                  <p className="text-muted text-lg">Przeglądaj swoje poprzednie diagnozy i wygenerowane raporty.</p>
+                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">{t.settings.history.title}</h2>
+                  <p className="text-muted text-lg">{t.settings.history.desc}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -270,8 +271,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             {activeTab === 'profile' && (
               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">Profil</h2>
-                  <p className="text-muted text-lg">Zarządzaj swoimi danymi osobowymi.</p>
+                  <h2 className="text-3xl font-semibold mb-2 tracking-tight">{t.settings.profile.title}</h2>
+                  <p className="text-muted text-lg">{t.settings.profile.desc}</p>
                 </div>
 
                 <section className="bg-surface rounded-[2rem] border border-border-subtle p-8 space-y-8">
@@ -280,10 +281,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       JD
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-foreground">Zdjęcie profilowe</h3>
-                      <p className="text-sm text-muted mb-4">Zalecany rozmiar to 256x256px. Maksymalnie 2MB.</p>
+                      <h3 className="text-lg font-medium text-foreground">{t.settings.profile.photoTitle}</h3>
+                      <p className="text-sm text-muted mb-4">{t.settings.profile.photoDesc}</p>
                       <button className="px-5 py-2.5 bg-surface-hover hover:bg-[#334155] text-foreground rounded-xl font-medium transition-colors text-sm border border-border-subtle">
-                        Zmień zdjęcie
+                        {t.settings.profile.changePhoto}
                       </button>
                     </div>
                   </div>
@@ -292,7 +293,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
                   <div className="space-y-6">
                     <div className="space-y-2.5">
-                      <label className="text-sm font-medium text-[#E2E8F0]">Imię i nazwisko</label>
+                      <label className="text-sm font-medium text-[#E2E8F0]">{t.settings.profile.name}</label>
                       <input
                         type="text"
                         defaultValue="Jan Kowalski"
@@ -300,7 +301,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       />
                     </div>
                     <div className="space-y-2.5">
-                      <label className="text-sm font-medium text-[#E2E8F0]">Adres email</label>
+                      <label className="text-sm font-medium text-[#E2E8F0]">{t.settings.profile.email}</label>
                       <input
                         type="email"
                         defaultValue="jan.kowalski@example.com"
@@ -311,7 +312,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
                   <div className="pt-6 flex justify-end">
                     <button className="px-8 py-3.5 bg-primary hover:bg-blue-600 text-foreground rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/20">
-                      Zapisz zmiany
+                      {t.settings.profile.save}
                     </button>
                   </div>
                 </section>
@@ -328,9 +329,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     <Shield className="w-10 h-10 text-muted" />
                   )}
                 </div>
-                <h3 className="text-2xl font-medium text-foreground mb-3">Wkrótce dostępne</h3>
+                <h3 className="text-2xl font-medium text-foreground mb-3">{t.settings.comingSoon.title}</h3>
                 <p className="text-muted max-w-sm text-lg">
-                  Ta sekcja ustawień jest w trakcie przygotowywania i będzie dostępna wkrótce.
+                  {t.settings.comingSoon.desc}
                 </p>
               </div>
             )}

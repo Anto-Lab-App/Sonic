@@ -2,20 +2,22 @@
 
 import React, { useState } from 'react';
 import { X, Camera, Mic } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void; variant?: 'car' | 'bike' }) {
+  const { t } = useLanguage();
   const [description, setDescription] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
   const [mileage, setMileage] = useState('');
 
-  const quickTags = variant === 'bike' 
-    ? ['Przeskakuje', 'Piszczy/Ociera', 'Trzeszczy przy pedałowaniu', 'Źle zrzuca biegi', 'Miękka klamka', 'Bije na boki']
-    : ['Stukanie', 'Piszczenie', 'Brak mocy', 'Szarpie', 'Dymi', 'Nierówna praca'];
+  const quickTags = variant === 'bike'
+    ? t.context.quickTagsBike
+    : t.context.quickTagsCar;
 
   const conditions = variant === 'bike'
-    ? ['Pod obciążeniem (podjazd)', 'Na sucho', 'Cały czas', 'Przy hamowaniu']
-    : ['Cały czas', 'Na zimnym silniku', 'Po rozgrzaniu', 'Przy przyspieszaniu'];
+    ? t.context.whenBike
+    : t.context.whenCar;
 
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -31,8 +33,8 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
         {/* Header */}
         <div className="flex items-center justify-between p-8 border-b border-foreground/[0.03]">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground tracking-tight">Kontekst usterki</h2>
-            <p className="text-sm text-muted mt-1 font-medium">Pomóż AI dokładniej zdiagnozować problem</p>
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight">{t.context.title}</h2>
+            <p className="text-sm text-muted mt-1 font-medium">{t.context.subtitle}</p>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-hover transition-colors">
             <X className="w-5 h-5" />
@@ -41,18 +43,18 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
 
         {/* Scrollable Content */}
         <div className="p-8 overflow-y-auto custom-scrollbar flex flex-col gap-8">
-          
+
           {/* Przebieg */}
           <div className="space-y-4">
             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-              {variant === 'bike' ? 'Przebieg napędu / roweru (Opcjonalnie)' : 'Przebieg pojazdu (Opcjonalnie)'}
+              {variant === 'bike' ? t.context.mileageBike : t.context.mileageCar}
             </label>
             <div className="relative">
-              <input 
+              <input
                 type="text"
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value)}
-                placeholder={variant === 'bike' ? "np. 2000 km na tym łańcuchu..." : "np. 150 000 km..."}
+                placeholder={variant === 'bike' ? t.context.mileageBikePh : t.context.mileageCarPh}
                 className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium"
               />
             </div>
@@ -60,12 +62,12 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
 
           {/* Opis problemu */}
           <div className="space-y-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Opis problemu</label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{t.context.descTitle}</label>
             <div className="relative">
-              <textarea 
+              <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={variant === 'bike' ? "Np. podczas podjazdu pod górę przeskakuje łańcuch na twardych biegach..." : "Np. słychać metaliczne stukanie przy dodawaniu gazu..."}
+                placeholder={variant === 'bike' ? t.context.descBikePh : t.context.descCarPh}
                 className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all resize-none h-32"
               />
               <button className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-hover transition-colors">
@@ -76,17 +78,16 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
 
           {/* Szybkie tagi */}
           <div className="space-y-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Szybkie tagi (objawy)</label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{t.context.quickTagsTitle}</label>
             <div className="flex flex-wrap gap-3">
               {quickTags.map(tag => (
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all border ${
-                    selectedTags.includes(tag) 
-                      ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]' 
+                  className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all border ${selectedTags.includes(tag)
+                      ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
                       : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
-                  }`}
+                    }`}
                 >
                   {tag}
                 </button>
@@ -96,17 +97,16 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
 
           {/* Kiedy występuje */}
           <div className="space-y-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Kiedy występuje?</label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{t.context.whenOccurs}</label>
             <div className="grid grid-cols-2 gap-3">
               {conditions.map(cond => (
                 <button
                   key={cond}
                   onClick={() => setSelectedCondition(cond === selectedCondition ? null : cond)}
-                  className={`px-5 py-4 rounded-2xl text-sm font-medium text-center transition-all border ${
-                    selectedCondition === cond
+                  className={`px-5 py-4 rounded-2xl text-sm font-medium text-center transition-all border ${selectedCondition === cond
                       ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
                       : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
-                  }`}
+                    }`}
                 >
                   {cond}
                 </button>
@@ -116,14 +116,14 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
 
           {/* Dodaj zdjęcie */}
           <div className="space-y-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Załączniki wizualne</label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{t.context.visuals}</label>
             <button className="w-full bg-[#131823] border border-foreground/[0.03] rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:bg-surface-hover hover:border-foreground/[0.06] transition-all group">
               <div className="w-12 h-12 rounded-full bg-background border border-foreground/[0.03] flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Camera className="w-5 h-5 text-muted group-hover:text-foreground/90" />
               </div>
               <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] font-bold tracking-[0.15em] text-muted uppercase">Dodaj zdjęcie</span>
-                <span className="text-xs text-muted font-medium">Opcjonalnie</span>
+                <span className="text-[10px] font-bold tracking-[0.15em] text-muted uppercase">{t.context.addPhoto}</span>
+                <span className="text-xs text-muted font-medium">{t.context.optional}</span>
               </div>
             </button>
           </div>
@@ -133,10 +133,10 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
         {/* Footer Actions */}
         <div className="p-8 border-t border-foreground/[0.03] bg-surface-elevated flex gap-4">
           <button onClick={onClose} className="flex-1 py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-muted bg-[#131823] border border-foreground/[0.03] hover:bg-surface-hover hover:text-foreground/90 transition-colors">
-            Anuluj
+            {t.cancel}
           </button>
           <button onClick={onClose} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-            Zapisz kontekst
+            {t.context.save}
           </button>
         </div>
 

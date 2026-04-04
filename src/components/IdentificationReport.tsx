@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { X, Search, CheckCircle2, Car, Gauge, Wind, Hash } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface IdentificationReportProps {
   onClose: () => void;
@@ -12,7 +13,7 @@ interface IdentificationReportProps {
   };
 }
 
-export function IdentificationReport({ 
+export function IdentificationReport({
   onClose,
   identifiedCar = {
     name: "Ford Mustang GT (S550)",
@@ -27,10 +28,11 @@ export function IdentificationReport({
     ]
   }
 }: IdentificationReportProps) {
+  const { t } = useLanguage();
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-5xl mx-auto md:p-6 lg:p-8 min-h-full flex flex-col pt-16 md:pt-0">
-        
+
         {/* Header */}
         <header className="flex items-center justify-between px-5 py-4 shrink-0 absolute top-0 left-0 right-0 md:static bg-background/80 backdrop-blur-md z-20 border-b border-white/5 md:border-none md:bg-transparent">
           <div className="flex items-center gap-3">
@@ -39,7 +41,7 @@ export function IdentificationReport({
             </div>
             <div>
               <h1 className="text-sm md:text-xl font-semibold tracking-tight leading-tight">Identyfikacja zakończona</h1>
-              <p className="text-[10px] md:text-xs text-muted font-medium">Sonic Shazam</p>
+              <p className="text-[10px] md:text-xs text-muted font-medium">{t.shazam.title}</p>
             </div>
           </div>
           <button onClick={onClose} className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface-hover border border-border-subtle hover:bg-surface-elevated transition-colors cursor-pointer">
@@ -47,7 +49,7 @@ export function IdentificationReport({
           </button>
         </header>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
@@ -57,7 +59,7 @@ export function IdentificationReport({
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
           <div className="flex flex-col md:flex-row gap-10 items-center justify-center flex-1 z-10">
-            
+
             {/* Visual Representation (Left) */}
             <div className="w-full md:w-1/2 flex flex-col items-center justify-center relative">
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-background border-4 border-surface-hover shadow-2xl flex items-center justify-center relative z-10 overflow-hidden">
@@ -67,7 +69,7 @@ export function IdentificationReport({
               </div>
 
               {/* Confidence Badge */}
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.5, type: "spring", bounce: 0.5 }}
@@ -95,7 +97,7 @@ export function IdentificationReport({
                 {identifiedCar.specs.map((spec, idx) => {
                   const Icon = spec.icon;
                   return (
-                    <motion.div 
+                    <motion.div
                       key={idx}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}

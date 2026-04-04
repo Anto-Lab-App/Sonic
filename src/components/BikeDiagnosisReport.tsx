@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { 
-  AlertTriangle, 
-  ChevronLeft, 
-  Wrench, 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import {
+  AlertTriangle,
+  ChevronLeft,
+  Wrench,
   Settings2,
-  BrainCircuit, 
+  BrainCircuit,
   Activity,
   RefreshCw,
   Gauge,
@@ -28,6 +29,7 @@ interface BikeDiagnosisReportProps {
 }
 
 export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
+  const { t } = useLanguage();
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
       {/* Header */}
@@ -35,26 +37,26 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
         <button onClick={onClose} className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-border-subtle hover:bg-surface-elevated transition-colors cursor-pointer">
           <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-muted" />
         </button>
-        <h1 className="text-xs md:text-sm font-semibold tracking-widest text-muted uppercase">Raport Diagnostyczny (Rower)</h1>
+        <h1 className="text-xs md:text-sm font-semibold tracking-widest text-muted uppercase">{t.report.title}</h1>
         <div className="w-10 h-10 md:w-12 md:h-12"></div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 pb-6 md:px-6 md:pb-12 space-y-4 md:space-y-6">
-        
+
         {/* Top Section: Main Diagnosis & Confidence */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          
+
           {/* Main Diagnosis */}
           <div className="lg:col-span-2 bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-orange-500/10 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
-            
+
             <div className="flex items-start justify-between mb-4 md:mb-6">
               <div className="flex items-center gap-3 md:gap-4">
-              <div className="relative p-2 md:p-3.5 bg-orange-500/10 rounded-xl md:rounded-2xl ring-1 ring-inset ring-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
-                <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-orange-400 relative z-10" />
-              </div>
+                <div className="relative p-2 md:p-3.5 bg-orange-500/10 rounded-xl md:rounded-2xl ring-1 ring-inset ring-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                  <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-orange-400 relative z-10" />
+                </div>
                 <div>
-                  <h2 className="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider">Wykryto Problem</h2>
+                  <h2 className="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider">{t.report.urgent}</h2>
                   <p className="text-[10px] md:text-xs text-muted/80 mt-0.5 md:mt-1 font-medium">Napęd (Łańcuch / Kaseta)</p>
                 </div>
               </div>
@@ -74,8 +76,8 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
           {/* Confidence Score */}
           <div className="bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-row md:flex-col items-center justify-between md:justify-center relative overflow-hidden gap-4 md:gap-0">
-             <div className="absolute top-1/2 left-1/2 w-32 h-32 md:w-48 md:h-48 bg-primary/10 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
-            
+            <div className="absolute top-1/2 left-1/2 w-32 h-32 md:w-48 md:h-48 bg-primary/10 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+
             <div className="flex flex-col md:items-center flex-1">
               <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">Pewność AI</h2>
               <p className="hidden md:block text-xs text-muted mt-6 text-center font-medium">
@@ -89,7 +91,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
             <div className="relative flex items-center justify-center w-24 h-24 md:w-40 md:h-40 shrink-0">
               <div className="absolute inset-[-50%] bg-[radial-gradient(circle_at_center,rgba(var(--color-primary),0.15)_0%,transparent_60%)] pointer-events-none"></div>
-              
+
               <svg className="w-full h-full transform -rotate-90 overflow-visible z-10" viewBox="0 0 100 100">
                 <defs>
                   <linearGradient id="bikeProgressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -98,15 +100,15 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
                   </linearGradient>
                 </defs>
                 <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-border-subtle)" strokeWidth="6" />
-                
-                <circle 
-                  cx="50" cy="50" r="45" 
-                  fill="none" 
-                  stroke="url(#bikeProgressGradient)" 
-                  strokeWidth="6" 
-                  strokeDasharray="283" 
-                  strokeDashoffset="35" 
-                  strokeLinecap="round" 
+
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke="url(#bikeProgressGradient)"
+                  strokeWidth="6"
+                  strokeDasharray="283"
+                  strokeDashoffset="35"
+                  strokeLinecap="round"
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center z-20">
@@ -120,7 +122,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
         {/* Middle Section: Data & Thinking */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          
+
           {/* What it heard / saw (Input Data) */}
           <div className="bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8">
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
@@ -129,7 +131,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               </div>
               <h2 className="text-sm md:text-lg font-semibold text-foreground">Analiza wejściowa</h2>
             </div>
-            
+
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
                 <strong className="text-foreground font-semibold">Odchylenie zębów:</strong> Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.
@@ -137,7 +139,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               <p className="text-muted text-xs md:text-sm leading-relaxed">
                 <strong className="text-foreground font-semibold">Rozstrzał tulejek:</strong> Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.
               </p>
-              
+
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
                 <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-surface-hover text-orange-400 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium flex items-center gap-1 md:gap-1.5 ring-1 ring-inset ring-orange-500/20 shadow-sm">
                   <Activity className="w-3 h-3 md:w-3.5 md:h-3.5" /> Luzy boczne tarczy
@@ -162,7 +164,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
             </div>
 
             <div className="space-y-4 md:space-y-6 relative before:absolute before:inset-0 before:ml-[9px] md:before:ml-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[2px] before:bg-gradient-to-b before:from-purple-500/30 before:to-transparent">
-              
+
               <div className="relative flex items-start gap-4 md:gap-5">
                 <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
@@ -199,7 +201,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
         {/* Bottom Section: Actions & Params */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          
+
           {/* Recommended Actions */}
           <div className="lg:col-span-2 bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8">
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
@@ -268,7 +270,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
                     <BarChart data={repairTimeData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
                       <XAxis type="number" hide />
                       <YAxis dataKey="stage" type="category" width={80} axisLine={false} tickLine={false} tick={{ fill: 'var(--color-muted)', fontSize: 11 }} />
-                      <Tooltip 
+                      <Tooltip
                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
