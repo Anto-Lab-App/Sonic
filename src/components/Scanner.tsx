@@ -532,7 +532,7 @@ export function Scanner({
               )}
             </div>
             <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2">
-              {mode === 'audio' ? 'Wgraj audio' : 'Wgraj pliki'}
+              {mode === 'audio' ? 'Wgraj wideo' : 'Wgraj pliki'}
             </span>
           </button>
 
