@@ -1,5 +1,0 @@
-{
-  "name": "AI Diagnostics Context UI",
-  "description": "Interfejs graficzny do wprowadzania kontekstu usterki dla aplikacji diagnostycznej AI.",
-  "requestFramePermissions": []
-}

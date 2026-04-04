@@ -1,5 +1,0 @@
-{
-  "name": "Mechanik AI",
-  "description": "Czat z wirtualnym mechanikiem samochodowym w stylu glassmorphism.",
-  "requestFramePermissions": ["microphone"]
-}
