@@ -79,13 +79,13 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
             <div className="absolute top-1/2 left-1/2 w-32 h-32 md:w-48 md:h-48 bg-primary/10 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
             <div className="flex flex-col md:items-center flex-1">
-              <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">Pewność AI</h2>
+              <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">{t.report.confidence}</h2>
               <p className="hidden md:block text-xs text-muted mt-6 text-center font-medium">
                 Porównano geometrię zębatek (rekinia płetwa) oraz odstępów rolek.
               </p>
               <button onClick={onClose} className="mt-2 md:mt-6 flex w-fit items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-primary/10 hover:bg-surface-elevated text-primary ring-1 ring-inset ring-primary/20 rounded-lg md:rounded-xl transition-all text-xs md:text-sm font-semibold z-10 cursor-pointer shadow-[0_0_15px_rgba(var(--color-primary),0.1)]">
                 <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
-                Nowy skan
+                {t.report.newScan}
               </button>
             </div>
 
@@ -129,7 +129,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <CircleDashed className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <h2 className="text-sm md:text-lg font-semibold text-foreground">Analiza wejściowa</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.inputAnalysis}</h2>
             </div>
 
             <div className="space-y-3 md:space-y-5">
@@ -160,7 +160,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               <div className="p-2 md:p-3 bg-purple-500/10 rounded-xl md:rounded-2xl border border-purple-500/20">
                 <BrainCircuit className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
               </div>
-              <h2 className="text-sm md:text-lg font-semibold text-foreground">Algorytm identyfikacyjny AI</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.aiAlgorithm}</h2>
             </div>
 
             <div className="space-y-4 md:space-y-6 relative before:absolute before:inset-0 before:ml-[9px] md:before:ml-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[2px] before:bg-gradient-to-b before:from-purple-500/30 before:to-transparent">
@@ -208,7 +208,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               <div className="p-2 md:p-3 bg-emerald-500/10 rounded-xl md:rounded-2xl border border-emerald-500/20">
                 <Wrench className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
               </div>
-              <h2 className="text-sm md:text-lg font-semibold text-foreground">Warsztat rowerowy: Krok po kroku</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.bikeWorkshop}</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
@@ -252,7 +252,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <Hammer className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <h2 className="text-sm md:text-lg font-semibold text-foreground">Dane Naprawcze</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.repairData}</h2>
             </div>
 
             <div className="space-y-6 flex-1 flex flex-col">
@@ -261,7 +261,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-muted">
                     <Wrench className="w-4 h-4" />
-                    <span className="text-xs md:text-sm font-medium">Szacowany czas na stanowisku</span>
+                    <span className="text-xs md:text-sm font-medium">{t.report.estimatedTimeWorkshop}</span>
                   </div>
                   <span className="text-xs md:text-sm font-bold text-foreground">~65 min</span>
                 </div>
@@ -302,7 +302,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1.5 text-muted">
                     <Settings2 className="w-3.5 h-3.5" />
-                    <span className="text-[10px] md:text-xs font-medium">Potrzebne Narzędzia</span>
+                    <span className="text-[10px] md:text-xs font-medium">{t.report.toolsNeeded}</span>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
@@ -315,7 +315,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
               {/* Replacement Parts Cost logic or tags */}
               <div className="pt-4 border-t border-border-subtle">
-                <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">Kategoria kosztów części:</p>
+                <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.partsCost}</p>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Łańcuch (100 - 250 PLN)</span>
                   <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Kaseta (150 - 600 PLN)</span>
