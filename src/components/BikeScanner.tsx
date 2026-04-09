@@ -8,6 +8,7 @@ import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
 import { BikeDiagnosisReport } from './BikeDiagnosisReport';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { Diagnosis } from '@/types/diagnosis';
 
 interface BikeScannerProps {
   targets?: string[];
@@ -31,26 +32,55 @@ export function BikeScanner({
 
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.bike.status.init);
+  const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  const simulateProcessing = () => {
+  const runDiagnosis = async (file: File) => {
     setIsAnalyzing(true);
+    setError(null);
     setAnalyzingText(t.bike.status.analyze);
 
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setAnalyzingText(t.bike.status.check);
     }, 1500);
 
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       setAnalyzingText(t.bike.status.dev);
     }, 3000);
 
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('context', `Diagnostyka roweru. Obiekt: ${target}`);
+
+      const res = await fetch('/api/diagnose', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || `API error: ${res.status}`);
+      }
+
+      const json = await res.json();
+
+      if (json.status === 'success' && json.diagnosis) {
+        setDiagnosisData(json.diagnosis);
+        setIsDiagnosisOpen(true);
+      } else {
+        throw new Error(json.message || 'Unexpected API response format');
+      }
+    } catch (err) {
+      console.error('Bike diagnosis API error:', err);
+      setError(err instanceof Error ? err.message : 'Nie udało się uzyskać diagnozy.');
+    } finally {
+      clearTimeout(t1);
+      clearTimeout(t2);
       setIsAnalyzing(false);
-      setIsDiagnosisOpen(true);
-    }, 4500);
+    }
   };
 
   const toggleCapture = () => {
@@ -74,7 +104,7 @@ export function BikeScanner({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      simulateProcessing();
+      runDiagnosis(e.target.files[0]);
     }
   };
 
@@ -306,7 +336,7 @@ export function BikeScanner({
       <AnimatePresence>
         {isContextModalOpen && <ContextModal variant="bike" onClose={() => setIsContextModalOpen(false)} />}
         {showInstructions && <InstructionsModal variant="bike" isAudioMode={false} onProceed={handleInstructionsProceed} />}
-        {isDiagnosisOpen && <BikeDiagnosisReport onClose={() => setIsDiagnosisOpen(false)} />}
+        {isDiagnosisOpen && diagnosisData && <BikeDiagnosisReport data={diagnosisData} onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} />}
       </AnimatePresence>
     </div>
   );

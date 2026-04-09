@@ -15,6 +15,7 @@ import {
   CircleDashed,
   Hammer
 } from 'lucide-react';
+import type { Diagnosis } from '@/types/diagnosis';
 
 const repairTimeData = [
   { stage: 'Diagnoza', minutes: 10, color: '#3b82f6' },
@@ -26,10 +27,20 @@ const repairTimeData = [
 
 interface BikeDiagnosisReportProps {
   onClose: () => void;
+  data?: Diagnosis;
 }
 
-export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
+export function BikeDiagnosisReport({ onClose, data }: BikeDiagnosisReportProps) {
   const { t } = useLanguage();
+
+  // Use AI data when available, fall back to hardcoded defaults
+  const title = data?.title ?? 'Krytyczne rozciągnięcie łańcucha (>1%) oraz uszkodzenie zębów koronki.';
+  const description = data?.description ?? 'Na podstawie analizy wizualnej/akustycznej stwierdzono zbyt duże odległości między ogniwami w łańcuchu rowerowym. Prowadzi to do przeskakiwania łańcucha podczas mocnego obciążenia (np. podjazdów) oraz niszczenia tarczy korby.';
+  const criticality = data?.criticality ?? 'Wysokie Zużycie';
+  const confidenceScore = data?.confidence_score ?? 88;
+  const audioAnalysis = data?.audio_analysis;
+  const aiReasoning = data?.ai_reasoning;
+  const recommendedActions = data?.recommended_actions;
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
       {/* Header */}
@@ -62,15 +73,15 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
               </div>
               <div className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-orange-500/10 ring-1 ring-inset ring-orange-500/20 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.1)]">
                 <Settings2 className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
-                <span className="text-xs md:text-sm font-semibold text-orange-400">Wysokie Zużycie</span>
+                <span className="text-xs md:text-sm font-semibold text-orange-400">{criticality}</span>
               </div>
             </div>
 
             <h3 className="text-lg md:text-3xl font-medium text-foreground mb-2 md:mb-4 leading-tight">
-              Krytyczne rozciągnięcie łańcucha (&gt;1%) oraz uszkodzenie zębów koronki.
+              {title}
             </h3>
             <p className="text-muted leading-relaxed max-w-3xl text-xs md:text-base">
-              Na podstawie analizy wizualnej/akustycznej stwierdzono zbyt duże odległości między ogniwami w łańcuchu rowerowym. Prowadzi to do przeskakiwania łańcucha podczas mocnego obciążenia (np. podjazdów) oraz niszczenia tarczy korby.
+              {description}
             </p>
           </div>
 
@@ -81,7 +92,7 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
             <div className="flex flex-col md:items-center flex-1">
               <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">{t.report.confidence}</h2>
               <p className="hidden md:block text-xs text-muted mt-6 text-center font-medium">
-                Porównano geometrię zębatek (rekinia płetwa) oraz odstępów rolek.
+                {audioAnalysis?.characteristics ?? 'Porównano geometrię zębatek (rekinia płetwa) oraz odstępów rolek.'}
               </p>
               <button onClick={onClose} className="mt-2 md:mt-6 flex w-fit items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-primary/10 hover:bg-surface-elevated text-primary ring-1 ring-inset ring-primary/20 rounded-lg md:rounded-xl transition-all text-xs md:text-sm font-semibold z-10 cursor-pointer shadow-[0_0_15px_rgba(var(--color-primary),0.1)]">
                 <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
@@ -107,13 +118,13 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
                   stroke="url(#bikeProgressGradient)"
                   strokeWidth="6"
                   strokeDasharray="283"
-                  strokeDashoffset="35"
+                  strokeDashoffset={Math.round(283 * (1 - confidenceScore / 100))}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center z-20">
                 <span className="text-3xl md:text-5xl font-light text-foreground tracking-tighter">
-                  88<span className="text-base md:text-2xl text-primary font-normal ml-0.5">%</span>
+                  {confidenceScore}<span className="text-base md:text-2xl text-primary font-normal ml-0.5">%</span>
                 </span>
               </div>
             </div>
@@ -134,22 +145,19 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Odchylenie zębów:</strong> Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.
+                <strong className="text-foreground font-semibold">Nagrane:</strong> {audioAnalysis?.recorded ?? 'Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.'}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Rozstrzał tulejek:</strong> Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.
+                <strong className="text-foreground font-semibold">Cechy:</strong> {audioAnalysis?.characteristics ?? 'Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.'}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-surface-hover text-orange-400 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium flex items-center gap-1 md:gap-1.5 ring-1 ring-inset ring-orange-500/20 shadow-sm">
-                  <Activity className="w-3 h-3 md:w-3.5 md:h-3.5" /> Luzy boczne tarczy
-                </span>
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-surface-hover text-foreground/90 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium ring-1 ring-inset ring-foreground/5 shadow-sm">
-                  Zniekształcona kaseta
-                </span>
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-surface-hover text-foreground/90 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium ring-1 ring-inset ring-foreground/5 shadow-sm">
-                  Wymagany przymiar
-                </span>
+                {(audioAnalysis?.tags ?? ['Luzy boczne tarczy', 'Zniekształcona kaseta', 'Wymagany przymiar']).map((tag, i) => (
+                  <span key={i} className={`px-2.5 py-1 md:px-3 md:py-1.5 ${i === 0 ? 'bg-surface-hover text-orange-400 ring-1 ring-inset ring-orange-500/20' : 'bg-surface-hover text-foreground/90 ring-1 ring-inset ring-foreground/5'} rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium shadow-sm flex items-center gap-1 md:gap-1.5`}>
+                    {i === 0 && <Activity className="w-3 h-3 md:w-3.5 md:h-3.5" />}
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -165,35 +173,21 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
 
             <div className="space-y-4 md:space-y-6 relative before:absolute before:inset-0 before:ml-[9px] md:before:ml-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[2px] before:bg-gradient-to-b before:from-purple-500/30 before:to-transparent">
 
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
+              {(aiReasoning ?? [
+                { step: 'Identyfikacja ubytków materiału', detail: 'Profil zaokrągleń zębów kasety nie zgadza się ze wzorcem referencyjnym (Shimano HG).' },
+                { step: 'Relacja między zębatką a łańcuchem', detail: 'Wykryta minimalna przerwa między rolką łańcucha a wrębem zębatki pod napięciem wskazuje rozciągnięcie > 1.0.' },
+                { step: 'Werdykt naprawczy', detail: 'Sam nowy łańcuch będzie "skakać". Rekomenduje się wymianę całego układu (Kaseta + Łańcuch).' },
+              ]).map((rs, i) => (
+                <div key={i} className="relative flex items-start gap-4 md:gap-5">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
+                  </div>
+                  <div>
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground">{rs.step}</h4>
+                    <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">{rs.detail}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Identyfikacja ubytków materiału</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Profil zaokrągleń zębów kasety nie zgadza się ze wzorcem referencyjnym (Shimano HG).</p>
-                </div>
-              </div>
-
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
-                </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Relacja między zębatką a łańcuchem</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Wykryta minimalna przerwa między rolką łańcucha a wrębem zębatki pod napięciem wskazuje rozciągnięcie &gt; 1.0.</p>
-                </div>
-              </div>
-
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
-                </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Werdykt naprawczy</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Sam nowy łańcuch będzie "skakać". Rekomenduje się wymianę całego układu (Kaseta + Łańcuch).</p>
-                </div>
-              </div>
+              ))}
 
             </div>
           </div>
@@ -212,37 +206,20 @@ export function BikeDiagnosisReport({ onClose }: BikeDiagnosisReportProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
-              <div className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">1</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Weryfikacja przymiarem</h4>
+              {(recommendedActions ?? [
+                { title: 'Weryfikacja przymiarem', desc: 'Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.' },
+                { title: 'Skuwacz i Bacik', desc: 'Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego łańcucha oraz klucza francuskiego i tzw. "bacika" na kasetę.' },
+                { title: 'Wymiana komponentów', desc: 'Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).' },
+                { title: 'Regulacja przerzutki', desc: 'Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.' },
+              ]).map((action, i) => (
+                <div key={i} className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
+                  <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
+                    <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">{i + 1}</span>
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground">{action.title}</h4>
+                  </div>
+                  <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">{action.desc}</p>
                 </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">2</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Skuwacz i Bacik</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego łańcucha oraz klucza francuskiego i tzw. "bacika" na kasetę.</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">3</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Wymiana komponentów</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">4</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Regulacja przerzutki</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.</p>
-              </div>
+              ))}
             </div>
           </div>
 

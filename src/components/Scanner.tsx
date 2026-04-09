@@ -38,6 +38,8 @@ export function Scanner({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -124,6 +126,7 @@ export function Scanner({
   const startRecording = async () => {
     setError(null);
     setIsDemoMode(false);
+    recordedChunksRef.current = [];
     try {
       // 1. Initialize AudioContext FIRST to tie it to the user gesture (fixes iOS/Safari bugs)
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -146,6 +149,17 @@ export function Scanner({
       const source = audioCtx.createMediaStreamSource(stream);
       source.connect(analyser);
 
+      // 4. Start MediaRecorder to capture real audio data
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunksRef.current.push(e.data);
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+
       setIsRecording(true);
       startVisualizerLoop(false);
     } catch (err) {
@@ -157,34 +171,55 @@ export function Scanner({
     }
   };
 
-  const stopRecording = () => {
-    if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    if (audioContextRef.current) audioContextRef.current.close();
+  const stopRecording = (): Promise<File | null> => {
+    return new Promise((resolve) => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-    setIsRecording(false);
-    setIsDemoMode(false);
-
-    // Reset rings to idle state smoothly
-    for (let i = 0; i < 5; i++) {
-      currentScales.current[i] = 1;
-      if (ringsRef.current[i]) {
-        ringsRef.current[i]!.style.transform = `translate(-50%, -50%) scale(1)`;
-        ringsRef.current[i]!.style.opacity = '0';
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.onstop = () => {
+          const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+          const file = new File([blob], 'recording.webm', { type: 'audio/webm' });
+          recordedChunksRef.current = [];
+          mediaRecorderRef.current = null;
+          resolve(file);
+        };
+        recorder.stop();
+      } else {
+        resolve(null);
       }
-    }
+
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+      if (audioContextRef.current) audioContextRef.current.close();
+
+      setIsRecording(false);
+      setIsDemoMode(false);
+
+      // Reset rings to idle state smoothly
+      for (let i = 0; i < 5; i++) {
+        currentScales.current[i] = 1;
+        if (ringsRef.current[i]) {
+          ringsRef.current[i]!.style.transform = `translate(-50%, -50%) scale(1)`;
+          ringsRef.current[i]!.style.opacity = '0';
+        }
+      }
+    });
   };
 
   // Cancel recording without triggering analysis
   const cancelRecording = () => {
     stopRecording();
-    // Don't call simulateProcessing — just go back to idle
+    // Don't call runDiagnosis — just go back to idle
   };
 
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
     if (isRecording) {
-      stopRecording();
-      runDiagnosis();
+      const audioFile = await stopRecording();
+      if (audioFile) {
+        runDiagnosis(audioFile);
+      } else {
+        setError('Nie udało się nagrać audio. Spróbuj ponownie.');
+      }
     } else {
       if (!hasSeenInstructionsState) {
         setShowInstructions(true);
@@ -206,7 +241,7 @@ export function Scanner({
     setShowInstructions(false);
   };
 
-  const runDiagnosis = async () => {
+  const runDiagnosis = async (file: File) => {
     setIsAnalyzing(true);
     setError(null);
     setAnalyzingText(t.auto.status.iso);
@@ -216,18 +251,19 @@ export function Scanner({
     const t2 = setTimeout(() => setAnalyzingText(t.auto.status.dev), 3000);
 
     try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('vehicleMake', vehicleMake);
+      formData.append('vehicleDetails', vehicleDetails);
+
       const res = await fetch('/api/diagnose', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vehicleMake,
-          vehicleDetails,
-          // In Phase 2+ we will attach audio/file data here
-        }),
+        body: formData,
       });
 
       if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || `API error: ${res.status}`);
       }
 
       const json = await res.json();
@@ -236,11 +272,11 @@ export function Scanner({
         setDiagnosisData(json.diagnosis);
         setIsDiagnosisOpen(true);
       } else {
-        throw new Error('Unexpected API response format');
+        throw new Error(json.message || 'Unexpected API response format');
       }
     } catch (err) {
       console.error('Diagnosis API error:', err);
-      setError('Nie udało się uzyskać diagnozy. Spróbuj ponownie.');
+      setError(err instanceof Error ? err.message : 'Nie udało się uzyskać diagnozy. Spróbuj ponownie.');
     } finally {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -250,7 +286,7 @@ export function Scanner({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      runDiagnosis();
+      runDiagnosis(e.target.files[0]);
     }
   };
 
