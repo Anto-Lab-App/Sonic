@@ -8,6 +8,7 @@ import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { Diagnosis } from '@/types/diagnosis';
 
 // Utility for smooth animation interpolation
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -31,6 +32,7 @@ export function Scanner({
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
+  const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -182,7 +184,7 @@ export function Scanner({
   const toggleRecording = () => {
     if (isRecording) {
       stopRecording();
-      simulateProcessing();
+      runDiagnosis();
     } else {
       if (!hasSeenInstructionsState) {
         setShowInstructions(true);
@@ -204,27 +206,51 @@ export function Scanner({
     setShowInstructions(false);
   };
 
-  const simulateProcessing = () => {
+  const runDiagnosis = async () => {
     setIsAnalyzing(true);
+    setError(null);
     setAnalyzingText(t.auto.status.iso);
 
-    setTimeout(() => {
-      setAnalyzingText(t.auto.status.search);
-    }, 1500);
+    // Animated status text cycle (runs alongside the fetch)
+    const t1 = setTimeout(() => setAnalyzingText(t.auto.status.search), 1500);
+    const t2 = setTimeout(() => setAnalyzingText(t.auto.status.dev), 3000);
 
-    setTimeout(() => {
-      setAnalyzingText(t.auto.status.dev);
-    }, 3000);
+    try {
+      const res = await fetch('/api/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleMake,
+          vehicleDetails,
+          // In Phase 2+ we will attach audio/file data here
+        }),
+      });
 
-    setTimeout(() => {
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const json = await res.json();
+
+      if (json.status === 'success' && json.diagnosis) {
+        setDiagnosisData(json.diagnosis);
+        setIsDiagnosisOpen(true);
+      } else {
+        throw new Error('Unexpected API response format');
+      }
+    } catch (err) {
+      console.error('Diagnosis API error:', err);
+      setError('Nie udało się uzyskać diagnozy. Spróbuj ponownie.');
+    } finally {
+      clearTimeout(t1);
+      clearTimeout(t2);
       setIsAnalyzing(false);
-      setIsDiagnosisOpen(true);
-    }, 4500);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      simulateProcessing();
+      runDiagnosis();
     }
   };
 
@@ -552,7 +578,7 @@ export function Scanner({
       <AnimatePresence>
         {isContextModalOpen && <ContextModal onClose={() => setIsContextModalOpen(false)} />}
         {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
-        {isDiagnosisOpen && <DiagnosisReport onClose={() => setIsDiagnosisOpen(false)} />}
+        {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
       </AnimatePresence>
     </div>
   );

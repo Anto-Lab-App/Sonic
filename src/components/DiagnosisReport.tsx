@@ -3,10 +3,10 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { Diagnosis } from '@/types/diagnosis';
 import {
   AlertTriangle,
   ChevronLeft,
-  Settings,
   Volume2,
   BrainCircuit,
   Wrench,
@@ -17,19 +17,55 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-const repairTimeData = [
-  { stage: 'Diagnoza', hours: 2, color: '#3b82f6' },
-  { stage: 'Demontaż', hours: 6, color: '#8b5cf6' },
-  { stage: 'Wymiana', hours: 12, color: '#ef4444' },
-  { stage: 'Montaż', hours: 4, color: '#10b981' },
-];
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Parse "5/5" → 5, "3/5" → 3 etc. */
+function parseComplexity(raw: string): { value: number; max: number } {
+  const parts = raw.split('/');
+  return {
+    value: parseInt(parts[0], 10) || 0,
+    max: parseInt(parts[1], 10) || 5,
+  };
+}
+
+/** Parse "95%" → 95 */
+function parsePercent(raw: string): number {
+  return parseInt(raw.replace('%', ''), 10) || 0;
+}
+
+/** Map estimated_time_hours into a simplified repair-stage breakdown for the chart. */
+function buildRepairTimeData(totalHours: number) {
+  // Proportional allocation (diagnosis 8%, teardown 25%, replacement 50%, assembly 17%)
+  return [
+    { stage: 'Diagnoza', hours: Math.round(totalHours * 0.08) || 1, color: '#3b82f6' },
+    { stage: 'Demontaż', hours: Math.round(totalHours * 0.25), color: '#8b5cf6' },
+    { stage: 'Wymiana', hours: Math.round(totalHours * 0.50), color: '#ef4444' },
+    { stage: 'Montaż', hours: Math.round(totalHours * 0.17), color: '#10b981' },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 interface DiagnosisReportProps {
   onClose: () => void;
+  data: Diagnosis;
 }
 
-export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
+export function DiagnosisReport({ onClose, data }: DiagnosisReportProps) {
   const { t } = useLanguage();
+
+  const complexity = parseComplexity(data.parameters.complexity);
+  const riskPercent = parsePercent(data.parameters.risk_level);
+  const repairTimeData = buildRepairTimeData(data.parameters.estimated_time_hours);
+
+  // Determine criticality color
+  const isCritical = data.criticality.toLowerCase().includes('krytyczn');
+  const critColor = isCritical ? 'red' : 'yellow';
+
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
       {/* Header */}
@@ -48,29 +84,28 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
 
           {/* Main Diagnosis */}
           <div className="lg:col-span-2 bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-red-500/5 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+            <div className={`absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-${critColor}-500/5 rounded-full blur-2xl md:blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none`}></div>
 
             <div className="flex items-start justify-between mb-4 md:mb-6">
               <div className="flex items-center gap-3 md:gap-4">
-                <div className="relative p-2 md:p-3.5 bg-red-500/10 rounded-xl md:rounded-2xl ring-1 ring-inset ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                  <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-red-400 relative z-10" />
+                <div className={`relative p-2 md:p-3.5 bg-${critColor}-500/10 rounded-xl md:rounded-2xl ring-1 ring-inset ring-${critColor}-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]`}>
+                  <AlertTriangle className={`w-5 h-5 md:w-6 md:h-6 text-${critColor}-400 relative z-10`} />
                 </div>
                 <div>
-                  <h2 className="text-xs md:text-sm font-bold text-red-400 uppercase tracking-wider">{t.report.urgent}</h2>
-                  <p className="text-[10px] md:text-xs text-muted/80 mt-0.5 md:mt-1 font-medium">Silnik spalinowy (Diesel)</p>
+                  <h2 className={`text-xs md:text-sm font-bold text-${critColor}-400 uppercase tracking-wider`}>{t.report.urgent}</h2>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-red-500/10 ring-1 ring-inset ring-red-500/20 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                <ShieldAlert className="w-3 h-3 md:w-4 md:h-4 text-red-400" />
-                <span className="text-xs md:text-sm font-semibold text-red-400">Krytyczna</span>
+              <div className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-${critColor}-500/10 ring-1 ring-inset ring-${critColor}-500/20 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.1)]`}>
+                <ShieldAlert className={`w-3 h-3 md:w-4 md:h-4 text-${critColor}-400`} />
+                <span className={`text-xs md:text-sm font-semibold text-${critColor}-400`}>{data.criticality}</span>
               </div>
             </div>
 
             <h3 className="text-lg md:text-3xl font-medium text-foreground mb-2 md:mb-4 leading-tight">
-              Prawdopodobne zużycie panewek korbowodowych lub luzy na sworzniu tłokowym.
+              {data.title}
             </h3>
             <p className="text-muted leading-relaxed max-w-3xl text-xs md:text-base">
-              Charakterystyka dźwięku wskazuje na poważne problemy w układzie korbowo-tłokowym. Dalsza praca silnika w tym stanie grozi jego całkowitym zniszczeniem (tzw. "obrócenie panewki" lub pęknięcie korbowodu).
+              {data.description}
             </p>
           </div>
 
@@ -90,10 +125,9 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
             </div>
 
             <div className="relative flex items-center justify-center w-24 h-24 md:w-40 md:h-40 shrink-0">
-              {/* Soft background glow without the square frame issue */}
               <div className="absolute inset-[-50%] bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.15)_0%,transparent_60%)] pointer-events-none"></div>
 
-              {/* Circular Progress */}
+              {/* Circular Progress – driven by confidence_score */}
               <svg className="w-full h-full transform -rotate-90 overflow-visible z-10" viewBox="0 0 100 100">
                 <defs>
                   <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -104,46 +138,43 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
                     <feGaussianBlur stdDeviation="4" />
                   </filter>
                 </defs>
-                {/* Background track */}
                 <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" strokeWidth="6" />
-
-                {/* Glow effect */}
+                {/* Glow */}
                 <circle
                   cx="50" cy="50" r="45"
                   fill="none"
                   stroke="url(#progressGradient)"
                   strokeWidth="6"
                   strokeDasharray="283"
-                  strokeDashoffset="22"
+                  strokeDashoffset={283 - (283 * data.confidence_score) / 100}
                   strokeLinecap="round"
                   filter="url(#blurGlow)"
                   opacity="0.6"
                 />
-
-                {/* Main stroke */}
+                {/* Main */}
                 <circle
                   cx="50" cy="50" r="45"
                   fill="none"
                   stroke="url(#progressGradient)"
                   strokeWidth="6"
                   strokeDasharray="283"
-                  strokeDashoffset="22"
+                  strokeDashoffset={283 - (283 * data.confidence_score) / 100}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center z-20">
                 <span className="text-3xl md:text-5xl font-light text-foreground tracking-tighter">
-                  92<span className="text-base md:text-2xl text-primary font-normal ml-0.5">%</span>
+                  {data.confidence_score}<span className="text-base md:text-2xl text-primary font-normal ml-0.5">%</span>
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Middle Section: Data & Thinking */}
+        {/* Middle Section: Audio Analysis & AI Reasoning */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
-          {/* What it heard (Input Data) */}
+          {/* What it heard */}
           <div className="bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8">
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
@@ -154,22 +185,19 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Zarejestrowano:</strong> Wyraźne, twarde i metaliczne stukanie dochodzące z dolnej części bloku silnika.
+                <strong className="text-foreground font-semibold">Zarejestrowano:</strong> {data.audio_analysis.recorded}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Charakterystyka:</strong> Częstotliwość uderzeń jest bezpośrednio zsynchronizowana z prędkością obrotową wału korbowego (ok. 850 RPM na biegu jałowym). Amplituda dźwięku rośnie przy delikatnym dodawaniu gazu i schodzeniu z obrotów.
+                <strong className="text-foreground font-semibold">Charakterystyka:</strong> {data.audio_analysis.characteristics}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-blue-300 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium flex items-center gap-1 md:gap-1.5 ring-1 ring-inset ring-blue-500/20 shadow-sm">
-                  <Activity className="w-3 h-3 md:w-3.5 md:h-3.5 text-primary" /> 850 RPM
-                </span>
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-foreground/90 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium ring-1 ring-inset ring-foreground/5 shadow-sm">
-                  Metaliczny pogłos
-                </span>
-                <span className="px-2.5 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-foreground/90 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium ring-1 ring-inset ring-foreground/5 shadow-sm">
-                  Zależne od obciążenia
-                </span>
+                {data.audio_analysis.tags.map((tag, i) => (
+                  <span key={i} className="px-2.5 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-blue-300 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium flex items-center gap-1 md:gap-1.5 ring-1 ring-inset ring-blue-500/20 shadow-sm">
+                    {i === 0 && <Activity className="w-3 h-3 md:w-3.5 md:h-3.5 text-primary" />}
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -184,37 +212,17 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
             </div>
 
             <div className="space-y-4 md:space-y-6 relative before:absolute before:inset-0 before:ml-[9px] md:before:ml-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[2px] before:bg-gradient-to-b before:from-purple-500/30 before:to-transparent">
-
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
+              {data.ai_reasoning.map((step, i) => (
+                <div key={i} className="relative flex items-start gap-4 md:gap-5">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
+                  </div>
+                  <div>
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground">{step.step}</h4>
+                    <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">{step.detail}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Izolacja częstotliwości</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Odseparowano szum tła wtryskiwaczy i pompy wysokiego ciśnienia. Wykryto anomalię w paśmie 300-500Hz.</p>
-                </div>
-              </div>
-
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
-                </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Korelacja z cyklem pracy</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Stukanie występuje dokładnie raz na każdy obrót wału korbowego. Wyklucza to układ rozrządu (1 uderzenie na 2 obroty).</p>
-                </div>
-              </div>
-
-              <div className="relative flex items-start gap-4 md:gap-5">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-surface border-2 border-purple-500/50 flex items-center justify-center shrink-0 mt-0.5 z-10 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-400"></div>
-                </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Weryfikacja bazy wzorców</h4>
-                  <p className="text-[10px] md:text-sm text-muted mt-1 md:mt-1.5 leading-relaxed">Porównanie profilu akustycznego z 14,000 próbek uszkodzonych silników Diesla. Najwyższa zgodność (92%) z uszkodzeniem panewki.</p>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         </div>
@@ -232,37 +240,15 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
-              <div className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">1</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Zgaś silnik</h4>
+              {data.recommended_actions.map((action, i) => (
+                <div key={i} className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
+                  <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
+                    <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">{i + 1}</span>
+                    <h4 className="text-xs md:text-sm font-semibold text-foreground">{action.title}</h4>
+                  </div>
+                  <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">{action.desc}</p>
                 </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Natychmiast przerwij pracę silnika. Nie próbuj dojechać do warsztatu na kołach, wezwij lawetę.</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">2</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Sprawdź olej</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Sprawdź poziom oleju oraz obecność metalowych opiłków w filtrze oleju (tzw. brokat).</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">3</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Pomiar ciśnienia</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Zleć warsztatowi manualny pomiar ciśnienia oleju za pomocą manometru wkręcanego w blok.</p>
-              </div>
-
-              <div className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
-                <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
-                  <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">4</span>
-                  <h4 className="text-xs md:text-sm font-semibold text-foreground">Inspekcja dołu silnika</h4>
-                </div>
-                <p className="text-[10px] md:text-sm text-muted pl-7 md:pl-10 leading-relaxed">Konieczny demontaż miski olejowej w celu weryfikacji luzów na korbowodach.</p>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -283,7 +269,7 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
                     <Clock className="w-4 h-4" />
                     <span className="text-xs md:text-sm font-medium">{t.report.estimatedTime}</span>
                   </div>
-                  <span className="text-xs md:text-sm font-bold text-foreground">24 rbh</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{data.parameters.estimated_time_hours} rbh</span>
                 </div>
                 <div className="h-32 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -317,25 +303,32 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
                 </div>
               </div>
 
-              {/* Risk & Complexity Meters */}
+              {/* Risk & Complexity */}
               <div className="grid grid-cols-2 gap-4 pt-2">
-                {/* Secondary Failure Risk */}
+                {/* Risk */}
                 <div className="group cursor-pointer bg-background/30 p-3 md:p-4 rounded-xl border border-foreground/5 hover:bg-background/50 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5 text-muted">
                       <Activity className="w-3.5 h-3.5" />
                       <span className="text-[10px] md:text-xs font-medium">{t.report.failureRisk}</span>
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-red-400">95%</span>
+                    <span className="text-[10px] md:text-xs font-bold text-red-400">{data.parameters.risk_level}</span>
                   </div>
                   <div className="flex gap-1 h-1.5 w-full">
-                    <div className="h-full flex-1 bg-emerald-500/20 rounded-l-full transition-colors group-hover:bg-emerald-500/30"></div>
-                    <div className="h-full flex-1 bg-yellow-500/20 transition-colors group-hover:bg-yellow-500/30"></div>
-                    <div className="h-full flex-1 bg-orange-500/20 transition-colors group-hover:bg-orange-500/30"></div>
-                    <div className="h-full flex-1 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] rounded-r-full relative">
-                    </div>
+                    {[0, 1, 2, 3].map((seg) => {
+                      const filled = riskPercent >= (seg + 1) * 25;
+                      const colors = ['bg-emerald-500/20', 'bg-yellow-500/20', 'bg-orange-500/20', 'bg-red-500'];
+                      const filledColors = ['bg-emerald-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500'];
+                      return (
+                        <div
+                          key={seg}
+                          className={`h-full flex-1 ${filled ? filledColors[seg] : colors[seg]} ${seg === 0 ? 'rounded-l-full' : ''} ${seg === 3 ? 'rounded-r-full' : ''} transition-colors`}
+                          style={filled && seg === 3 ? { boxShadow: '0 0 8px rgba(239,68,68,0.6)' } : undefined}
+                        />
+                      );
+                    })}
                   </div>
-                  <div className="mt-2.5 text-[10px] md:text-xs font-semibold text-red-400">{t.report.critical}</div>
+                  <div className="mt-2.5 text-[10px] md:text-xs font-semibold text-red-400">{riskPercent >= 75 ? t.report.critical : t.report.advanced}</div>
                 </div>
 
                 {/* Complexity */}
@@ -345,16 +338,17 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
                       <ShieldAlert className="w-3.5 h-3.5" />
                       <span className="text-[10px] md:text-xs font-medium">{t.report.complexity}</span>
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-primary">3/5</span>
+                    <span className="text-[10px] md:text-xs font-bold text-primary">{data.parameters.complexity}</span>
                   </div>
                   <div className="flex gap-1 h-1.5 w-full">
-                    <div className="h-full flex-1 bg-primary rounded-l-full shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
-                    <div className="h-full flex-1 bg-primary shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
-                    <div className="h-full flex-1 bg-primary shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
-                    <div className="h-full flex-1 bg-[#1e293b] transition-colors group-hover:bg-[#1e293b]/80"></div>
-                    <div className="h-full flex-1 bg-[#1e293b] rounded-r-full transition-colors group-hover:bg-[#1e293b]/80"></div>
+                    {Array.from({ length: complexity.max }, (_, i) => (
+                      <div
+                        key={i}
+                        className={`h-full flex-1 ${i < complexity.value ? 'bg-primary shadow-[0_0_8px_rgba(59,130,246,0.4)]' : 'bg-[#1e293b] group-hover:bg-[#1e293b]/80'} ${i === 0 ? 'rounded-l-full' : ''} ${i === complexity.max - 1 ? 'rounded-r-full' : ''} transition-colors`}
+                      />
+                    ))}
                   </div>
-                  <div className="mt-2.5 text-[10px] md:text-xs font-semibold text-primary">{t.report.advanced}</div>
+                  <div className="mt-2.5 text-[10px] md:text-xs font-semibold text-primary">{complexity.value >= 4 ? t.report.critical : t.report.advanced}</div>
                 </div>
               </div>
 
@@ -362,9 +356,11 @@ export function DiagnosisReport({ onClose }: DiagnosisReportProps) {
               <div className="pt-4 border-t border-foreground/5">
                 <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.obdCodes}</p>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
-                  <span className="px-2 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-mono font-semibold ring-1 ring-inset ring-blue-500/20 shadow-sm hover:bg-primary/20 transition-colors cursor-pointer">P0335</span>
-                  <span className="px-2 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-mono font-semibold ring-1 ring-inset ring-blue-500/20 shadow-sm hover:bg-primary/20 transition-colors cursor-pointer">P0300</span>
-                  <span className="px-2 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-mono font-semibold ring-1 ring-inset ring-blue-500/20 shadow-sm hover:bg-primary/20 transition-colors cursor-pointer">P0520</span>
+                  {data.parameters.obd_codes.map((code) => (
+                    <span key={code} className="px-2 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-mono font-semibold ring-1 ring-inset ring-blue-500/20 shadow-sm hover:bg-primary/20 transition-colors cursor-pointer">
+                      {code}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
