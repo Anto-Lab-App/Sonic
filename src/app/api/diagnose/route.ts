@@ -109,6 +109,7 @@ export async function POST(
     ];
 
     let rawText: string | null = null;
+    let usedModelId: string | null = null;
     let lastError: Error | null = null;
 
     for (const modelId of fallbackModels) {
@@ -141,6 +142,7 @@ export async function POST(
 
         if (response.text) {
           rawText = response.text;
+          usedModelId = modelId;
           console.log(`[Sonic] Successfully generated response with model: ${modelId}`);
           break; // success, exit the fallback loop
         }
@@ -163,6 +165,7 @@ export async function POST(
     return NextResponse.json({
       status: "success" as const,
       diagnosis,
+      usedModel: usedModelId || "unknown"
     });
   } catch (err) {
     console.error("[Sonic] Diagnosis API error:", err);
