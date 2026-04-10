@@ -100,34 +100,58 @@ export async function POST(
     // ------------------------------------------------------------------
     // Step C: Generate structured diagnosis using JSON Schema
     // ------------------------------------------------------------------
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [
+    const fallbackModels = [
+      "gemini-3.1-pro-preview",
+      "gemini-3.1-flash-lite-preview",
+      "gemini-3.0-pro",
+      "gemini-3.0-flash",
+      "gemini-2.0-flash" // last resort
+    ];
+
+    let rawText: string | null = null;
+    let lastError: Error | null = null;
+
+    for (const modelId of fallbackModels) {
+      try {
+        console.log(`[Sonic] Attempting AI generation with model: ${modelId}`);
+        const response = await ai.models.generateContent({
+          model: modelId,
+          contents: [
             {
-              fileData: {
-                fileUri,
-                mimeType,
-              },
-            },
-            {
-              text: contextText,
+              role: "user",
+              parts: [
+                {
+                  fileData: {
+                    fileUri,
+                    mimeType,
+                  },
+                },
+                {
+                  text: contextText,
+                },
+              ],
             },
           ],
-        },
-      ],
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: diagnosisResponseSchema,
-      },
-    });
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            responseMimeType: "application/json",
+            responseSchema: diagnosisResponseSchema,
+          },
+        });
 
-    const rawText = response.text;
+        if (response.text) {
+          rawText = response.text;
+          console.log(`[Sonic] Successfully generated response with model: ${modelId}`);
+          break; // success, exit the fallback loop
+        }
+      } catch (err) {
+        console.warn(`[Sonic] Model ${modelId} failed:`, err instanceof Error ? err.message : String(err));
+        lastError = err instanceof Error ? err : new Error(String(err));
+      }
+    }
+
     if (!rawText) {
-      throw new Error("Gemini returned an empty response.");
+      throw new Error(`All AI models failed or returned empty response. Last error: ${lastError?.message}`);
     }
 
     const diagnosis: Diagnosis = JSON.parse(rawText);
