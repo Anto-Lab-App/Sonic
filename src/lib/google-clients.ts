@@ -74,7 +74,7 @@ let _genai: GoogleGenAI | null = null;
 export function getGenAI(): GoogleGenAI {
   if (!_genai) {
     const creds = getCredentials();
-    const location = process.env.VERTEX_AI_LOCATION || "us-central1";
+    const location = process.env.VERTEX_AI_LOCATION || "global";
 
     _genai = new GoogleGenAI({
       vertexai: true,
