@@ -367,6 +367,16 @@ export function DiagnosisReport({ onClose, data }: DiagnosisReportProps) {
           </div>
 
         </div>
+
+        {/* AI Chat Placeholder Action */}
+        <div className="flex items-center justify-center pt-8">
+          <button 
+            disabled 
+            className="flex items-center gap-2 px-8 py-4 bg-primary/10 text-primary border border-primary/20 rounded-2xl font-semibold opacity-60 cursor-not-allowed uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(59,130,246,0.1)]"
+          >
+            💬 Zapytaj AI o ten raport
+          </button>
+        </div>
       </main>
     </div>
   );

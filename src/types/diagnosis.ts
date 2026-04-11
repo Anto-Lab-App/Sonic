@@ -24,7 +24,8 @@ export interface DiagnosisParameters {
   obd_codes: string[];
 }
 
-export interface Diagnosis {
+// Previously this was the main response. Now it's the final diagnosis block.
+export interface FinalDiagnosis {
   internal_reasoning_log?: string;
   title: string;
   criticality: string;
@@ -36,7 +37,28 @@ export interface Diagnosis {
   parameters: DiagnosisParameters;
 }
 
+// For backwards compatibility in frontend, Diagnosis is aliased to FinalDiagnosis.
+// However we recommend using FinalDiagnosis for clarity if needed.
+export type Diagnosis = FinalDiagnosis;
+
+export interface FollowUpRequest {
+  message: string;
+  action_required: string;
+}
+
+// The new unified API response from the AI
+export interface AiUnifiedResponse {
+  status: "follow_up" | "complete";
+  follow_up_request?: FollowUpRequest;
+  final_diagnosis?: FinalDiagnosis;
+}
+
+// The actual response object sent back from the Next.js API /api/diagnose
 export interface DiagnoseApiResponse {
   status: "success" | "error";
-  diagnosis: Diagnosis;
+  aiResponse?: AiUnifiedResponse;
+  // Fallback for legacy compatibility
+  diagnosis?: Diagnosis; 
+  usedModel?: string;
+  message?: string;
 }

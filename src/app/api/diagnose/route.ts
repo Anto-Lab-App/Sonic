@@ -35,54 +35,63 @@ function guessMimeType(filename: string): string {
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<DiagnoseApiResponse | { status: "error"; message: string }>> {
-  // Will hold the GCS file path so we can delete it in `finally`.
-  let gcsFilePath: string | null = null;
+  // Will hold the GCS file paths so we can delete them in `finally`.
+  const gcsFilePaths: string[] = [];
 
   try {
     // ------------------------------------------------------------------
     // Step A: Parse incoming FormData
     // ------------------------------------------------------------------
     const formData = await request.formData();
-    const file = formData.get("file") as File | null;
+    const files = formData.getAll("file") as File[];
     const vehicleMake = (formData.get("vehicleMake") as string) || "";
     const vehicleDetails = (formData.get("vehicleDetails") as string) || "";
     const userContext = (formData.get("context") as string) || "";
 
-    if (!file || file.size === 0) {
+    if (!files || files.length === 0) {
       return NextResponse.json(
         { status: "error" as const, message: "Brak pliku do analizy." },
         { status: 400 }
       );
     }
 
-    // Read the file into a Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const mimeType = file.type || guessMimeType(file.name);
-
-    // Determine file extension
-    const ext = file.name?.split(".").pop()?.toLowerCase() || "bin";
-
-    // ------------------------------------------------------------------
-    // Step A (cont): Upload to Google Cloud Storage
-    // ------------------------------------------------------------------
     const storage = getStorage();
     const bucketName = getBucketName();
     const bucket = storage.bucket(bucketName);
-
-    gcsFilePath = `diagnostics/${randomUUID()}.${ext}`;
-    const gcsFile = bucket.file(gcsFilePath);
-
-    await gcsFile.save(buffer, {
-      metadata: { contentType: mimeType },
-      resumable: false, // Small files don't need resumable uploads
-    });
-
-    const fileUri = `gs://${bucketName}/${gcsFilePath}`;
-    console.log(`[Sonic] Uploaded file to ${fileUri} (${buffer.length} bytes)`);
+    
+    // Upload all files
+    const fileParts: any[] = [];
+    
+    for (const file of files) {
+      if (file.size === 0) continue;
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const mimeType = file.type || guessMimeType(file.name);
+      const ext = file.name?.split(".").pop()?.toLowerCase() || "bin";
+      
+      const gcsFilePath = `diagnostics/${randomUUID()}.${ext}`;
+      gcsFilePaths.push(gcsFilePath);
+      const gcsFile = bucket.file(gcsFilePath);
+  
+      await gcsFile.save(buffer, {
+        metadata: { contentType: mimeType },
+        resumable: false,
+      });
+  
+      const fileUri = `gs://${bucketName}/${gcsFilePath}`;
+      console.log(`[Sonic] Uploaded file to ${fileUri} (${buffer.length} bytes)`);
+      
+      fileParts.push({
+        fileData: {
+          fileUri,
+          mimeType,
+        },
+      });
+    }
 
     // ------------------------------------------------------------------
-    // Step B: Call Vertex AI (Gemini) with the file + user context
+    // Step B: Call Vertex AI (Gemini) with ALL files + user context
     // ------------------------------------------------------------------
     const ai = getGenAI();
 
@@ -121,12 +130,7 @@ export async function POST(
             {
               role: "user",
               parts: [
-                {
-                  fileData: {
-                    fileUri,
-                    mimeType,
-                  },
-                },
+                ...fileParts,
                 {
                   text: contextText,
                 },
@@ -156,15 +160,24 @@ export async function POST(
       throw new Error(`All AI models failed or returned empty response. Last error: ${lastError?.message}`);
     }
 
-    const diagnosis: Diagnosis = JSON.parse(rawText);
-    console.log(`[Sonic] Diagnosis complete: "${diagnosis.title}" (${diagnosis.confidence_score}%)`);
+    const resJson = JSON.parse(rawText);
+    const aiResponse = resJson;
+    
+    // Log the outcome
+    console.log(`[Sonic] AI Response status: ${aiResponse.status}`);
+    if (aiResponse.status === "follow_up") {
+      console.log(`[Sonic] FollowUp requested: ${aiResponse.follow_up_request?.action_required}`);
+    } else {
+      console.log(`[Sonic] Diagnosis complete: "${aiResponse.final_diagnosis?.title}" (${aiResponse.final_diagnosis?.confidence_score}%)`);
+    }
 
     // ------------------------------------------------------------------
     // Step D: Return the structured response
     // ------------------------------------------------------------------
     return NextResponse.json({
       status: "success" as const,
-      diagnosis,
+      aiResponse,
+      diagnosis: aiResponse.final_diagnosis, // legacy mapping if needed
       usedModel: usedModelId || "unknown"
     });
   } catch (err) {
@@ -179,17 +192,18 @@ export async function POST(
     );
   } finally {
     // ------------------------------------------------------------------
-    // Cleanup: delete the file from GCS regardless of success/failure
+    // Cleanup: delete all files from GCS regardless of success/failure
     // ------------------------------------------------------------------
-    if (gcsFilePath) {
-      try {
-        const storage = getStorage();
-        const bucket = storage.bucket(getBucketName());
-        await bucket.file(gcsFilePath).delete();
-        console.log(`[Sonic] Cleaned up GCS file: ${gcsFilePath}`);
-      } catch (cleanupErr) {
-        // Don't let cleanup failure mask the real error
-        console.warn("[Sonic] Failed to clean up GCS file:", cleanupErr);
+    for (const path of gcsFilePaths) {
+      if (path) {
+        try {
+          const storage = getStorage();
+          const bucket = storage.bucket(getBucketName());
+          await bucket.file(path).delete();
+          console.log(`[Sonic] Cleaned up GCS file: ${path}`);
+        } catch (cleanupErr) {
+          console.warn("[Sonic] Failed to clean up GCS file:", cleanupErr);
+        }
       }
     }
   }

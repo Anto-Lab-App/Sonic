@@ -8,7 +8,7 @@ import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import type { Diagnosis } from '@/types/diagnosis';
+import type { Diagnosis, DiagnosticContextData } from '@/types/diagnosis';
 
 // Utility for smooth animation interpolation
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -32,7 +32,14 @@ export function Scanner({
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
+  const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
+  
+  // New States for Follow-up Flow
+  const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
+  const [isFollowUp, setIsFollowUp] = useState(false);
+  const [followUpRequest, setFollowUpRequest] = useState<{ message: string, action_required: string } | null>(null);
+  const [firstFile, setFirstFile] = useState<File | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -249,75 +256,106 @@ export function Scanner({
       return;
     }
 
-    // Dodatkowe zabezpieczenie: jeśli plik to audio/video, sprawdzamy czy ma > 1s
     if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-      try {
-        const url = URL.createObjectURL(file);
-        const duration = await new Promise<number>((resolve) => {
-          const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
-          media.onloadedmetadata = () => {
-            URL.revokeObjectURL(url);
-            resolve(media.duration);
-          };
-          media.onerror = () => {
-             URL.revokeObjectURL(url);
-             resolve(999); // Ignore on error
-          };
-          media.src = url;
-        });
-
-        if (duration > 0 && duration < 1) {
-          const msg = 'Najpierw nagraj dźwięk usterki!';
-          alert(msg);
-          setError(msg);
-          return;
-        }
-      } catch (err) {
-        console.warn("Could not check duration", err);
+      const audioVideoElement = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+      const url = URL.createObjectURL(file);
+      audioVideoElement.src = url;
+      await new Promise((resolve) => {
+        audioVideoElement.onloadedmetadata = () => resolve(true);
+        audioVideoElement.load();
+      });
+      if (audioVideoElement.duration < 1) {
+        URL.revokeObjectURL(url);
+        const msg = 'Nagranie musi trwać co najmniej 1 sekundę!';
+        alert(msg);
+        setError(msg);
+        return;
       }
+      URL.revokeObjectURL(url);
     }
 
+    // Set UI to analyzing
     setIsAnalyzing(true);
+    setAnalyzingText(t.auto.status.init);
     setError(null);
-    setAnalyzingText(t.auto.status.iso);
 
-    // Animated status text cycle (runs alongside the fetch)
-    const t1 = setTimeout(() => setAnalyzingText(t.auto.status.search), 1500);
-    const t2 = setTimeout(() => setAnalyzingText(t.auto.status.dev), 3000);
+    // Create form data
+    const formData = new FormData();
+    // If we're in follow_up state, append the first file alongside the new one
+    if (isFollowUp && firstFile) {
+      formData.append("file", firstFile);
+    }
+    formData.append("file", file);
+
+    formData.append("vehicleMake", vehicleMake);
+    formData.append("vehicleDetails", vehicleDetails);
+
+    // Build context text from diagnosticContext
+    if (diagnosticContext) {
+      const ctxParts = [];
+      if (diagnosticContext.mileage) ctxParts.push(`Przebieg: ${diagnosticContext.mileage}`);
+      if (diagnosticContext.obdCodes) ctxParts.push(`Kody OBD-II: ${diagnosticContext.obdCodes}`);
+      if (diagnosticContext.condition) ctxParts.push(`Okoliczności: ${diagnosticContext.condition}`);
+      if (diagnosticContext.tags.length > 0) ctxParts.push(`Tagi: ${diagnosticContext.tags.join(', ')}`);
+      if (diagnosticContext.description) ctxParts.push(`Opis: ${diagnosticContext.description}`);
+      formData.append("context", ctxParts.join('\n'));
+    }
+
+    // Mock progress messages
+    const statuses = [
+      t.auto.status.audio,
+      t.auto.status.engine,
+      t.auto.status.db,
+    ];
+    let statusIndex = 0;
+    const interval = setInterval(() => {
+      statusIndex = (statusIndex + 1) % statuses.length;
+      setAnalyzingText(statuses[statusIndex]);
+    }, 2500);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('vehicleMake', vehicleMake);
-      formData.append('vehicleDetails', vehicleDetails);
-
-      const res = await fetch('/api/diagnose', {
-        method: 'POST',
+      const response = await fetch("/api/diagnose", {
+        method: "POST",
         body: formData,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || `API error: ${res.status}`);
-      }
-
-      const json = await res.json();
-
-      if (json.status === 'success' && json.diagnosis) {
-        setDiagnosisData(json.diagnosis);
-        setIsDiagnosisOpen(true);
-      } else {
-        throw new Error(json.message || 'Unexpected API response format');
-      }
-    } catch (err) {
-      console.error('Diagnosis API error:', err);
-      setError(err instanceof Error ? err.message : 'Nie udało się uzyskać diagnozy. Spróbuj ponownie.');
-    } finally {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      const data = await response.json();
+      
+      clearInterval(interval);
       setIsAnalyzing(false);
+
+      if (!response.ok) {
+        throw new Error(data.message || t.auto.status.error);
+      }
+
+      // Handle AI Response
+      if (data.aiResponse?.status === "follow_up" && data.aiResponse?.follow_up_request) {
+        // AI specifically asked for more info
+        setIsFollowUp(true);
+        setFollowUpRequest(data.aiResponse.follow_up_request);
+        setFirstFile(file);
+      } else if (data.diagnosis) {
+        // Complete Diagnosis
+        setDiagnosisData(data.diagnosis);
+        setIsDiagnosisOpen(true);
+        // Reset follow_up session
+        setIsFollowUp(false);
+        setFollowUpRequest(null);
+        setFirstFile(null);
+      } else {
+        throw new Error("Brak danych w odpowiedzi od AI.");
+      }
+
+    } catch (err) {
+      clearInterval(interval);
+      setIsAnalyzing(false);
+      const msg = err instanceof Error ? err.message : t.auto.status.error;
+      setError(msg);
+      // In case of error we don't drop the follow up state, user might retry
     }
   };
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -640,14 +678,43 @@ export function Scanner({
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
             </div>
             <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
-              {t.auto.uploadContext}
+              {diagnosticContext ? "KONTEKST DODANY" : t.auto.uploadContext}
             </span>
           </button>
         </motion.div>
       </div>
 
       <AnimatePresence>
-        {isContextModalOpen && <ContextModal onClose={() => setIsContextModalOpen(false)} />}
+        {isFollowUp && followUpRequest && !isAnalyzing && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 z-[60] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
+          >
+            <div className="mb-6 w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/30">
+              <AlertCircle className="w-8 h-8 text-blue-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">Wymagany Test Fizyczny</h3>
+            <p className="text-muted text-sm max-w-md mx-auto mb-10 leading-relaxed">
+              {followUpRequest.message}
+            </p>
+            <button
+              onClick={() => {
+                if (mode === 'audio') startRecording();
+                else fileInputRef.current?.click();
+              }}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase text-xs px-10 py-5 rounded-[2rem] transition-all shadow-[0_0_40px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95 flex items-center gap-3"
+            >
+              {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+              {followUpRequest.action_required}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isContextModalOpen && <ContextModal onClose={() => setIsContextModalOpen(false)} onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} initialData={diagnosticContext || undefined} />}
         {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
         {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
       </AnimatePresence>

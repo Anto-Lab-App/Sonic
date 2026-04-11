@@ -4,12 +4,26 @@ import React, { useState } from 'react';
 import { X, Camera, Mic } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
-export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void; variant?: 'car' | 'bike' }) {
+export interface DiagnosticContextData {
+  mileage: string;
+  description: string;
+  tags: string[];
+  condition: string | null;
+  obdCodes: string;
+}
+
+export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: { 
+  onClose: () => void; 
+  onSave: (data: DiagnosticContextData) => void;
+  initialData?: DiagnosticContextData;
+  variant?: 'car' | 'bike';
+}) {
   const { t } = useLanguage();
-  const [description, setDescription] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedCondition, setSelectedCondition] = useState<string | null>(null);
-  const [mileage, setMileage] = useState('');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
+  const [selectedCondition, setSelectedCondition] = useState<string | null>(initialData?.condition || null);
+  const [mileage, setMileage] = useState(initialData?.mileage || '');
+  const [obdCodes, setObdCodes] = useState(initialData?.obdCodes || '');
 
   const quickTags = variant === 'bike'
     ? t.context.quickTagsBike
@@ -59,6 +73,24 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
               />
             </div>
           </div>
+
+          {/* Kody OBD-II (Tylko dla aut) */}
+          {variant === 'car' && (
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+                Kody błędów OBD-II (Opcjonalnie)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={obdCodes}
+                  onChange={(e) => setObdCodes(e.target.value)}
+                  placeholder="np. P0300, P0171"
+                  className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium uppercase"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Opis problemu */}
           <div className="space-y-4">
@@ -135,7 +167,7 @@ export function ContextModal({ onClose, variant = 'car' }: { onClose: () => void
           <button onClick={onClose} className="flex-1 py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-muted bg-[#131823] border border-foreground/[0.03] hover:bg-surface-hover hover:text-foreground/90 transition-colors">
             {t.cancel}
           </button>
-          <button onClick={onClose} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
             {t.context.save}
           </button>
         </div>
