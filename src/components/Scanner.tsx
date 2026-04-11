@@ -32,7 +32,6 @@ export function Scanner({
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
-  const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
   
   // New States for Follow-up Flow
