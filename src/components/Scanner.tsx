@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X } from 'lucide-react';
+import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles } from 'lucide-react';
 
 import { ContextModal } from './ContextModal';
 import { InstructionsModal } from './InstructionsModal';
@@ -39,6 +39,8 @@ export function Scanner({
   const [isFollowUp, setIsFollowUp] = useState(false);
   const [followUpRequest, setFollowUpRequest] = useState<{ message: string, action_required: string } | null>(null);
   const [firstFile, setFirstFile] = useState<File | null>(null);
+  
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -215,14 +217,14 @@ export function Scanner({
   // Cancel recording without triggering analysis
   const cancelRecording = () => {
     stopRecording();
-    // Don't call runDiagnosis — just go back to idle
+    setPendingFile(null);
   };
 
   const toggleRecording = async () => {
     if (isRecording) {
       const audioFile = await stopRecording();
       if (audioFile) {
-        runDiagnosis(audioFile);
+        setPendingFile(audioFile);
       } else {
         setError('Nie udało się nagrać audio. Spróbuj ponownie.');
       }
@@ -247,7 +249,19 @@ export function Scanner({
     setShowInstructions(false);
   };
 
-  const runDiagnosis = async (file: File) => {
+  const handleAnalyzeClick = () => {
+    if (!pendingFile) return;
+    
+    if (!diagnosticContext && (!vehicleMake || !vehicleDetails)) {
+      setError('Uzupełnij dane pojazdu lub zwięzły opis przed analizą!');
+      setIsContextModalOpen(true);
+      return;
+    }
+    
+    runDiagnosis(pendingFile, false);
+  };
+
+  const runDiagnosis = async (file: File, forceComplete: boolean = false) => {
     if (!file || file.size === 0) {
       const msg = 'Najpierw nagraj dźwięk usterki!';
       alert(msg);
@@ -317,6 +331,10 @@ export function Scanner({
       }
     }
 
+    if (forceComplete) {
+      formData.append("context", (formData.get("context") || "") + "\n\nUWAGA: Użytkownik odmówił przetestowania fizycznego - wymuś ostateczną diagnozę z dostępnym zestawem danych ze statusem 'complete'.");
+    }
+
     // Mock progress messages
     const statuses = [
       t.auto.status.audio,
@@ -355,9 +373,9 @@ export function Scanner({
         setDiagnosisData(data.diagnosis);
         setIsDiagnosisOpen(true);
         // Reset follow_up session
-        setIsFollowUp(false);
         setFollowUpRequest(null);
         setFirstFile(null);
+        setPendingFile(null);
       } else {
         throw new Error("Brak danych w odpowiedzi od AI.");
       }
@@ -375,7 +393,7 @@ export function Scanner({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      runDiagnosis(e.target.files[0]);
+      setPendingFile(e.target.files[0]);
     }
   };
 
@@ -415,9 +433,9 @@ export function Scanner({
       {/* Mobile-perfect container */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
 
-        {/* Cancel button during recording — top left */}
+        {/* Cancel button during recording or when pendingFile exists — top left */}
         <AnimatePresence>
-          {isRecording && (
+          {(isRecording || pendingFile) && !isAnalyzing && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -484,13 +502,13 @@ export function Scanner({
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-col items-center text-center px-2"
               >
-                <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing ? 'text-foreground' : 'text-foreground/90'}`}>
-                  {isAnalyzing ? t.loadingAI : mode === 'visual'
+                <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing || pendingFile ? 'text-foreground' : 'text-foreground/90'}`}>
+                  {isAnalyzing ? t.loadingAI : pendingFile ? "Gotowy do analizy" : mode === 'visual'
                     ? (isRecording ? t.auto.audioOpening : t.auto.visualTitle)
                     : (isRecording ? (isDemoMode ? t.demoMode : t.auto.audioListening) : t.auto.audioTap)}
                 </h2>
                 <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
-                  {mode === 'visual'
+                  {pendingFile ? "Naciśnij przycisk poniżej, aby uruchomić diagnozę" : mode === 'visual'
                     ? t.auto.visualSub
                     : (isRecording
                       ? (isDemoMode ? t.auto.audioSubDemo : t.auto.audioSubSrc)
@@ -570,10 +588,10 @@ export function Scanner({
 
             {/* Central Button (Steve Jobs / Apple Style with Logo) */}
             <motion.button
-              onClick={toggleRecording}
+              onClick={pendingFile ? handleAnalyzeClick : toggleRecording}
               style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
               animate={
-                isRecording
+                isRecording || pendingFile
                   ? {
                     scale: [0.98, 1.02, 0.98],
                     boxShadow: [
@@ -588,11 +606,11 @@ export function Scanner({
                   }
               }
               transition={
-                isRecording
+                isRecording || pendingFile
                   ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
                   : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
               }
-              className="relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl border border-foreground/[0.08] group bg-surface-elevated/90"
+              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl border border-foreground/[0.08] group ${pendingFile ? 'bg-blue-600/20 border-blue-500/30' : 'bg-surface-elevated/90'}`}
             >
               {/* Inner Depth Shadow */}
               <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
@@ -606,6 +624,8 @@ export function Scanner({
                 >
                   {isAnalyzing ? (
                     <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
+                  ) : pendingFile ? (
+                    <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]" />
                   ) : mode === 'audio' ? (
                     <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
                   ) : (
@@ -715,16 +735,27 @@ export function Scanner({
             <p className="text-muted text-sm max-w-md mx-auto mb-10 leading-relaxed">
               {followUpRequest.message}
             </p>
-            <button
-              onClick={() => {
-                if (mode === 'audio') startRecording();
-                else fileInputRef.current?.click();
-              }}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase text-xs px-10 py-5 rounded-[2rem] transition-all shadow-[0_0_40px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95 flex items-center gap-3"
-            >
-              {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-              {followUpRequest.action_required}
-            </button>
+            <div className="flex flex-col gap-4 w-full max-w-sm mt-4">
+              <button
+                onClick={() => {
+                  if (mode === 'audio') startRecording();
+                  else fileInputRef.current?.click();
+                }}
+                className="bg-blue-600 hover:bg-blue-500 w-full text-white font-bold tracking-widest uppercase text-xs px-10 py-5 rounded-[2rem] transition-all shadow-[0_0_40px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95 flex justify-center items-center gap-3"
+              >
+                {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                {followUpRequest.action_required}
+              </button>
+
+              <button
+                onClick={() => {
+                  if (firstFile) runDiagnosis(firstFile, true);
+                }}
+                className="bg-surface/50 border border-foreground/[0.05] hover:bg-surface w-full text-muted hover:text-foreground font-bold tracking-widest uppercase text-[10px] px-8 py-4 rounded-[2rem] transition-all flex justify-center items-center"
+              >
+                Nie mogę wykonać testu (Pomiń)
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
