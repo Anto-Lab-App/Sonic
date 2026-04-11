@@ -308,6 +308,13 @@ export function Scanner({
       if (diagnosticContext.tags.length > 0) ctxParts.push(`Tagi: ${diagnosticContext.tags.join(', ')}`);
       if (diagnosticContext.description) ctxParts.push(`Opis: ${diagnosticContext.description}`);
       formData.append("context", ctxParts.join('\n'));
+
+      // Attach context files if any
+      if (diagnosticContext.contextFiles && diagnosticContext.contextFiles.length > 0) {
+        diagnosticContext.contextFiles.forEach(f => {
+          formData.append("file", f);
+        });
+      }
     }
 
     // Mock progress messages
@@ -642,8 +649,8 @@ export function Scanner({
               </AnimatePresence>
             </div>
 
-            <input type="file" accept="image/*,video/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-            <input type="file" accept="image/*,video/*" className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
+            <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+            <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
 
             {/* Error Message Display */}
             <AnimatePresence>
@@ -669,7 +676,7 @@ export function Scanner({
           className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
-          <button onClick={() => mode === 'audio' ? undefined : galleryInputRef.current?.click()} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+          <button onClick={() => galleryInputRef.current?.click()} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
               {mode === 'audio' ? (
                 <Upload className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { X, Camera, Mic } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Camera, Mic, Paperclip, FileImage } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export interface DiagnosticContextData {
@@ -10,6 +10,7 @@ export interface DiagnosticContextData {
   tags: string[];
   condition: string | null;
   obdCodes: string;
+  contextFiles: File[];
 }
 
 export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: { 
@@ -24,6 +25,15 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
   const [selectedCondition, setSelectedCondition] = useState<string | null>(initialData?.condition || null);
   const [mileage, setMileage] = useState(initialData?.mileage || '');
   const [obdCodes, setObdCodes] = useState(initialData?.obdCodes || '');
+  const [contextFiles, setContextFiles] = useState<File[]>(initialData?.contextFiles || []);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setContextFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
 
   const quickTags = variant === 'bike'
     ? t.context.quickTagsBike
@@ -102,10 +112,29 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
                 placeholder={variant === 'bike' ? t.context.descBikePh : t.context.descCarPh}
                 className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all resize-none h-32"
               />
-              <button className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-hover transition-colors">
-                <Mic className="w-4 h-4" />
+              <input type="file" multiple accept="image/*,video/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-4 right-4 px-4 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center gap-2 text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                title="Dołącz dodatkowe zdjęcia/wideo (np. kody błędów, uszkodzenia)"
+              >
+                <Paperclip className="w-4 h-4" />
+                {contextFiles.length > 0 && <span className="text-xs font-bold">{contextFiles.length}</span>}
               </button>
             </div>
+            {contextFiles.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {contextFiles.map((f, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg text-[10px] uppercase font-bold border border-blue-500/20">
+                    <FileImage className="w-3 h-3" />
+                    <span className="truncate max-w-[100px]">{f.name}</span>
+                    <button onClick={() => setContextFiles(prev => prev.filter((_, index) => index !== i))} className="ml-1 hover:text-red-400">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Szybkie tagi */}
@@ -167,7 +196,7 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
           <button onClick={onClose} className="flex-1 py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-muted bg-[#131823] border border-foreground/[0.03] hover:bg-surface-hover hover:text-foreground/90 transition-colors">
             {t.cancel}
           </button>
-          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes, contextFiles })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
             {t.context.save}
           </button>
         </div>
