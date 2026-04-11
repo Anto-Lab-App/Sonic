@@ -25,6 +25,7 @@ export interface DiagnosisParameters {
 }
 
 export interface Diagnosis {
+  internal_reasoning_log?: string;
   title: string;
   criticality: string;
   description: string;

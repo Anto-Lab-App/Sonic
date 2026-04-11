@@ -15,47 +15,43 @@ import { Type } from "@google/genai";
  */
 export const diagnosisResponseSchema = {
   type: Type.OBJECT,
-  description:
-    "A complete vehicle / bike diagnostic report generated from audio or visual analysis.",
+  description: "A complete vehicle / bike diagnostic report generated from audio or visual analysis.",
   properties: {
+    internal_reasoning_log: {
+      type: Type.STRING,
+      description: "Ukryty log inżynieryjny (Chain of Thought). Zanim wypełnisz resztę, opisz tutaj niezwykle szczegółowo swój proces myślowy: co dokładnie widzisz/słyszysz na nagraniu sekunda po sekundzie, jakie hipotezy stawiasz, jaką diagnostykę różnicową przeprowadzasz (co wykluczasz i dlaczego). Myśl analitycznie.",
+    },
     title: {
       type: Type.STRING,
-      description:
-        "Short, descriptive title of the diagnosed issue (e.g. 'Prawdopodobne zużycie panewek korbowodowych').",
+      description: "Krótki, opisowy tytuł zdiagnozowanego problemu.",
     },
     criticality: {
       type: Type.STRING,
-      description:
-        "Severity level of the issue. One of: 'Krytyczna', 'Wysoka', 'Średnia', 'Niska', 'Informacyjna'.",
+      description: "Poziom powagi problemu. Jedno z: 'Krytyczna', 'Wysoka', 'Średnia', 'Niska', 'Informacyjna'.",
     },
     description: {
       type: Type.STRING,
-      description:
-        "A detailed, 2-3 sentence explanation of the problem and its potential consequences.",
+      description: "Szczegółowe wyjaśnienie problemu i jego potencjalnych konsekwencji (2-3 zdania).",
     },
     confidence_score: {
       type: Type.INTEGER,
-      description:
-        "Confidence score as an integer percentage (0-100) indicating how certain the AI is about the diagnosis.",
+      description: "Ocena pewności diagnozy jako liczba całkowita (0-100).",
     },
     audio_analysis: {
       type: Type.OBJECT,
-      description: "Analysis of the audio/visual recording provided by the user.",
+      description: "Analiza przesłanego nagrania audiowizualnego.",
       properties: {
         recorded: {
           type: Type.STRING,
-          description:
-            "What the AI heard or saw in the recording (e.g. 'Wyraźne metaliczne stukanie z dolnej części bloku silnika').",
+          description: "Opis tego, co zostało usłyszane lub zauważone na nagraniu.",
         },
         characteristics: {
           type: Type.STRING,
-          description:
-            "Technical characteristics of the detected anomaly (frequency, sync with RPM, etc.).",
+          description: "Techniczna charakterystyka wykrytej anomalii.",
         },
         tags: {
           type: Type.ARRAY,
-          description:
-            "Short keyword tags summarising key features (e.g. '850 RPM', 'Metaliczny pogłos').",
+          description: "Krótkie tagi podsumowujące kluczowe cechy nagrania.",
           items: { type: Type.STRING },
         },
       },
@@ -63,19 +59,17 @@ export const diagnosisResponseSchema = {
     },
     ai_reasoning: {
       type: Type.ARRAY,
-      description:
-        "Step-by-step reasoning process the AI followed to arrive at its diagnosis. Minimum 3 steps.",
+      description: "Zrozumiałe dla użytkownika kroki wnioskowania, które doprowadziły do diagnozy. Minimum 3 kroki.",
       items: {
         type: Type.OBJECT,
         properties: {
           step: {
             type: Type.STRING,
-            description: "Name of the reasoning step (e.g. 'Izolacja częstotliwości').",
+            description: "Nazwa kroku wnioskowania.",
           },
           detail: {
             type: Type.STRING,
-            description:
-              "Detailed explanation of what happened in this step and what was found.",
+            description: "Szczegółowe wyjaśnienie danego kroku.",
           },
         },
         required: ["step", "detail"],
@@ -83,17 +77,17 @@ export const diagnosisResponseSchema = {
     },
     recommended_actions: {
       type: Type.ARRAY,
-      description: "Concrete actions the user should take. Minimum 2 items.",
+      description: "Konkretne zalecenia i akcje do wykonania przez użytkownika. Minimum 2 działania.",
       items: {
         type: Type.OBJECT,
         properties: {
           title: {
             type: Type.STRING,
-            description: "Short action title (e.g. 'Zgaś silnik').",
+            description: "Krótki tytuł zalecenia.",
           },
           desc: {
             type: Type.STRING,
-            description: "Detailed instruction for the user.",
+            description: "Szczegółowa instrukcja zalecenia.",
           },
         },
         required: ["title", "desc"],
@@ -101,27 +95,23 @@ export const diagnosisResponseSchema = {
     },
     parameters: {
       type: Type.OBJECT,
-      description: "Technical parameters and estimates related to the diagnosis.",
+      description: "Parametry techniczne i szacunki powiązane z diagnozą.",
       properties: {
         estimated_time_hours: {
           type: Type.INTEGER,
-          description:
-            "Estimated repair time in hours.",
+          description: "Szacowany czas naprawy w godzinach.",
         },
         risk_level: {
           type: Type.STRING,
-          description:
-            "Risk level as a percentage string (e.g. '95%').",
+          description: "Poziom ryzyka dalszej eksploatacji pojazdu w postaci procentowej (np. '80%').",
         },
         complexity: {
           type: Type.STRING,
-          description:
-            "Repair complexity on a scale of 1-5 (e.g. '5/5').",
+          description: "Złożoność naprawy w skali 1-5 (np. '3/5').",
         },
         obd_codes: {
           type: Type.ARRAY,
-          description:
-            "Relevant OBD-II fault codes if applicable (e.g. ['P0335', 'P0300']). Can be empty if no codes apply.",
+          description: "Odpowiednie kody błędów OBD-II, jeśli mają zastosowanie. Pusta tablica dla braku kodów (np. dla roweru).",
           items: { type: Type.STRING },
         },
       },
@@ -129,6 +119,7 @@ export const diagnosisResponseSchema = {
     },
   },
   required: [
+    "internal_reasoning_log",
     "title",
     "criticality",
     "description",
@@ -144,21 +135,25 @@ export const diagnosisResponseSchema = {
  * System instruction that primes the Gemini model as a vehicle
  * diagnostic expert.
  */
-export const SYSTEM_INSTRUCTION = `Jesteś SONIC — zaawansowanym systemem diagnostycznym do pojazdów mechanicznych i rowerów.
+export const SYSTEM_INSTRUCTION = `Jesteś SONIC — Głównym Inżynierem Diagnostyki Akustycznej i Wizualnej. Jesteś ekspertem z dziesięcioleciami doświadczenia w identyfikacji usterek maszyn na podstawie subtelnych zmian w dźwięku i obrazie. 
 
 TWOJE ZADANIE:
-Użytkownik przesyła Ci nagranie audio, wideo lub zdjęcie swojego pojazdu/roweru wraz z opcjonalnym opisem problemu.
-Na podstawie analizy tego pliku medialnego musisz wygenerować profesjonalną diagnozę usterki.
+Będziesz analizował przesłane nagrania wideo/audio lub zdjęcia pojazdów i rowerów. Twoim celem jest analityczne rozbicie problemu i dostarczenie merytorycznej diagnozy opartej WYŁĄCZNIE na materiale źródłowym i faktach. Skończ ze zgadywaniem.
 
-WYMAGANIA:
+METODOLOGIA (KRYTYCZNE WKLEJENIE DO POLE 'internal_reasoning_log'):
+Zanim zaczniesz uzupełniać końcowe pola diagnozy, musisz użyć pola 'internal_reasoning_log', aby opisać swój proces myślowy (Chain of Thought).
+1. Zawsze rozpoczynaj od diagnostyki różnicowej — wypisz potencjalne przyczyny i kolejno wykluczaj je na podstawie nagrania.
+2. Gdy analizujesz dźwięk silnika upewnij się, że rozpoznałeś i oceniłeś twarde parametry analityczne:
+   A) KORELACJA Z OBROTAMI (RPM): Czy dźwięk przyspiesza liniowo z obrotami wału, czy z wałkiem rozrządu (1/2 RPM)? Czy reaguje na obciążenie czy pozostaje stały?
+   B) TONACJA: Czy jest to niski, głuchy rezonans (często z dołu silnika), czy wysoki, metaliczny cyk/styk (często z góry silnika)?
+   C) CHARAKTERYSTYKA: Zidentyfikuj szum (łożyska), pisk (paski), stukanie (luzy metalowe), syczenie (nieszczelność podciśnienia).
+3. Gdy analizujesz zdjęcia rowerów i komponentów upewnij się, że analizujesz:
+   - Naprężenia i potencjalne pęknięcia zmęczeniowe materiału (szczególnie włókna węglowego i spawów aluminium).
+   - Osiowość i geometrię napędu (stopień zużycia kaset, zębatek).
+   - Luzy na łożyskach, wycieki z amortyzatorów.
+
+WYMAGANIA ZWROTNE:
 1. ZAWSZE odpowiadaj w języku POLSKIM.
-2. Bądź precyzyjny i techniczny, ale zrozumiały dla laika.
-3. Twoja odpowiedź MUSI być w formacie JSON zgodnym ze schematem — nie dodawaj żadnego tekstu poza JSON.
-4. Pole "confidence_score" to Twoja pewność diagnozy (0-100). Bądź uczciwy — jeśli nagranie jest niejasne, ustaw niski wynik.
-5. W "ai_reasoning" opisz minimum 3 kroki, które wykonałeś analizując nagranie.
-6. W "recommended_actions" podaj minimum 2 konkretne zalecenia.
-7. Jeśli na podstawie nagrania nie jesteś w stanie zdiagnozować problemu, nadal zwróć JSON z niskim confidence_score i wyjaśnij to w opisie.
-8. Jeśli kontekst użytkownika zawiera informacje o marce, modelu, przebiegu — uwzględnij to w swojej analizie.
-9. Pole "obd_codes" może być pustą tablicą jeśli kody OBD nie są istotne (np. dla roweru).
-
-PAMIĘTAJ: Jesteś ekspertem mechanikiem z wieloletnim doświadczeniem. Twoja analiza ma być profesjonalna i pomocna.`;
+2. Twoja odpowiedź MUSI być w formacie JSON zgodnym ze schematem.
+3. Pole "confidence_score" to Twoja racjonalna pewność diagnozy (0-100). Oprzyj tę wartość WYŁĄCZNIE na jakości materiału. Jeśli nagranie to czysty bezużyteczny szum — ustal wartość poniżej 20 i odrzuc analizę w "description". Nidy na siłę nie stawiaj pozytywnej diagnozy jeżeli materiał tego nie uzasadnia.
+4. Nigdy nie zmyślaj i nie powielaj schematowych przykładów.`;

@@ -242,6 +242,41 @@ export function Scanner({
   };
 
   const runDiagnosis = async (file: File) => {
+    if (!file || file.size === 0) {
+      const msg = 'Najpierw nagraj dźwięk usterki!';
+      alert(msg);
+      setError(msg);
+      return;
+    }
+
+    // Dodatkowe zabezpieczenie: jeśli plik to audio/video, sprawdzamy czy ma > 1s
+    if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+      try {
+        const url = URL.createObjectURL(file);
+        const duration = await new Promise<number>((resolve) => {
+          const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+          media.onloadedmetadata = () => {
+            URL.revokeObjectURL(url);
+            resolve(media.duration);
+          };
+          media.onerror = () => {
+             URL.revokeObjectURL(url);
+             resolve(999); // Ignore on error
+          };
+          media.src = url;
+        });
+
+        if (duration > 0 && duration < 1) {
+          const msg = 'Najpierw nagraj dźwięk usterki!';
+          alert(msg);
+          setError(msg);
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not check duration", err);
+      }
+    }
+
     setIsAnalyzing(true);
     setError(null);
     setAnalyzingText(t.auto.status.iso);
