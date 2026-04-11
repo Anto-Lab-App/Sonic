@@ -74,7 +74,9 @@ let _genai: GoogleGenAI | null = null;
 export function getGenAI(): GoogleGenAI {
   if (!_genai) {
     const creds = getCredentials();
-    const location = process.env.VERTEX_AI_LOCATION || "global";
+    // Zmuszamy klienta do korzystania z serwera 'global', na którym dostępne są najnowsze modele.
+    // Ignorujemy zmienną środowiskową VERTEX_AI_LOCATION z Vercela, która mogła być ustawiona na us-central1.
+    const location = "global";
 
     _genai = new GoogleGenAI({
       vertexai: true,
