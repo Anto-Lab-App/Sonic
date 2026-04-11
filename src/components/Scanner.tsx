@@ -256,21 +256,31 @@ export function Scanner({
     }
 
     if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-      const audioVideoElement = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
       const url = URL.createObjectURL(file);
-      audioVideoElement.src = url;
-      await new Promise((resolve) => {
-        audioVideoElement.onloadedmetadata = () => resolve(true);
-        audioVideoElement.load();
+      const duration = await new Promise<number>((resolve) => {
+        const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+        media.onloadedmetadata = () => {
+          URL.revokeObjectURL(url);
+          resolve(media.duration);
+        };
+        media.onerror = () => {
+           URL.revokeObjectURL(url);
+           resolve(999); // Ignore on error
+        };
+        // Czasami duration ładuje się w nieskończoność dla surowych blobów z MediaRecordera, fallback:
+        setTimeout(() => {
+           URL.revokeObjectURL(url);
+           resolve(999);
+        }, 1500);
+        media.src = url;
       });
-      if (audioVideoElement.duration < 1) {
-        URL.revokeObjectURL(url);
+
+      if (duration > 0 && duration < 1) {
         const msg = 'Nagranie musi trwać co najmniej 1 sekundę!';
         alert(msg);
         setError(msg);
         return;
       }
-      URL.revokeObjectURL(url);
     }
 
     // Set UI to analyzing
