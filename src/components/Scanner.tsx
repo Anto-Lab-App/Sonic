@@ -380,6 +380,7 @@ export function Scanner({
         setIsFollowUp(true);
         setFollowUpRequest(aiResponse.follow_up_request);
         setFirstFile(file);
+        setPendingFile(null); // clear so follow-up overlay shows (condition: !pendingFile)
       } else if (aiResponse?.status === "complete" || data.diagnosis) {
         // Accept either complete status or legacy diagnosis field
         const diagnosis = aiResponse?.final_diagnosis || data.diagnosis;
