@@ -265,21 +265,12 @@ export function Scanner({
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
     
-    // Show instructions at least once before first analysis
+    // Show instructions once before first analysis
     if (!hasSeenInstructionsState) {
       setShowInstructions(true);
-      return; // instructions will call back via handleInstructionsProceed
-    }
-
-    // Soft reminder if no context and no vehicle data
-    if (!diagnosticContext && !vehicleMake && !vehicleDetails) {
-      // Show reminder but don't block - dismiss and run after context modal close
-      setError('Wskazówka: Podaj dane pojazdu lub kontekst, by AI mogło trafniej diagnozować.');
-      setIsContextModalOpen(true);
-      setTimeout(() => setError(null), 6000);
       return;
     }
-    
+
     runDiagnosis(pendingFile, false);
   };
 
@@ -852,12 +843,8 @@ export function Scanner({
 
       <AnimatePresence>
         {isContextModalOpen && <ContextModal 
-          onClose={() => { 
-            setIsContextModalOpen(false); 
-            // If context modal was opened as a reminder, auto-run diagnosis after close
-            if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200);
-          }} 
-          onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200); }} 
+          onClose={() => setIsContextModalOpen(false)} 
+          onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} 
           initialData={diagnosticContext || undefined} />}
         {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
         {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
