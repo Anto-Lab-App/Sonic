@@ -260,10 +260,11 @@ export function Scanner({
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
     
+    // Soft reminder — nie blokujemy, tylko ostrzegamy raz
     if (!diagnosticContext && (!vehicleMake || !vehicleDetails)) {
-      setError('Uzupełnij dane pojazdu lub zwięzły opis przed analizą!');
-      setIsContextModalOpen(true);
-      return;
+      setError('Wskazówka: Dodanie danych pojazdu zwiększa trafność diagnozy.');
+      // Clear warning after 4s and proceed anyway
+      setTimeout(() => setError(null), 4000);
     }
     
     runDiagnosis(pendingFile, false);
@@ -757,40 +758,68 @@ export function Scanner({
       </div>
 
       <AnimatePresence>
-        {isFollowUp && followUpRequest && !isAnalyzing && !isRecording && (
+        {isFollowUp && followUpRequest && !isAnalyzing && !isRecording && !pendingFile && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 z-[60] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 z-[60] flex flex-col"
           >
-            <div className="mb-6 w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/30">
-              <AlertCircle className="w-8 h-8 text-blue-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-4">Wymagany Test Fizyczny</h3>
-            <p className="text-muted text-sm max-w-md mx-auto mb-10 leading-relaxed">
-              {followUpRequest.message}
-            </p>
-            <div className="flex flex-col gap-4 w-full max-w-sm mt-4">
-              <button
-                onClick={() => {
-                  if (mode === 'audio') startRecording();
-                  else fileInputRef.current?.click();
-                }}
-                className="bg-blue-600 hover:bg-blue-500 w-full text-white font-bold tracking-widest uppercase text-xs px-10 py-5 rounded-[2rem] transition-all shadow-[0_0_40px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95 flex justify-center items-center gap-3"
-              >
-                {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                {followUpRequest.action_required}
-              </button>
+            {/* Blurred background */}
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" />
+            
+            {/* Content */}
+            <div className="relative z-10 flex flex-col h-full pt-16 px-6 pb-8">
+              {/* Top badge */}
+              <div className="flex items-center justify-center mb-6">
+                <div className="flex items-center gap-2 bg-[#00D1FF]/10 border border-[#00D1FF]/20 rounded-full px-4 py-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00D1FF] animate-pulse" />
+                  <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">Etap 2 &middot; Test Diagnostyczny</span>
+                </div>
+              </div>
+              
+              {/* Message */}
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <h2 className="text-3xl font-bold text-foreground mb-4 leading-tight">Jeden krok<br />do diagnozy</h2>
+                <p className="text-foreground/60 text-sm max-w-xs mx-auto leading-relaxed">
+                  {followUpRequest.message}
+                </p>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
+                {/* Primary: Record */}
+                <button
+                  onClick={() => {
+                    if (mode === 'audio') startRecording();
+                    else fileInputRef.current?.click();
+                  }}
+                  className="w-full flex items-center justify-center gap-3 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 hover:border-[#00D1FF]/40 text-[#00D1FF] font-bold tracking-wider uppercase text-xs py-5 px-6 rounded-[24px] transition-all active:scale-95"
+                >
+                  {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                  {followUpRequest.action_required}
+                </button>
 
-              <button
-                onClick={() => {
-                  if (firstFile) runDiagnosis(firstFile, true);
-                }}
-                className="bg-surface/50 border border-foreground/[0.05] hover:bg-surface w-full text-muted hover:text-foreground font-bold tracking-widest uppercase text-[10px] px-8 py-4 rounded-[2rem] transition-all flex justify-center items-center"
-              >
-                Nie mogę wykonać testu (Pomiń)
-              </button>
+                {/* Secondary: Upload photo/video */}
+                <button
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-3 bg-surface/50 hover:bg-surface border border-foreground/[0.06] hover:border-foreground/[0.12] text-foreground/60 hover:text-foreground font-bold tracking-wider uppercase text-xs py-4 px-6 rounded-[24px] transition-all active:scale-95"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Dodaj zdjęcie lub wideo
+                </button>
+
+                {/* Skip */}
+                <button
+                  onClick={() => {
+                    if (firstFile) runDiagnosis(firstFile, true);
+                  }}
+                  className="w-full flex items-center justify-center text-foreground/30 hover:text-foreground/60 font-medium text-xs py-3 transition-colors"
+                >
+                  Nie mogę wykonać testu — pomiń i wydaj diagnozę
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
