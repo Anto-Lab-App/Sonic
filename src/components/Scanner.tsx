@@ -255,16 +255,29 @@ export function Scanner({
       setHasSeenInstructionsState(true);
     }
     setShowInstructions(false);
+    // If user had a pending file when instructions showed, continue to analysis
+    if (pendingFile) {
+      // Slight delay so modal closes smoothly first
+      setTimeout(() => runDiagnosis(pendingFile, false), 300);
+    }
   };
 
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
     
-    // Soft reminder — nie blokujemy, tylko ostrzegamy raz
-    if (!diagnosticContext && (!vehicleMake || !vehicleDetails)) {
-      setError('Wskazówka: Dodanie danych pojazdu zwiększa trafność diagnozy.');
-      // Clear warning after 4s and proceed anyway
-      setTimeout(() => setError(null), 4000);
+    // Show instructions at least once before first analysis
+    if (!hasSeenInstructionsState) {
+      setShowInstructions(true);
+      return; // instructions will call back via handleInstructionsProceed
+    }
+
+    // Soft reminder if no context and no vehicle data
+    if (!diagnosticContext && !vehicleMake && !vehicleDetails) {
+      // Show reminder but don't block - dismiss and run after context modal close
+      setError('Wskazówka: Podaj dane pojazdu lub kontekst, by AI mogło trafniej diagnozować.');
+      setIsContextModalOpen(true);
+      setTimeout(() => setError(null), 6000);
+      return;
     }
     
     runDiagnosis(pendingFile, false);
@@ -789,11 +802,14 @@ export function Scanner({
               </div>
               
               {/* Message */}
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <h2 className="text-3xl font-bold text-foreground mb-4 leading-tight">Jeden krok<br />do diagnozy</h2>
-                <p className="text-foreground/60 text-sm max-w-xs mx-auto leading-relaxed">
-                  {followUpRequest.message}
-                </p>
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <h2 className="text-3xl font-bold text-foreground mb-6 leading-tight text-center">Jeden krok<br />do diagnozy</h2>
+                <div className="w-full bg-surface/40 border border-foreground/[0.06] rounded-[20px] p-5 backdrop-blur-sm">
+                  <p className="text-[10px] font-bold tracking-widest text-[#00D1FF]/70 uppercase mb-2">Analiza AI</p>
+                  <p className="text-foreground/80 text-sm leading-relaxed">
+                    {followUpRequest.message}
+                  </p>
+                </div>
               </div>
               
               {/* Action buttons */}
@@ -835,7 +851,14 @@ export function Scanner({
       </AnimatePresence>
 
       <AnimatePresence>
-        {isContextModalOpen && <ContextModal onClose={() => setIsContextModalOpen(false)} onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} initialData={diagnosticContext || undefined} />}
+        {isContextModalOpen && <ContextModal 
+          onClose={() => { 
+            setIsContextModalOpen(false); 
+            // If context modal was opened as a reminder, auto-run diagnosis after close
+            if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200);
+          }} 
+          onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200); }} 
+          initialData={diagnosticContext || undefined} />}
         {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
         {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
       </AnimatePresence>
