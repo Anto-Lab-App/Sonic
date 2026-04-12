@@ -367,26 +367,34 @@ export function Scanner({
       clearInterval(interval);
       setIsAnalyzing(false);
 
+      console.log('[Sonic Frontend] Response:', JSON.stringify(data, null, 2));
+
       if (!response.ok) {
         throw new Error(data.message || t.auto.status.error);
       }
 
-      // Handle AI Response
-      if (data.aiResponse?.status === "follow_up" && data.aiResponse?.follow_up_request) {
-        // AI specifically asked for more info
+      const aiResponse = data.aiResponse;
+      
+      // Handle AI Response based on status field
+      if (aiResponse?.status === "follow_up" && aiResponse?.follow_up_request) {
         setIsFollowUp(true);
-        setFollowUpRequest(data.aiResponse.follow_up_request);
+        setFollowUpRequest(aiResponse.follow_up_request);
         setFirstFile(file);
-      } else if (data.diagnosis) {
-        // Complete Diagnosis
-        setDiagnosisData(data.diagnosis);
+      } else if (aiResponse?.status === "complete" || data.diagnosis) {
+        // Accept either complete status or legacy diagnosis field
+        const diagnosis = aiResponse?.final_diagnosis || data.diagnosis;
+        if (!diagnosis) {
+          throw new Error("AI zwróciło status 'complete', ale brak danych diagnozy.");
+        }
+        setDiagnosisData(diagnosis);
         setIsDiagnosisOpen(true);
-        // Reset follow_up session
+        setIsFollowUp(false);
         setFollowUpRequest(null);
         setFirstFile(null);
         setPendingFile(null);
       } else {
-        throw new Error("Brak danych w odpowiedzi od AI.");
+        console.error('[Sonic Frontend] Unexpected response structure:', data);
+        throw new Error("Nieoczekiwana struktura odpowiedzi od AI. Spróbuj ponownie.");
       }
 
     } catch (err) {
