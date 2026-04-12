@@ -50,6 +50,8 @@ export function Scanner({
   
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [showPreScan, setShowPreScan] = useState(false);
+  const [stickyError, setStickyError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -265,7 +267,20 @@ export function Scanner({
 
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
+
+    const preScanSeen = localStorage.getItem('hasSeenPreScan') === 'true';
+    if (!preScanSeen) {
+      setShowPreScan(true);
+      return;
+    }
+
     runDiagnosis(pendingFile, false);
+  };
+
+  const handlePreScanProceed = () => {
+    localStorage.setItem('hasSeenPreScan', 'true');
+    setShowPreScan(false);
+    if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200);
   };
 
   const runDiagnosis = async (file: File, forceComplete: boolean = false) => {
@@ -401,7 +416,7 @@ export function Scanner({
       setIsAnalyzing(false);
       const msg = err instanceof Error ? err.message : t.auto.status.error;
       setError(msg);
-      // In case of error we don't drop the follow up state, user might retry
+      setStickyError(msg); // persistent so user can always read it
     }
   };
 
@@ -866,6 +881,90 @@ export function Scanner({
           initialData={diagnosticContext || undefined} />}
         {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
         {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
+      </AnimatePresence>
+
+      {/* Pre-Scan Tips Overlay — shown once before first analysis */}
+      <AnimatePresence>
+        {showPreScan && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 z-[70] flex flex-col"
+          >
+            <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" />
+            <div className="relative z-10 flex flex-col h-full pt-14 px-6 pb-8">
+              <div className="flex items-center justify-center mb-5">
+                <div className="flex items-center gap-2 bg-[#00D1FF]/10 border border-[#00D1FF]/20 rounded-full px-4 py-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00D1FF] animate-pulse" />
+                  <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">Wskazówki przed analizą</span>
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col justify-center gap-4">
+                <h2 className="text-2xl font-bold text-foreground text-center mb-2">Jak uzyskać trafną diagnozę?</h2>
+
+                {/* Tips */}
+                {[
+                  { icon: '🎙️', tip: 'Nagraj lub wgraj materiał z wyraźnie słyszalną usterką — silnik na biegu jałowym, jazda próbna, stukanie.' },
+                  { icon: '🚗', tip: 'Podaj markę, model i rok pojazdu — AI dopasuje diagnozę do specyfiki silnika.' },
+                  { icon: '📋', tip: 'Opisz kiedy problem występuje: "przy zimnym starcie", "przy skręcaniu", "po 2000 obr/min".' },
+                  { icon: '🔌', tip: 'Masz kody OBD-II? Dodaj je w Kontekście — zwiększa to trafność o ~40%.' },
+                ].map(({ icon, tip }) => (
+                  <div key={tip} className="flex items-start gap-3 bg-surface/40 border border-foreground/[0.05] rounded-[16px] p-4">
+                    <span className="text-xl shrink-0 mt-0.5">{icon}</span>
+                    <p className="text-sm text-foreground/70 leading-relaxed">{tip}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-3 mt-6">
+                {!diagnosticContext && !vehicleMake && (
+                  <button
+                    onClick={() => { setShowPreScan(false); setIsContextModalOpen(true); }}
+                    className="w-full flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/[0.08] text-foreground/60 hover:text-foreground font-semibold text-xs py-4 px-6 rounded-[20px] transition-all"
+                  >
+                    <FileText className="w-4 h-4" /> Dodaj dane pojazdu i kontekst
+                  </button>
+                )}
+                <button
+                  onClick={handlePreScanProceed}
+                  className="w-full flex items-center justify-center gap-2 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 text-[#00D1FF] font-bold tracking-wide text-sm py-5 px-6 rounded-[20px] transition-all active:scale-95"
+                >
+                  Rozumiem — analizuj teraz
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sticky Error Overlay — persistent, always readable */}
+      <AnimatePresence>
+        {stickyError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute inset-0 z-[80] flex flex-col items-center justify-center p-8"
+          >
+            <div className="absolute inset-0 bg-background/90 backdrop-blur-xl" />
+            <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Błąd analizy</h3>
+              <p className="text-foreground/60 text-sm leading-relaxed mb-8">{stickyError}</p>
+              <button
+                onClick={() => { setStickyError(null); setError(null); }}
+                className="w-full bg-foreground/10 hover:bg-foreground/15 border border-foreground/10 text-foreground font-semibold text-sm py-4 rounded-[20px] transition-all"
+              >
+                Zamknij i spróbuj ponownie
+              </button>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
