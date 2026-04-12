@@ -49,6 +49,7 @@ export function Scanner({
   const [firstFile, setFirstFile] = useState<File | null>(null);
   
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -264,13 +265,6 @@ export function Scanner({
 
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
-    
-    // Show instructions once before first analysis
-    if (!hasSeenInstructionsState) {
-      setShowInstructions(true);
-      return;
-    }
-
     runDiagnosis(pendingFile, false);
   };
 
@@ -413,9 +407,16 @@ export function Scanner({
 
 
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setPendingFile(e.target.files[0]);
+      setIsLoadingFile(true);
+      const file = e.target.files[0];
+      // Short delay so user sees loading state
+      await new Promise(r => setTimeout(r, 400));
+      setPendingFile(file);
+      setIsLoadingFile(false);
+      // Reset input so same file can be re-selected
+      e.target.value = '';
     }
   };
 
@@ -746,16 +747,33 @@ export function Scanner({
           className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
-          <button onClick={() => galleryInputRef.current?.click()} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
-              {mode === 'audio' ? (
+          <button 
+            onClick={() => galleryInputRef.current?.click()} 
+            className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-5 rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${
+              pendingFile 
+                ? 'bg-[#00D1FF]/5 border-[#00D1FF]/20' 
+                : 'bg-surface/80 hover:bg-surface-hover/90 border-foreground/[0.05]'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${
+              pendingFile ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
+            }`}>
+              {isLoadingFile ? (
+                <Loader2 className="w-4 h-4 text-[#00D1FF] animate-spin" />
+              ) : pendingFile ? (
+                <span className="text-[#00D1FF] text-base">✓</span>
+              ) : mode === 'audio' ? (
                 <Upload className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
               ) : (
                 <ImageIcon className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
               )}
             </div>
-            <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
-              {mode === 'audio' ? t.auto.uploadAudio : t.auto.uploadFiles}
+            <span className={`text-[10px] font-semibold uppercase tracking-widest transition-colors text-center px-2 truncate w-full ${
+              isLoadingFile ? 'text-[#00D1FF]/60' :
+              pendingFile ? 'text-[#00D1FF]/80' : 
+              'text-foreground/50 group-hover:text-foreground/90'
+            }`}>
+              {isLoadingFile ? 'Wczytuję...' : pendingFile ? `✓ Załadowano` : mode === 'audio' ? t.auto.uploadAudio : t.auto.uploadFiles}
             </span>
           </button>
 
