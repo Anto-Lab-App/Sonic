@@ -32,7 +32,15 @@ export function Scanner({
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
   const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
+  const [pendingHint, setPendingHint] = useState(0);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
+
+  const PENDING_HINTS = [
+    "Plik gotowy — naciśnij aby analizować",
+    "Możesz dodać dane pojazdu lub opis",
+    "Kliknij przycisk aby uruchomić AI",
+    "Dodaj kody OBD-II w kontekście",
+  ];
   
   // New States for Follow-up Flow
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
@@ -406,6 +414,13 @@ export function Scanner({
     };
   }, []);
 
+  // Cycle through hint messages when file is pending
+  useEffect(() => {
+    if (!pendingFile) { setPendingHint(0); return; }
+    const id = setInterval(() => setPendingHint(h => (h + 1) % PENDING_HINTS.length), 2800);
+    return () => clearInterval(id);
+  }, [pendingFile]);
+
   return (
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-[#00D1FF]/30">
       {/* Premium Deep Navy Background */}
@@ -491,31 +506,57 @@ export function Scanner({
         {/* Center Concentric Visualizer & Button */}
         <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]`}>
 
-          {/* Status Text (Moved above the button for better visibility like Shazam) */}
-          <div className="h-12 mb-4 flex flex-col items-center justify-end z-10">
+          {/* Status Text - always visible, cycles through states */}
+          <div className="h-16 mb-4 flex flex-col items-center justify-end z-10">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={isRecording ? 'recording' : 'idle'}
-                initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center text-center px-2"
-              >
-                <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording || isAnalyzing || pendingFile ? 'text-foreground' : 'text-foreground/90'}`}>
-                  {isAnalyzing ? t.loadingAI : pendingFile ? "Gotowy do analizy" : mode === 'visual'
-                    ? (isRecording ? t.auto.audioOpening : t.auto.visualTitle)
-                    : (isRecording ? (isDemoMode ? t.demoMode : t.auto.audioListening) : t.auto.audioTap)}
-                </h2>
-                <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
-                  {pendingFile ? "Naciśnij przycisk poniżej, aby uruchomić diagnozę" : mode === 'visual'
-                    ? t.auto.visualSub
-                    : (isRecording
-                      ? (isDemoMode ? t.auto.audioSubDemo : t.auto.audioSubSrc)
-                      : t.auto.audioSubReq)
-                  }
-                </p>
-              </motion.div>
+              {isAnalyzing ? (
+                <motion.div
+                  key={analyzingText}
+                  initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col items-center text-center px-2"
+                >
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
+                  <p className="text-xs font-semibold tracking-widest text-purple-400/80 uppercase">{analyzingText}</p>
+                </motion.div>
+              ) : pendingFile ? (
+                <motion.div
+                  key={`pending-${pendingHint}`}
+                  initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col items-center text-center px-2"
+                >
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">Gotowy do analizy</h2>
+                  <p className="text-sm text-[#00D1FF]/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={isRecording ? 'recording' : 'idle'}
+                  initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-col items-center text-center px-2"
+                >
+                  <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
+                    {mode === 'visual'
+                      ? (isRecording ? t.auto.audioOpening : t.auto.visualTitle)
+                      : (isRecording ? (isDemoMode ? t.demoMode : t.auto.audioListening) : t.auto.audioTap)}
+                  </h2>
+                  <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
+                    {mode === 'visual'
+                      ? t.auto.visualSub
+                      : (isRecording
+                        ? (isDemoMode ? t.auto.audioSubDemo : t.auto.audioSubSrc)
+                        : t.auto.audioSubReq)
+                    }
+                  </p>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
@@ -610,7 +651,7 @@ export function Scanner({
                   ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
                   : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
               }
-              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl border border-foreground/[0.08] group ${pendingFile ? 'bg-blue-600/20 border-blue-500/30' : 'bg-surface-elevated/90'}`}
+              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl group ${pendingFile ? 'bg-surface-elevated/60 border border-blue-500/20' : 'bg-surface-elevated/90 border border-foreground/[0.08]'}`}
             >
               {/* Inner Depth Shadow */}
               <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
@@ -625,7 +666,7 @@ export function Scanner({
                   {isAnalyzing ? (
                     <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
                   ) : pendingFile ? (
-                    <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]" />
+                    <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]/60" />
                   ) : mode === 'audio' ? (
                     <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
                   ) : (
@@ -651,23 +692,18 @@ export function Scanner({
               </div>
             </motion.button>
 
-            {/* Analyzing Text */}
-            <div className="absolute -bottom-12 left-0 right-0 flex justify-center">
-              <AnimatePresence>
-                {isAnalyzing && (
-                  <motion.div
-                    key={analyzingText}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.4 }}
-                    className="absolute text-[10px] md:text-xs font-semibold tracking-widest text-purple-400/80 uppercase whitespace-nowrap"
-                  >
-                    {analyzingText}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Analyzing glow ring (visible when isAnalyzing) */}
+            <AnimatePresence>
+              {isAnalyzing && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0.3, 0.7, 0.3] }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full pointer-events-none border border-purple-400/30"
+                />
+              )}
+            </AnimatePresence>
 
             <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
             <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
