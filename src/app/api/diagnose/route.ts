@@ -101,6 +101,13 @@ export async function POST(
     if (vehicleDetails) contextParts.push(`Szczegóły: ${vehicleDetails}`);
     if (userContext) contextParts.push(`Opis problemu: ${userContext}`);
 
+    // Session context: tell AI how many files and what stage we're in
+    if (fileParts.length > 1) {
+      contextParts.push(`\nUWAGA SESYJNA: Przesyłam Ci ${fileParts.length} plików. Plik pierwszy to oryginalny materiał z usterki. Kolejne pliki to materiały po wykonaniu testu fizycznego (Follow-Up). MUSISZ odpowiedzieć ze statusem 'complete' i wydac ostateczną diagnozę.`);
+    } else {
+      contextParts.push(`\nUWAGA SESYJNA: To jest PIERWSZY plik z sesji diagnostycznej. Możesz odpowiedzieć 'follow_up' jeśli potrzebujesz dodatkowego testu fizycznego, albo 'complete' jeśli diagnosis jest oczywista.`);
+    }
+
     const contextText =
       contextParts.length > 0
         ? contextParts.join("\n")
@@ -141,6 +148,9 @@ export async function POST(
             systemInstruction: SYSTEM_INSTRUCTION,
             responseMimeType: "application/json",
             responseSchema: diagnosisResponseSchema,
+            temperature: 0.2,
+            topK: 20,
+            topP: 0.8,
           },
         });
 

@@ -22,6 +22,7 @@ export interface DiagnosisParameters {
   risk_level: string;
   complexity: string;
   obd_codes: string[];
+  estimated_cost_pln: string;
 }
 
 // Previously this was the main response. Now it's the final diagnosis block.

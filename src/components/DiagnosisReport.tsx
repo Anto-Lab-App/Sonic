@@ -363,6 +363,21 @@ export function DiagnosisReport({ onClose, data }: DiagnosisReportProps) {
                   ))}
                 </div>
               </div>
+
+              {/* Estimated Cost */}
+              {data.parameters.estimated_cost_pln && (
+                <div className="pt-4 border-t border-foreground/5">
+                  <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border border-emerald-500/15 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <span className="text-lg">💰</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">Szacunkowy koszt naprawy</p>
+                      <p className="text-base md:text-lg font-bold text-emerald-400">{data.parameters.estimated_cost_pln}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
