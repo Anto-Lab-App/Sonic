@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles } from 'lucide-react';
 
 import { ContextModal } from './ContextModal';
-import { InstructionsModal } from './InstructionsModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Diagnosis, DiagnosticContextData } from '@/types/diagnosis';
@@ -28,9 +27,7 @@ export function Scanner({
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
-  const [hasSeenInstructionsState, setHasSeenInstructionsState] = useState(false);
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
   const [pendingHint, setPendingHint] = useState(0);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
@@ -240,28 +237,11 @@ export function Scanner({
         setError('Nie udało się nagrać audio. Spróbuj ponownie.');
       }
     } else {
-      if (!hasSeenInstructionsState) {
-        setShowInstructions(true);
+      if (mode === 'visual') {
+        fileInputRef.current?.click();
       } else {
-        if (mode === 'visual') {
-          fileInputRef.current?.click();
-        } else {
-          startRecording();
-        }
+        startRecording();
       }
-    }
-  };
-
-  const handleInstructionsProceed = (dontShowAgain: boolean) => {
-    if (dontShowAgain) {
-      localStorage.setItem('hasSeenInstructions', 'true');
-      setHasSeenInstructionsState(true);
-    }
-    setShowInstructions(false);
-    // If user had a pending file when instructions showed, continue to analysis
-    if (pendingFile) {
-      // Slight delay so modal closes smoothly first
-      setTimeout(() => runDiagnosis(pendingFile, false), 300);
     }
   };
 
@@ -436,7 +416,6 @@ export function Scanner({
   };
 
   useEffect(() => {
-    setHasSeenInstructionsState(localStorage.getItem('hasSeenInstructions') === 'true');
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
@@ -526,7 +505,7 @@ export function Scanner({
           </div>
 
           <button
-            onClick={() => setShowInstructions(true)}
+            onClick={() => setShowPreScan(true)}
             className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-5 py-2.5 rounded-full shadow-sm max-w-full"
           >
             <AlertCircle size={14} className="shrink-0" /> <span className="truncate">{t.auto.protips}</span>
@@ -844,19 +823,21 @@ export function Scanner({
                     if (mode === 'audio') startRecording();
                     else fileInputRef.current?.click();
                   }}
-                  className="w-full flex items-center justify-center gap-3 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 hover:border-[#00D1FF]/40 text-[#00D1FF] font-bold tracking-wider uppercase text-xs py-5 px-6 rounded-[24px] transition-all active:scale-95"
+                  className="w-full flex items-center justify-center gap-3 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 hover:border-[#00D1FF]/40 text-[#00D1FF] font-bold tracking-wider uppercase text-[11px] py-5 px-6 rounded-[24px] transition-all active:scale-95"
                 >
-                  {mode === 'audio' ? <Mic className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                  {followUpRequest.action_required}
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    <span>Nagraj live z kamery/mikrofonu</span>
+                  </div>
                 </button>
 
                 {/* Secondary: Upload photo/video */}
                 <button
                   onClick={() => galleryInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-3 bg-surface/50 hover:bg-surface border border-foreground/[0.06] hover:border-foreground/[0.12] text-foreground/60 hover:text-foreground font-bold tracking-wider uppercase text-xs py-4 px-6 rounded-[24px] transition-all active:scale-95"
+                  className="w-full flex items-center justify-center gap-3 bg-surface/50 hover:bg-surface border border-foreground/[0.06] hover:border-foreground/[0.12] text-foreground/80 hover:text-foreground font-bold tracking-wider uppercase text-[11px] py-4 px-6 rounded-[24px] transition-all active:scale-95"
                 >
                   <ImageIcon className="w-4 h-4" />
-                  Dodaj zdjęcie lub wideo
+                  Dodaj plik z biblioteki
                 </button>
 
                 {/* Skip */}
@@ -879,8 +860,15 @@ export function Scanner({
           onClose={() => setIsContextModalOpen(false)} 
           onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} 
           initialData={diagnosticContext || undefined} />}
-        {showInstructions && <InstructionsModal onProceed={handleInstructionsProceed} isAudioMode={mode === 'audio'} />}
-        {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { setIsDiagnosisOpen(false); setDiagnosisData(null); }} data={diagnosisData} />}
+        {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { 
+          setIsDiagnosisOpen(false); 
+          setDiagnosisData(null); 
+          setDiagnosticContext(null);
+          setVehicleMake('');
+          setVehicleDetails('');
+          setFirstFile(null);
+          // Set to idle mode implicitly
+        }} data={diagnosisData} />}
       </AnimatePresence>
 
       {/* Pre-Scan Tips Overlay — shown once before first analysis */}
@@ -907,10 +895,10 @@ export function Scanner({
 
                 {/* Tips */}
                 {[
-                  { icon: '🎙️', tip: 'Nagraj lub wgraj materiał z wyraźnie słyszalną usterką — silnik na biegu jałowym, jazda próbna, stukanie.' },
-                  { icon: '🚗', tip: 'Podaj markę, model i rok pojazdu — AI dopasuje diagnozę do specyfiki silnika.' },
-                  { icon: '📋', tip: 'Opisz kiedy problem występuje: "przy zimnym starcie", "przy skręcaniu", "po 2000 obr/min".' },
-                  { icon: '🔌', tip: 'Masz kody OBD-II? Dodaj je w Kontekście — zwiększa to trafność o ~40%.' },
+                  { icon: '⚠️', tip: 'Przede wszystkim BHP! Uważaj na pracujący silnik, wentylatory, gorące elementy i ruszające pojazdy podczas nagrywania.' },
+                  { icon: '🎙️', tip: 'Nagraj wyraźnie słyszalną usterkę — silnik na biegu jałowym, jazda próbna, stukanie. Minimum 1 sekunda, unikaj szumu wiatru.' },
+                  { icon: '🚗', tip: 'Podaj markę, model i rocznik pojazdu — AI dopasuje bazę awarii do Twojego konkretnego silnika.' },
+                  { icon: '📋', tip: 'Masz kody OBD-II lub wiesz kiedy problem występuje np. "przy zimnym starcie"? Dodaj to w Kontekście.' },
                 ].map(({ icon, tip }) => (
                   <div key={tip} className="flex items-start gap-3 bg-surface/40 border border-foreground/[0.05] rounded-[16px] p-4">
                     <span className="text-xl shrink-0 mt-0.5">{icon}</span>
