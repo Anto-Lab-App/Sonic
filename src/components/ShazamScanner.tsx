@@ -217,7 +217,7 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || \`Zwrócono błąd serwera. Status: \${res.status}\`);
+        throw new Error(errorData?.message || `Zwrócono błąd serwera. Status: ${res.status}`);
       }
 
       const json = await res.json();
@@ -327,7 +327,7 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
                  </motion.div>
                ) : pendingFile ? (
                  <motion.div
-                   key={\`pending-\${pendingHint}\`}
+                   key={`pending-${pendingHint}`}
                    initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                    exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
@@ -344,7 +344,7 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
                    exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                    className="flex flex-col items-center text-center px-2"
                  >
-                   <h2 className={\`text-2xl font-bold tracking-wide mb-2 \${isRecording ? 'text-foreground' : 'text-foreground/90'}\`}>
+                   <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
                      {isRecording ? t.shazam.listening : "Dotknij, aby nasłuchiwać"}
                    </h2>
                    {isDemoMode && isRecording && <span className="text-[10px] text-muted">{t.demoMode}</span>}
@@ -393,7 +393,7 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
                    {isAnalyzing ? (
                      <Loader2 className="w-16 h-16 text-white animate-spin drop-shadow-lg" />
                    ) : (
-                     <AudioLines className={\`w-14 h-14 text-white drop-shadow-lg transition-transform duration-500 \${isRecording ? 'scale-110' : 'group-hover:scale-110'}\`} />
+                     <AudioLines className={`w-14 h-14 text-white drop-shadow-lg transition-transform duration-500 ${isRecording ? 'scale-110' : 'group-hover:scale-110'}`} />
                    )}
                  </motion.button>
                )}
@@ -454,13 +454,13 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
         >
            <button 
              onClick={() => galleryInputRef.current?.click()} 
-             className={\`w-full group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-4 rounded-[32px] border backdrop-blur-3xl \${pendingFile ? 'bg-primary/10 border-primary/20' : 'bg-surface/80 border-foreground/[0.05]'}\`}
+             className={`w-full group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-4 rounded-[32px] border backdrop-blur-3xl ${pendingFile ? 'bg-primary/10 border-primary/20' : 'bg-surface/80 border-foreground/[0.05]'}`}
            >
-             <div className={\`w-10 h-10 rounded-full flex items-center justify-center border \${pendingFile ? 'bg-primary/20 border-primary/30' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'}\`}>
+             <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${pendingFile ? 'bg-primary/20 border-primary/30' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'}`}>
                {isLoadingFile ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : pendingFile ? <span className="text-primary text-base">✓</span> : <ImageIcon className="w-4 h-4 text-foreground/60" />}
              </div>
-             <span className={\`text-[10px] font-semibold uppercase tracking-widest \${isLoadingFile ? 'text-primary/60' : pendingFile ? 'text-primary/80' : 'text-foreground/50'}\`}>
-               {isLoadingFile ? 'Wczytuję...' : pendingFile ? \`Gotowo: \${pendingFile.name.substring(0, 15)}...\` : 'Wyślij plik z biblioteki'}
+             <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLoadingFile ? 'text-primary/60' : pendingFile ? 'text-primary/80' : 'text-foreground/50'}`}>
+               {isLoadingFile ? 'Wczytuję...' : pendingFile ? `Gotowo: ${pendingFile.name.substring(0, 15)}...` : 'Wyślij plik z biblioteki'}
              </span>
            </button>
         </motion.div>

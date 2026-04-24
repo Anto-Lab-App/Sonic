@@ -47,6 +47,7 @@ export async function POST(
     const vehicleMake = (formData.get("vehicleMake") as string) || "";
     const vehicleDetails = (formData.get("vehicleDetails") as string) || "";
     const userContext = (formData.get("context") as string) || "";
+    const isFollowUp = formData.get("isFollowUp") === "true";
 
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -102,10 +103,10 @@ export async function POST(
     if (userContext) contextParts.push(`Opis problemu: ${userContext}`);
 
     // Session context: tell AI how many files and what stage we're in
-    if (fileParts.length > 1) {
-      contextParts.push(`\nUWAGA SESYJNA: Przesyłam Ci ${fileParts.length} plików. Plik pierwszy to oryginalny materiał z usterki. Kolejne pliki to materiały po wykonaniu testu fizycznego (Follow-Up). MUSISZ odpowiedzieć ze statusem 'complete' i wydac ostateczną diagnozę.`);
+    if (isFollowUp) {
+      contextParts.push(`\nUWAGA SESYJNA: Przesyłam Ci ${fileParts.length} plików. Cześć z nich to oryginalny materiał z usterki, a kolejne to materiały po wykonaniu testu fizycznego (Follow-Up). MUSISZ odpowiedzieć ze statusem 'complete' i wydac ostateczną diagnozę.`);
     } else {
-      contextParts.push(`\nUWAGA SESYJNA: To jest PIERWSZY plik z sesji diagnostycznej. Możesz odpowiedzieć 'follow_up' jeśli potrzebujesz dodatkowego testu fizycznego, albo 'complete' jeśli diagnosis jest oczywista.`);
+      contextParts.push(`\nUWAGA SESYJNA: To jest PIERWSZY etap z sesji diagnostycznej (przesłano ${fileParts.length} plików startowych). Możesz odpowiedzieć 'follow_up' jeśli potrzebujesz dodatkowego testu fizycznego, albo 'complete' jeśli diagnoza jest oczywista.`);
     }
 
     const contextText =

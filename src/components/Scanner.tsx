@@ -7,7 +7,8 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 import { ContextModal } from './ContextModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import type { Diagnosis, DiagnosticContextData } from '@/types/diagnosis';
+import type { Diagnosis } from '@/types/diagnosis';
+import type { DiagnosticContextData } from './ContextModal';
 
 // Utility for smooth animation interpolation
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -38,16 +39,18 @@ export function Scanner({
     "Kliknij przycisk aby uruchomić AI",
     "Dodaj kody OBD-II w kontekście",
   ];
-  
+
   // New States for Follow-up Flow
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
   const [isFollowUp, setIsFollowUp] = useState(false);
   const [followUpRequest, setFollowUpRequest] = useState<{ message: string, action_required: string } | null>(null);
-  const [firstFile, setFirstFile] = useState<File | null>(null);
-  
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [firstFiles, setFirstFiles] = useState<File[]>([]);
+
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPreScan, setShowPreScan] = useState(false);
+  const [showContextReminder, setShowContextReminder] = useState(false);
   const [stickyError, setStickyError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -225,14 +228,14 @@ export function Scanner({
   // Cancel recording without triggering analysis
   const cancelRecording = () => {
     stopRecording();
-    setPendingFile(null);
+    setPendingFiles([]);
   };
 
   const toggleRecording = async () => {
     if (isRecording) {
       const audioFile = await stopRecording();
       if (audioFile) {
-        setPendingFile(audioFile);
+        setPendingFiles(prev => [...prev, audioFile]);
       } else {
         setError('Nie udało się nagrać audio. Spróbuj ponownie.');
       }
@@ -246,7 +249,7 @@ export function Scanner({
   };
 
   const handleAnalyzeClick = () => {
-    if (!pendingFile) return;
+    if (pendingFiles.length === 0) return;
 
     const preScanSeen = localStorage.getItem('hasSeenPreScan') === 'true';
     if (!preScanSeen) {
@@ -254,48 +257,61 @@ export function Scanner({
       return;
     }
 
-    runDiagnosis(pendingFile, false);
+    if (!diagnosticContext && !vehicleMake && !vehicleDetails) {
+      setShowContextReminder(true);
+      return;
+    }
+
+    runDiagnosis(pendingFiles, false);
   };
 
   const handlePreScanProceed = () => {
     localStorage.setItem('hasSeenPreScan', 'true');
     setShowPreScan(false);
-    if (pendingFile) setTimeout(() => runDiagnosis(pendingFile, false), 200);
+    if (pendingFiles.length > 0) setTimeout(() => runDiagnosis(pendingFiles, false), 200);
   };
 
-  const runDiagnosis = async (file: File, forceComplete: boolean = false) => {
-    if (!file || file.size === 0) {
+  const runDiagnosis = async (files: File[], forceComplete: boolean = false) => {
+    if (!files || files.length === 0) {
       const msg = 'Najpierw nagraj dźwięk usterki!';
       alert(msg);
       setError(msg);
       return;
     }
 
-    if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-      const url = URL.createObjectURL(file);
-      const duration = await new Promise<number>((resolve) => {
-        const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
-        media.onloadedmetadata = () => {
-          URL.revokeObjectURL(url);
-          resolve(media.duration);
-        };
-        media.onerror = () => {
-           URL.revokeObjectURL(url);
-           resolve(999); // Ignore on error
-        };
-        // Czasami duration ładuje się w nieskończoność dla surowych blobów z MediaRecordera, fallback:
-        setTimeout(() => {
-           URL.revokeObjectURL(url);
-           resolve(999);
-        }, 1500);
-        media.src = url;
-      });
+    for (const file of files) {
+      if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+        const url = URL.createObjectURL(file);
+        const duration = await new Promise<number>((resolve) => {
+          const media = document.createElement(file.type.startsWith('video/') ? 'video' : 'audio');
+          media.onloadedmetadata = () => {
+            URL.revokeObjectURL(url);
+            resolve(media.duration);
+          };
+          media.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve(999); // Ignore on error
+          };
+          // Czasami duration ładuje się w nieskończoność dla surowych blobów z MediaRecordera, fallback:
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+            resolve(999);
+          }, 1500);
+          media.src = url;
+        });
 
-      if (duration > 0 && duration < 1) {
-        const msg = 'Nagranie musi trwać co najmniej 1 sekundę!';
-        alert(msg);
-        setError(msg);
-        return;
+        if (duration > 0 && duration < 1) {
+          const msg = 'Nagranie musi trwać co najmniej 1 sekundę!';
+          alert(msg);
+          setError(msg);
+          return;
+        }
+        if (duration > 60 && file.type.startsWith('video/')) {
+          const msg = 'Wideo nie może być dłuższe niż 60 sekund. Skróć nagranie.';
+          alert(msg);
+          setError(msg);
+          return;
+        }
       }
     }
 
@@ -306,11 +322,13 @@ export function Scanner({
 
     // Create form data
     const formData = new FormData();
+    formData.append("isFollowUp", isFollowUp ? "true" : "false");
+    
     // If we're in follow_up state, append the first file alongside the new one
-    if (isFollowUp && firstFile) {
-      formData.append("file", firstFile);
+    if (isFollowUp && firstFiles.length > 0) {
+      firstFiles.forEach(f => formData.append("file", f));
     }
-    formData.append("file", file);
+    files.forEach(f => formData.append("file", f));
 
     formData.append("vehicleMake", vehicleMake);
     formData.append("vehicleDetails", vehicleDetails);
@@ -339,9 +357,9 @@ export function Scanner({
 
     // Mock progress messages
     const statuses = [
-      t.auto.status.audio,
-      t.auto.status.engine,
-      t.auto.status.db,
+      (t.auto.status as any).audio || "Analiza audio...",
+      (t.auto.status as any).engine || "Sprawdzanie silnika...",
+      (t.auto.status as any).db || "Szukanie w bazie...",
     ];
     let statusIndex = 0;
     const interval = setInterval(() => {
@@ -356,24 +374,24 @@ export function Scanner({
       });
 
       const data = await response.json();
-      
+
       clearInterval(interval);
       setIsAnalyzing(false);
 
       console.log('[Sonic Frontend] Response:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
-        throw new Error(data.message || t.auto.status.error);
+        throw new Error(data.message || (t.auto.status as any).error || "Błąd analizy");
       }
 
       const aiResponse = data.aiResponse;
-      
+
       // Handle AI Response based on status field
       if (aiResponse?.status === "follow_up" && aiResponse?.follow_up_request) {
         setIsFollowUp(true);
         setFollowUpRequest(aiResponse.follow_up_request);
-        setFirstFile(file);
-        setPendingFile(null); // clear so follow-up overlay shows (condition: !pendingFile)
+        setFirstFiles(files);
+        setPendingFiles([]); // clear so follow-up overlay shows
       } else if (aiResponse?.status === "complete" || data.diagnosis) {
         // Accept either complete status or legacy diagnosis field
         const diagnosis = aiResponse?.final_diagnosis || data.diagnosis;
@@ -384,8 +402,8 @@ export function Scanner({
         setIsDiagnosisOpen(true);
         setIsFollowUp(false);
         setFollowUpRequest(null);
-        setFirstFile(null);
-        setPendingFile(null);
+        setFirstFiles([]);
+        setPendingFiles([]);
       } else {
         console.error('[Sonic Frontend] Unexpected response structure:', data);
         throw new Error("Nieoczekiwana struktura odpowiedzi od AI. Spróbuj ponownie.");
@@ -394,7 +412,7 @@ export function Scanner({
     } catch (err) {
       clearInterval(interval);
       setIsAnalyzing(false);
-      const msg = err instanceof Error ? err.message : t.auto.status.error;
+      const msg = err instanceof Error ? err.message : ((t.auto.status as any).error || "Wystąpił błąd");
       setError(msg);
       setStickyError(msg); // persistent so user can always read it
     }
@@ -405,12 +423,44 @@ export function Scanner({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setIsLoadingFile(true);
-      const file = e.target.files[0];
-      // Short delay so user sees loading state
+      const incomingFiles = Array.from(e.target.files);
+
+      let currentVideos = pendingFiles.filter(f => f.type.startsWith('video/')).length;
+      let currentImages = pendingFiles.filter(f => f.type.startsWith('image/')).length;
+      let currentAudio = pendingFiles.filter(f => f.type.startsWith('audio/')).length;
+
+      const acceptedFiles: File[] = [];
+
+      for (const file of incomingFiles) {
+        if (file.type.startsWith('video/')) {
+          if (currentVideos < 1) {
+            acceptedFiles.push(file);
+            currentVideos++;
+          } else {
+            alert("Możesz dodać maksymalnie 1 wideo.");
+          }
+        } else if (file.type.startsWith('image/')) {
+          if (currentImages < 3) {
+            acceptedFiles.push(file);
+            currentImages++;
+          } else {
+            alert("Możesz dodać maksymalnie 3 zdjęcia.");
+          }
+        } else if (file.type.startsWith('audio/')) {
+          if (currentAudio < 1 && currentVideos < 1) {
+            acceptedFiles.push(file);
+            currentAudio++;
+          } else {
+            alert("Możesz dodać maksymalnie 1 plik audio/wideo.");
+          }
+        } else {
+          acceptedFiles.push(file);
+        }
+      }
+
       await new Promise(r => setTimeout(r, 400));
-      setPendingFile(file);
+      setPendingFiles(prev => [...prev, ...acceptedFiles]);
       setIsLoadingFile(false);
-      // Reset input so same file can be re-selected
       e.target.value = '';
     }
   };
@@ -425,10 +475,10 @@ export function Scanner({
 
   // Cycle through hint messages when file is pending
   useEffect(() => {
-    if (!pendingFile) { setPendingHint(0); return; }
+    if (pendingFiles.length === 0) { setPendingHint(0); return; }
     const id = setInterval(() => setPendingHint(h => (h + 1) % PENDING_HINTS.length), 2800);
     return () => clearInterval(id);
-  }, [pendingFile]);
+  }, [pendingFiles.length]);
 
   return (
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-[#00D1FF]/30">
@@ -457,9 +507,9 @@ export function Scanner({
       {/* Mobile-perfect container */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
 
-        {/* Cancel button during recording or when pendingFile exists — top left */}
+        {/* Cancel button during recording or when pendingFiles.length > 0 exists — top left */}
         <AnimatePresence>
-          {(isRecording || pendingFile) && !isAnalyzing && (
+          {(isRecording || pendingFiles.length > 0) && !isAnalyzing && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -530,7 +580,7 @@ export function Scanner({
                   <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
                   <p className="text-xs font-semibold tracking-widest text-purple-400/80 uppercase">{analyzingText}</p>
                 </motion.div>
-              ) : pendingFile ? (
+              ) : pendingFiles.length > 0 ? (
                 <motion.div
                   key={`pending-${pendingHint}`}
                   initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
@@ -638,10 +688,10 @@ export function Scanner({
 
             {/* Central Button (Steve Jobs / Apple Style with Logo) */}
             <motion.button
-              onClick={pendingFile ? handleAnalyzeClick : toggleRecording}
+              onClick={pendingFiles.length > 0 ? handleAnalyzeClick : toggleRecording}
               style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
               animate={
-                isRecording || pendingFile
+                isRecording || pendingFiles.length > 0
                   ? {
                     scale: [0.98, 1.02, 0.98],
                     boxShadow: [
@@ -656,11 +706,11 @@ export function Scanner({
                   }
               }
               transition={
-                isRecording || pendingFile
+                isRecording || pendingFiles.length > 0
                   ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
                   : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
               }
-              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl group ${pendingFile ? 'bg-surface-elevated/60 border border-blue-500/20' : 'bg-surface-elevated/90 border border-foreground/[0.08]'}`}
+              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl group ${pendingFiles.length > 0 ? 'bg-surface-elevated/60 border border-blue-500/20' : 'bg-surface-elevated/90 border border-foreground/[0.08]'}`}
             >
               {/* Inner Depth Shadow */}
               <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
@@ -674,7 +724,7 @@ export function Scanner({
                 >
                   {isAnalyzing ? (
                     <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
-                  ) : pendingFile ? (
+                  ) : pendingFiles.length > 0 ? (
                     <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]/60" />
                   ) : mode === 'audio' ? (
                     <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
@@ -714,8 +764,8 @@ export function Scanner({
               )}
             </AnimatePresence>
 
-            <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-            <input type="file" accept={mode === 'audio' ? "audio/*,video/*" : "image/*,video/*"} className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
+            <input type="file" accept="audio/*,video/*,image/*" capture="environment" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+            <input type="file" accept="audio/*,video/*,image/*" multiple className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
 
             {/* Error Message Display */}
             <AnimatePresence>
@@ -741,20 +791,18 @@ export function Scanner({
           className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
-          <button 
-            onClick={() => galleryInputRef.current?.click()} 
-            className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-5 rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${
-              pendingFile 
-                ? 'bg-[#00D1FF]/5 border-[#00D1FF]/20' 
-                : 'bg-surface/80 hover:bg-surface-hover/90 border-foreground/[0.05]'
-            }`}
+          <button
+            onClick={() => galleryInputRef.current?.click()}
+            className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-5 rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${pendingFiles.length > 0
+              ? 'bg-[#00D1FF]/5 border-[#00D1FF]/20'
+              : 'bg-surface/80 hover:bg-surface-hover/90 border-foreground/[0.05]'
+              }`}
           >
-            <div className={`w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${
-              pendingFile ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
-            }`}>
+            <div className={`w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${pendingFiles.length > 0 ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
+              }`}>
               {isLoadingFile ? (
                 <Loader2 className="w-4 h-4 text-[#00D1FF] animate-spin" />
-              ) : pendingFile ? (
+              ) : pendingFiles.length > 0 ? (
                 <span className="text-[#00D1FF] text-base">✓</span>
               ) : mode === 'audio' ? (
                 <Upload className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
@@ -762,12 +810,11 @@ export function Scanner({
                 <ImageIcon className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
               )}
             </div>
-            <span className={`text-[10px] font-semibold uppercase tracking-widest transition-colors text-center px-2 truncate w-full ${
-              isLoadingFile ? 'text-[#00D1FF]/60' :
-              pendingFile ? 'text-[#00D1FF]/80' : 
-              'text-foreground/50 group-hover:text-foreground/90'
-            }`}>
-              {isLoadingFile ? 'Wczytuję...' : pendingFile ? `✓ Załadowano` : mode === 'audio' ? t.auto.uploadAudio : t.auto.uploadFiles}
+            <span className={`text-[10px] font-semibold uppercase tracking-widest transition-colors text-center px-2 truncate w-full ${isLoadingFile ? 'text-[#00D1FF]/60' :
+              pendingFiles.length > 0 ? 'text-[#00D1FF]/80' :
+                'text-foreground/50 group-hover:text-foreground/90'
+              }`}>
+              {isLoadingFile ? 'Wczytuję...' : pendingFiles.length > 0 ? `✓ Załadowano (${pendingFiles.length}/4)` : t.auto.uploadFiles}
             </span>
           </button>
 
@@ -783,7 +830,7 @@ export function Scanner({
       </div>
 
       <AnimatePresence>
-        {isFollowUp && followUpRequest && !isAnalyzing && !isRecording && !pendingFile && (
+        {isFollowUp && followUpRequest && !isAnalyzing && !isRecording && pendingFiles.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -793,7 +840,7 @@ export function Scanner({
           >
             {/* Blurred background */}
             <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" />
-            
+
             {/* Content */}
             <div className="relative z-10 flex flex-col h-full pt-16 px-6 pb-8">
               {/* Top badge */}
@@ -803,7 +850,7 @@ export function Scanner({
                   <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">Etap 2 &middot; Test Diagnostyczny</span>
                 </div>
               </div>
-              
+
               {/* Message */}
               <div className="flex-1 flex flex-col items-center justify-center">
                 <h2 className="text-3xl font-bold text-foreground mb-6 leading-tight text-center">Jeden krok<br />do diagnozy</h2>
@@ -814,7 +861,7 @@ export function Scanner({
                   </p>
                 </div>
               </div>
-              
+
               {/* Action buttons */}
               <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
                 {/* Primary: Record */}
@@ -843,7 +890,7 @@ export function Scanner({
                 {/* Skip */}
                 <button
                   onClick={() => {
-                    if (firstFile) runDiagnosis(firstFile, true);
+                    if (firstFiles.length > 0) runDiagnosis(firstFiles, true);
                   }}
                   className="w-full flex items-center justify-center text-foreground/30 hover:text-foreground/60 font-medium text-xs py-3 transition-colors"
                 >
@@ -856,17 +903,17 @@ export function Scanner({
       </AnimatePresence>
 
       <AnimatePresence>
-        {isContextModalOpen && <ContextModal 
-          onClose={() => setIsContextModalOpen(false)} 
-          onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} 
+        {isContextModalOpen && <ContextModal
+          onClose={() => setIsContextModalOpen(false)}
+          onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }}
           initialData={diagnosticContext || undefined} />}
-        {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => { 
-          setIsDiagnosisOpen(false); 
-          setDiagnosisData(null); 
+        {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => {
+          setIsDiagnosisOpen(false);
+          setDiagnosisData(null);
           setDiagnosticContext(null);
           setVehicleMake('');
           setVehicleDetails('');
-          setFirstFile(null);
+          setFirstFiles([]);
           // Set to idle mode implicitly
         }} data={diagnosisData} />}
       </AnimatePresence>
@@ -921,6 +968,45 @@ export function Scanner({
                   className="w-full flex items-center justify-center gap-2 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 text-[#00D1FF] font-bold tracking-wide text-sm py-5 px-6 rounded-[20px] transition-all active:scale-95"
                 >
                   Rozumiem — analizuj teraz
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Context Reminder Overlay */}
+      <AnimatePresence>
+        {showContextReminder && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="absolute inset-0 z-[75] flex flex-col overflow-y-auto"
+          >
+            <div className="absolute inset-0 bg-background/90 backdrop-blur-2xl" />
+            <div className="relative z-10 flex flex-col h-full pt-14 px-6 pb-8 justify-center">
+              <div className="flex-1 flex flex-col justify-center gap-4 text-center max-w-sm mx-auto">
+                <div className="w-16 h-16 rounded-full bg-[#00D1FF]/10 border border-[#00D1FF]/20 flex items-center justify-center mx-auto mb-2">
+                  <FileText className="w-8 h-8 text-[#00D1FF]" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">Brak kontekstu</h2>
+                <p className="text-foreground/60 text-sm leading-relaxed">
+                  Wgrałeś plik, ale nie uzupełniłeś danych pojazdu ani kontekstu awarii. AI bez podpowiedzi (marka pojazdu itp.) może wydać mniej precyzyjną diagnozę.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 mt-8">
+                <button
+                  onClick={() => { setShowContextReminder(false); setIsContextModalOpen(true); }}
+                  className="w-full flex items-center justify-center gap-2 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 text-[#00D1FF] font-bold text-sm py-4 px-6 rounded-[20px] transition-all"
+                >
+                  Uzupełnij dane pojazdu
+                </button>
+                <button
+                  onClick={() => { setShowContextReminder(false); runDiagnosis(pendingFiles, false); }}
+                  className="w-full flex items-center justify-center gap-2 bg-foreground/5 hover:bg-foreground/10 border border-foreground/[0.05] text-foreground/60 font-semibold text-sm py-4 px-6 rounded-[20px] transition-all"
+                >
+                  Kontynuuj bez kontekstu
                 </button>
               </div>
             </div>

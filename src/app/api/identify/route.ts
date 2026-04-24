@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         resumable: false,
       });
   
-      const fileUri = \`gs://\${bucketName}/\${gcsFilePath}\`;
+      const fileUri = `gs://${bucketName}/${gcsFilePath}`;
       fileParts.push({
         fileData: { fileUri, mimeType },
       });
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     
     let contextText = "Identyfikacja pojazdu/silnika (Shazam).";
     if (context) {
-      contextText += \` Kontekst dodatkowy od użytkownika: \${context}\`;
+      contextText += ` Kontekst dodatkowy od użytkownika: ${context}`;
     }
 
     const fallbackModels = [
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
           break;
         }
       } catch (err) {
-        console.warn(\`[Sonic] Model \${modelId} failed for identify:\`, err);
+        console.warn(`[Sonic] Model ${modelId} failed for identify:`, err);
       }
     }
 
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
         try {
           await bucket.file(path).delete();
         } catch (e) {
-          console.error(\`Failed to delete \${path} from GCS:\`, e);
+          console.error(`Failed to delete ${path} from GCS:`, e);
         }
       }
     }
