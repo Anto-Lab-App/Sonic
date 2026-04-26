@@ -181,6 +181,15 @@ export function Scanner({
 
       setIsRecording(true);
       startVisualizerLoop(false);
+
+      // Zatrzymanie nagrywania po 30 sekundach (zabezpieczenie przed widmem)
+      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = setTimeout(async () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          const audioFile = await stopRecording();
+          if (audioFile) setPendingFiles(prev => [...prev, audioFile]);
+        }
+      }, 30000);
     } catch (err) {
       console.warn("Microphone access denied or error:", err);
       setError(t.auto.noMic);
@@ -192,6 +201,10 @@ export function Scanner({
 
   const stopRecording = (): Promise<File | null> => {
     return new Promise((resolve) => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
       const recorder = mediaRecorderRef.current;
@@ -227,6 +240,10 @@ export function Scanner({
 
   // Cancel recording without triggering analysis
   const cancelRecording = () => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
     stopRecording();
     setPendingFiles([]);
   };
@@ -320,16 +337,16 @@ export function Scanner({
     setAnalyzingText(t.auto.status.init);
     setError(null);
 
-    // Create form data
+    // Zbierz wszystkie pliki
+    const allFilesToUpload: File[] = [];
+    if (isFollowUp && firstFiles.length > 0) {
+      allFilesToUpload.push(...firstFiles);
+    }
+    allFilesToUpload.push(...files);
+
+    // Create form data for our backend API
     const formData = new FormData();
     formData.append("isFollowUp", isFollowUp ? "true" : "false");
-    
-    // If we're in follow_up state, append the first file alongside the new one
-    if (isFollowUp && firstFiles.length > 0) {
-      firstFiles.forEach(f => formData.append("file", f));
-    }
-    files.forEach(f => formData.append("file", f));
-
     formData.append("vehicleMake", vehicleMake);
     formData.append("vehicleDetails", vehicleDetails);
 
@@ -345,9 +362,7 @@ export function Scanner({
 
       // Attach context files if any
       if (diagnosticContext.contextFiles && diagnosticContext.contextFiles.length > 0) {
-        diagnosticContext.contextFiles.forEach(f => {
-          formData.append("file", f);
-        });
+        allFilesToUpload.push(...diagnosticContext.contextFiles);
       }
     }
 
@@ -355,25 +370,86 @@ export function Scanner({
       formData.append("context", (formData.get("context") || "") + "\n\nUWAGA: Użytkownik odmówił przetestowania fizycznego - wymuś ostateczną diagnozę z dostępnym zestawem danych ze statusem 'complete'.");
     }
 
-    // Mock progress messages
-    const statuses = [
-      (t.auto.status as any).audio || "Analiza audio...",
-      (t.auto.status as any).engine || "Sprawdzanie silnika...",
-      (t.auto.status as any).db || "Szukanie w bazie...",
-    ];
-    let statusIndex = 0;
-    const interval = setInterval(() => {
-      statusIndex = (statusIndex + 1) % statuses.length;
-      setAnalyzingText(statuses[statusIndex]);
-    }, 2500);
+    let interval: NodeJS.Timeout | undefined;
 
     try {
+      // 1. Get Signed URLs for direct GCS upload
+      setAnalyzingText("Łączenie z chmurą...");
+      const uploadUrlResponse = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          files: allFilesToUpload.map(f => ({ filename: f.name || 'file.bin', contentType: f.type || 'application/octet-stream' }))
+        })
+      });
+
+      if (!uploadUrlResponse.ok) {
+        throw new Error(`Błąd dostępu do chmury: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
+      }
+      const uploadUrlText = await uploadUrlResponse.text();
+      let urls;
+      try {
+        const parsed = JSON.parse(uploadUrlText);
+        urls = parsed.urls;
+      } catch (e) {
+        console.error("Non-JSON response from /api/upload-url:", uploadUrlText);
+        throw new Error(`Błąd chmury: Otrzymano niepoprawny format (zaczyna się od: ${uploadUrlText.substring(0, 50)})`);
+      }
+
+      // 2. Upload files directly to GCS
+      setAnalyzingText("Wgrywanie plików na GCS...");
+      const uploadedFileParts = [];
+      for (let i = 0; i < allFilesToUpload.length; i++) {
+        const file = allFilesToUpload[i];
+        const urlInfo = urls[i];
+
+        const putRes = await fetch(urlInfo.signedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || 'application/octet-stream'
+          },
+          body: file
+        });
+
+        if (!putRes.ok) throw new Error("Błąd bezpośredniego wgrywania pliku.");
+
+        uploadedFileParts.push({
+          fileData: {
+            fileUri: urlInfo.gcsUri,
+            mimeType: urlInfo.mimeType
+          }
+        });
+      }
+
+      // Dołącz wgrane części (JSON z URI)
+      formData.append("fileParts", JSON.stringify(uploadedFileParts));
+
+      // Mock progress messages for AI generation
+      const statuses = [
+        (t.auto.status as any).audio || "Analiza audio...",
+        (t.auto.status as any).engine || "Sprawdzanie silnika...",
+        (t.auto.status as any).db || "Szukanie w bazie...",
+      ];
+      let statusIndex = 0;
+      interval = setInterval(() => {
+        statusIndex = (statusIndex + 1) % statuses.length;
+        setAnalyzingText(statuses[statusIndex]);
+      }, 2500);
+
+      // 3. Send to our API to trigger AI
       const response = await fetch("/api/diagnose", {
         method: "POST",
         body: formData,
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Non-JSON response from /api/diagnose:", responseText);
+        throw new Error(`Serwer zwrócił błąd: ${response.status} ${response.statusText} - ${responseText.substring(0, 100)}`);
+      }
 
       clearInterval(interval);
       setIsAnalyzing(false);
@@ -542,14 +618,14 @@ export function Scanner({
                 placeholder={t.auto.makeModelPlaceholder}
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
-                className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
               <input
                 type="text"
                 placeholder={t.auto.yearEnginePlaceholder}
                 value={vehicleDetails}
                 onChange={(e) => setVehicleDetails(e.target.value)}
-                className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
             </div>
           </div>
@@ -784,6 +860,32 @@ export function Scanner({
           </div>
         </div>
 
+        {/* Selected Files Management */}
+        <AnimatePresence>
+          {pendingFiles.length > 0 && !isRecording && !isAnalyzing && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="w-full px-6 pt-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide shrink-0 relative z-20"
+            >
+              {pendingFiles.map((file, i) => (
+                <div key={i} className="flex items-center gap-2 bg-surface/80 border border-foreground/[0.05] rounded-full pl-3 pr-1 py-1 shrink-0 backdrop-blur-md">
+                  <span className="text-[10px] text-foreground/80 font-medium truncate max-w-[80px]" title={file.name}>
+                    {file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name || 'Zrzut ekranu'}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setPendingFiles(prev => prev.filter((_, idx) => idx !== i)); }}
+                    className="w-5 h-5 rounded-full bg-foreground/5 hover:bg-red-500/20 text-foreground/50 hover:text-red-400 flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Bottom Buttons */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }}
@@ -794,8 +896,8 @@ export function Scanner({
           <button
             onClick={() => galleryInputRef.current?.click()}
             className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-5 rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${pendingFiles.length > 0
-              ? 'bg-[#00D1FF]/5 border-[#00D1FF]/20'
-              : 'bg-surface/80 hover:bg-surface-hover/90 border-foreground/[0.05]'
+              ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30'
+              : 'bg-white/5 hover:bg-white/10 border-white/10'
               }`}
           >
             <div className={`w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${pendingFiles.length > 0 ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
@@ -818,7 +920,7 @@ export function Scanner({
             </span>
           </button>
 
-          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-white/5 hover:bg-white/10 transition-all duration-500 py-5 rounded-[32px] border border-white/10 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
             </div>

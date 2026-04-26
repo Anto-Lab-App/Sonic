@@ -30,7 +30,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
   const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
-  
+
   const [analyzingText, setAnalyzingText] = useState(t.bike.status.init);
   const [pendingHint, setPendingHint] = useState(0);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
@@ -39,7 +39,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
   const [isFollowUp, setIsFollowUp] = useState(false);
   const [followUpRequest, setFollowUpRequest] = useState<{ message: string, action_required: string } | null>(null);
   const [firstFile, setFirstFile] = useState<File | null>(null);
-  
+
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPreScan, setShowPreScan] = useState(false);
@@ -51,6 +51,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
   const animationRef = useRef<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<BlobPart[]>([]);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -149,6 +150,14 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
       setIsRecording(true);
       startVisualizerLoop(false);
+
+      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = setTimeout(async () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          const f = await stopRecording();
+          if (f) setPendingFile(f);
+        }
+      }, 30000);
     } catch (err) {
       console.warn("Microphone access denied:", err);
       setIsDemoMode(true);
@@ -159,6 +168,10 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
   const stopRecording = (): Promise<File | null> => {
     return new Promise((resolve) => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       const recorder = mediaRecorderRef.current;
       if (recorder && recorder.state !== 'inactive') {
@@ -191,6 +204,10 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
   };
 
   const cancelRecording = () => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
     stopRecording();
     setPendingFile(null);
   };
@@ -201,10 +218,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
     setStickyError(null);
 
     const formData = new FormData();
-    if (isFollowUp && firstFile) {
-      formData.append("file", firstFile);
-    }
-    formData.append("file", file);
+    formData.append("isFollowUp", isFollowUp ? "true" : "false");
     formData.append("context", `Sprzęt rowerowy: ${target}`);
 
     if (diagnosticContext) {
@@ -212,26 +226,80 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
       if (diagnosticContext.condition) ctxParts.push(`Warunki jazdy: ${diagnosticContext.condition}`);
       if (diagnosticContext.description) ctxParts.push(`Objaw trzeszczenia/pęknięć: ${diagnosticContext.description}`);
       formData.set("context", formData.get("context") + "\n" + ctxParts.join('\n'));
-      if (diagnosticContext.contextFiles) {
-        diagnosticContext.contextFiles.forEach((f: File) => formData.append("file", f));
-      }
     }
 
     if (forceComplete) {
       formData.set("context", (formData.get("context") || "") + "\n\nZażądano podjęcia ostatecznej decyzji diagnostycznej mimo braku follow-up'u.");
     }
 
-    const interval = setInterval(() => {
-      setAnalyzingText(prev => prev === t.bike.status.init ? t.bike.status.analyze : t.bike.status.check);
-    }, 2500);
-
+    let interval: NodeJS.Timeout | undefined;
+    
     try {
+      const allFilesToUpload: File[] = [];
+      if (isFollowUp && firstFile) allFilesToUpload.push(firstFile);
+      allFilesToUpload.push(file);
+      if (diagnosticContext?.contextFiles) {
+        allFilesToUpload.push(...diagnosticContext.contextFiles);
+      }
+
+      interval = setInterval(() => {
+        setAnalyzingText(prev => prev === t.bike.status.init ? t.bike.status.analyze : t.bike.status.check);
+      }, 2500);
+
+      setAnalyzingText("Łączenie z chmurą...");
+      const uploadUrlResponse = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          files: allFilesToUpload.map(f => ({ filename: f.name || 'file.bin', contentType: f.type || 'application/octet-stream' }))
+        })
+      });
+
+      if (!uploadUrlResponse.ok) throw new Error(`Błąd dostępu do chmury: ${uploadUrlResponse.status}`);
+      const uploadUrlText = await uploadUrlResponse.text();
+      let urls;
+      try {
+        const parsed = JSON.parse(uploadUrlText);
+        urls = parsed.urls;
+      } catch (e) {
+        throw new Error(`Błąd chmury: niepoprawny format odpowiedzi (zaczyna się od: ${uploadUrlText.substring(0, 50)})`);
+      }
+
+      setAnalyzingText("Wgrywanie plików na GCS...");
+      const uploadedFileParts = [];
+      for (let i = 0; i < allFilesToUpload.length; i++) {
+        const f = allFilesToUpload[i];
+        const urlInfo = urls[i];
+
+        const putRes = await fetch(urlInfo.signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": f.type || 'application/octet-stream' },
+          body: f
+        });
+
+        if (!putRes.ok) throw new Error("Błąd bezpośredniego wgrywania pliku.");
+
+        uploadedFileParts.push({
+          fileData: { fileUri: urlInfo.gcsUri, mimeType: urlInfo.mimeType }
+        });
+      }
+
+      formData.append("fileParts", JSON.stringify(uploadedFileParts));
+
       const response = await fetch("/api/diagnose", { method: "POST", body: formData });
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Non-JSON response from /api/diagnose:", responseText);
+        throw new Error(`Serwer zwrócił błąd: ${response.status} ${response.statusText} - ${responseText.substring(0, 100)}`);
+      }
+
       clearInterval(interval);
       setIsAnalyzing(false);
 
-      if (!response.ok) throw new Error(data.message || "Błąd wykonania zapytania AI");
+      if (!response.ok) throw new Error(data?.message || "Błąd wykonania zapytania AI");
 
       const aiResponse = data.aiResponse;
       if (aiResponse?.status === "follow_up" && aiResponse?.follow_up_request) {
@@ -321,9 +389,9 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
             <div className="flex flex-col items-start px-2">
               <span className="text-[10px] font-semibold tracking-widest text-emerald-400 uppercase mb-0.5">{"Wybierz element"}</span>
             </div>
-            
+
             <div className="relative w-full">
-              <div 
+              <div
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground flex items-center justify-between cursor-pointer focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20"
               >
@@ -340,7 +408,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
                     className="absolute top-14 left-0 w-full bg-surface-elevated border border-foreground/[0.05] rounded-2xl shadow-xl overflow-hidden z-20"
                   >
                     {targets.map(tOption => (
-                      <div 
+                      <div
                         key={tOption}
                         onClick={() => { setTarget(tOption); setIsDropdownOpen(false); }}
                         className="px-4 py-3 hover:bg-foreground/5 cursor-pointer text-sm text-foreground border-b border-foreground/[0.02] last:border-0"
@@ -365,26 +433,26 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
         {/* Central Record/Visualizer */}
         <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]">
           <div className="h-16 mb-4 flex flex-col items-center justify-end z-10">
-             <AnimatePresence mode="wait">
-               {isAnalyzing ? (
-                 <motion.div key="analyzing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                   <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
-                   <p className="text-xs font-semibold tracking-widest text-emerald-400 uppercase">{analyzingText}</p>
-                 </motion.div>
-               ) : pendingFile ? (
-                 <motion.div key="pending" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                   <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">Gotowy do analizy</h2>
-                   <p className="text-sm text-emerald-400/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
-                 </motion.div>
-               ) : (
-                 <motion.div key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                   <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
-                     {isRecording ? t.auto.audioListening : 'Skan Wizualny'}
-                   </h2>
-                   <p className="text-sm text-foreground/50 tracking-wide text-center px-4">{isRecording ? t.auto.audioSubReq : 'Zrób zdjęcie ewidentnych uszkodzeń'}</p>
-                 </motion.div>
-               )}
-             </AnimatePresence>
+            <AnimatePresence mode="wait">
+              {isAnalyzing ? (
+                <motion.div key="analyzing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
+                  <p className="text-xs font-semibold tracking-widest text-emerald-400 uppercase">{analyzingText}</p>
+                </motion.div>
+              ) : pendingFile ? (
+                <motion.div key="pending" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">Gotowy do analizy</h2>
+                  <p className="text-sm text-emerald-400/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
+                </motion.div>
+              ) : (
+                <motion.div key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
+                  <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
+                    {isRecording ? t.auto.audioListening : 'Skan Wizualny'}
+                  </h2>
+                  <p className="text-sm text-foreground/50 tracking-wide text-center px-4">{isRecording ? t.auto.audioSubReq : 'Zrób zdjęcie ewidentnych uszkodzeń'}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="relative flex items-center justify-center w-[200px] h-[200px]">
@@ -401,21 +469,21 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
             <AnimatePresence mode="wait">
               {pendingFile && !isAnalyzing ? (
-                 <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} className="relative w-32 h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30">
-                   <Sparkles className="w-12 h-12 text-emerald-400 drop-shadow-md" />
-                 </motion.button>
+                <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} className="relative w-32 h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30">
+                  <Sparkles className="w-12 h-12 text-emerald-400 drop-shadow-md" />
+                </motion.button>
               ) : (
-                 <motion.button
-                   key="record"
-                   onClick={async () => { if (isRecording) { const f = await stopRecording(); if (f) setPendingFile(f); } else { setMode('visual'); fileInputRef.current?.click(); } }}
-                   disabled={isAnalyzing}
-                   className="relative z-20 w-[120px] h-[120px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500 shadow-xl shadow-emerald-500/20 border-4 border-background"
-                 >
-                   {isAnalyzing ? <Loader2 className="w-10 h-10 text-white animate-spin" /> : (isRecording ? <Mic className="w-10 h-10 text-white animate-pulse" /> : <Camera className="w-10 h-10 text-white" />)}
-                 </motion.button>
+                <motion.button
+                  key="record"
+                  onClick={async () => { if (isRecording) { const f = await stopRecording(); if (f) setPendingFile(f); } else { setMode('visual'); fileInputRef.current?.click(); } }}
+                  disabled={isAnalyzing}
+                  className="relative z-20 w-[120px] h-[120px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500 shadow-xl shadow-emerald-500/20 border-4 border-background"
+                >
+                  {isAnalyzing ? <Loader2 className="w-10 h-10 text-white animate-spin" /> : (isRecording ? <Mic className="w-10 h-10 text-white animate-pulse" /> : <Camera className="w-10 h-10 text-white" />)}
+                </motion.button>
               )}
             </AnimatePresence>
-            
+
             {!pendingFile && !isRecording && !isAnalyzing && (
               <motion.button
                 onClick={() => { setMode('audio'); startRecording(); }}
@@ -428,9 +496,9 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
         </div>
 
         <motion.div animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }} className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20">
-          <button 
-            onClick={() => galleryInputRef.current?.click()} 
-            className={`flex-1 flex flex-col items-center justify-center gap-2 py-5 rounded-[32px] border backdrop-blur-3xl ${pendingFile ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-surface/80 border-foreground/[0.05]'}`}
+          <button
+            onClick={() => galleryInputRef.current?.click()}
+            className={`flex-1 flex flex-col items-center justify-center gap-2 py-5 rounded-[32px] border backdrop-blur-3xl transition-all ${pendingFile ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/5 border-white/10'}`}
           >
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${pendingFile ? 'bg-emerald-500/10' : 'bg-foreground/5'}`}>
               {pendingFile ? <span className="text-emerald-400 text-base">✓</span> : mode === 'audio' ? <Upload className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
@@ -440,7 +508,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
             </span>
           </button>
 
-          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 flex flex-col items-center justify-center gap-2 bg-surface/80 py-5 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl">
+          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 flex flex-col items-center justify-center gap-2 bg-white/5 border-white/10 py-5 rounded-[32px] backdrop-blur-3xl transition-all">
             <div className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center">
               <FileText className="w-4 h-4 text-foreground/60" />
             </div>
@@ -450,21 +518,21 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
           </button>
         </motion.div>
       </div>
-      
+
       {/* Absolute Overlays */}
       <AnimatePresence>
-         {stickyError && (
-           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} className="absolute z-[70] inset-x-4 top-4 bg-red-950/40 border border-red-500/30 rounded-2xl p-4 flex gap-4 backdrop-blur-xl">
-             <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-             <div className="flex-1">
-               <h3 className="text-red-500 font-bold text-sm tracking-wide uppercase">Błąd diagnostyki</h3>
-               <p className="text-foreground/80 text-sm">{stickyError}</p>
-             </div>
-             <button onClick={() => setStickyError(null)}><XCircle className="w-5 h-5 text-foreground/50 hover:text-foreground" /></button>
-           </motion.div>
-         )}
+        {stickyError && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} className="absolute z-[70] inset-x-4 top-4 bg-red-950/40 border border-red-500/30 rounded-2xl p-4 flex gap-4 backdrop-blur-xl">
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-red-500 font-bold text-sm tracking-wide uppercase">Błąd diagnostyki</h3>
+              <p className="text-foreground/80 text-sm">{stickyError}</p>
+            </div>
+            <button onClick={() => setStickyError(null)}><XCircle className="w-5 h-5 text-foreground/50 hover:text-foreground" /></button>
+          </motion.div>
+        )}
       </AnimatePresence>
-      
+
       <AnimatePresence>
         {isFollowUp && followUpRequest && !isAnalyzing && !isRecording && !pendingFile && (
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} className="absolute inset-0 z-[60] flex flex-col bg-background/80 backdrop-blur-xl pt-16 px-6 pb-8">
@@ -474,7 +542,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
                 <span className="text-[10px] font-bold tracking-widest text-emerald-500 uppercase">Etap 2 &middot; Follow Up Danych</span>
               </div>
             </div>
-            
+
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <h2 className="text-3xl font-bold text-foreground mb-6">Jeden krok do diagnozy</h2>
               <div className="w-full bg-surface/40 border border-foreground/[0.06] rounded-[20px] p-5">
@@ -482,7 +550,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
                 <p className="text-foreground/80 text-sm leading-relaxed">{followUpRequest.message}</p>
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
               <button
                 onClick={() => { if (mode === 'audio') startRecording(); else fileInputRef.current?.click(); }}
@@ -506,9 +574,9 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
       <AnimatePresence>
         {isContextModalOpen && <ContextModal onClose={() => setIsContextModalOpen(false)} onSave={(data) => { setDiagnosticContext(data); setIsContextModalOpen(false); }} initialData={diagnosticContext || undefined} />}
-        {isDiagnosisOpen && diagnosisData && <BikeDiagnosisReport onClose={() => { 
-          setIsDiagnosisOpen(false); 
-          setDiagnosisData(null); 
+        {isDiagnosisOpen && diagnosisData && <BikeDiagnosisReport onClose={() => {
+          setIsDiagnosisOpen(false);
+          setDiagnosisData(null);
           setDiagnosticContext(null);
           setFirstFile(null);
         }} data={diagnosisData} />}
@@ -518,24 +586,24 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
         {showPreScan && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col p-6 overflow-y-auto">
             <div className="flex items-center justify-between mt-6 mb-8">
-               <h2 className="text-2xl font-bold">Wskazówki Bikerów</h2>
-               <button onClick={() => setShowPreScan(false)} className="w-10 h-10 rounded-full bg-surface items-center justify-center flex"><X className="w-5 h-5 text-foreground/70" /></button>
+              <h2 className="text-2xl font-bold">Wskazówki Bikerów</h2>
+              <button onClick={() => setShowPreScan(false)} className="w-10 h-10 rounded-full bg-surface items-center justify-center flex"><X className="w-5 h-5 text-foreground/70" /></button>
             </div>
             <div className="flex-1 flex flex-col justify-center gap-4 max-w-sm mx-auto">
-               {[
-                 { icon: '⚠️', tip: 'Unieś koło, wkręć pedał przed skanem napędu, aby dźwięk był sterylny.' },
-                 { icon: '📸', tip: 'Wgrywając zdjęcie ramy, dbaj o silne oświetlenie pęknięć karbonu / spawu.' },
-               ].map(({ icon, tip }) => (
-                 <div key={tip} className="flex gap-4 border border-border-subtle bg-surface/50 rounded-2xl p-4">
-                   <span className="text-2xl pt-1">{icon}</span>
-                   <p className="text-sm font-medium">{tip}</p>
-                 </div>
-               ))}
+              {[
+                { icon: '⚠️', tip: 'Unieś koło, wkręć pedał przed skanem napędu, aby dźwięk był sterylny.' },
+                { icon: '📸', tip: 'Wgrywając zdjęcie ramy, dbaj o silne oświetlenie pęknięć karbonu / spawu.' },
+              ].map(({ icon, tip }) => (
+                <div key={tip} className="flex gap-4 border border-border-subtle bg-surface/50 rounded-2xl p-4">
+                  <span className="text-2xl pt-1">{icon}</span>
+                  <p className="text-sm font-medium">{tip}</p>
+                </div>
+              ))}
             </div>
             <div className="mt-6 mb-4 pb-10">
-               <button onClick={() => { localStorage.setItem('hasSeenBikePreScan', 'true'); setShowPreScan(false); if (pendingFile) runDiagnosis(pendingFile, false); }} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold uppercase text-sm">
-                 Zrozumiałem
-               </button>
+              <button onClick={() => { localStorage.setItem('hasSeenBikePreScan', 'true'); setShowPreScan(false); if (pendingFile) runDiagnosis(pendingFile, false); }} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold uppercase text-sm">
+                Zrozumiałem
+              </button>
             </div>
           </motion.div>
         )}

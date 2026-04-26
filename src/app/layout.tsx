@@ -32,15 +32,18 @@ export const metadata: Metadata = {
   },
 };
 
+import { ClerkProvider } from "@clerk/nextjs";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground selection:bg-primary/30`}>
-        <LanguageProvider>
+    <ClerkProvider>
+      <html lang="pl" suppressHydrationWarning>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground selection:bg-primary/30`}>
+          <LanguageProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -53,5 +56,6 @@ export default function RootLayout({
         </LanguageProvider>
       </body>
     </html>
+    </ClerkProvider>
   );
 }

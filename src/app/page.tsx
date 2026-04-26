@@ -10,6 +10,8 @@ import { Chat } from '@/components/Chat';
 import { ShazamScanner } from '@/components/ShazamScanner';
 import { BikeScanner } from '@/components/BikeScanner';
 
+import { Header } from '@/components/Header';
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('auto');
   const [previousTab, setPreviousTab] = useState('auto');
@@ -83,6 +85,7 @@ export default function Home() {
 
   return (
     <main className="min-h-[100dvh] bg-background text-foreground flex flex-col relative overflow-hidden font-sans selection:bg-primary/30">
+      <Header />
       <SettingsButton onClick={() => setIsSettingsOpen(true)} />
 
       <AnimatePresence>

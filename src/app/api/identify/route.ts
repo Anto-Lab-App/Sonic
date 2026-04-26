@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
+import { getStorage, getBucketName, getGenAI } from "../../../lib/google-clients";
 import { Type as SchemaType } from "@google/genai";
 
 export const runtime = "nodejs";
@@ -66,44 +66,32 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const files = formData.getAll("file") as File[];
+    const filePartsString = formData.get("fileParts") as string;
     const context = (formData.get("context") as string) || "";
 
-    if (!files || files.length === 0) {
+    let fileParts: any[] = [];
+    if (filePartsString) {
+      try {
+        fileParts = JSON.parse(filePartsString);
+        fileParts.forEach(fp => {
+          if (fp.fileData && fp.fileData.fileUri) {
+            const uri = fp.fileData.fileUri as string;
+            const parts = uri.split('/');
+            const filename = parts.pop();
+            if (filename) gcsFilePaths.push(`diagnostics/${filename}`);
+          }
+        });
+      } catch (e) {
+        console.error("[Sonic] Failed to parse fileParts", e);
+      }
+    }
+
+    if (!fileParts || fileParts.length === 0) {
       return NextResponse.json({ status: "error", message: "Brak pliku do identyfikacji." }, { status: 400 });
     }
 
-    const storage = getStorage();
-    const bucketName = getBucketName();
-    const bucket = storage.bucket(bucketName);
-    
-    const fileParts: any[] = [];
-    
-    for (const file of files) {
-      if (file.size === 0) continue;
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const mimeType = file.type || guessMimeType(file.name);
-      const ext = file.name?.split(".").pop()?.toLowerCase() || "bin";
-      
-      const gcsFilePath = `identifications/${randomUUID()}.${ext}`;
-      gcsFilePaths.push(gcsFilePath);
-      const gcsFile = bucket.file(gcsFilePath);
-  
-      await gcsFile.save(buffer, {
-        metadata: { contentType: mimeType },
-        resumable: false,
-      });
-  
-      const fileUri = `gs://${bucketName}/${gcsFilePath}`;
-      fileParts.push({
-        fileData: { fileUri, mimeType },
-      });
-    }
-
     const ai = getGenAI();
-    
+
     let contextText = "Identyfikacja pojazdu/silnika (Shazam).";
     if (context) {
       contextText += ` Kontekst dodatkowy od użytkownika: ${context}`;

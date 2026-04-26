@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
-import { diagnosisResponseSchema, SYSTEM_INSTRUCTION } from "@/lib/diagnosis-schema";
-import type { DiagnoseApiResponse, Diagnosis } from "@/types/diagnosis";
+import { getStorage, getBucketName, getGenAI } from "../../../lib/google-clients";
+import { diagnosisResponseSchema, SYSTEM_INSTRUCTION } from "../../../lib/diagnosis-schema";
+import type { DiagnoseApiResponse, Diagnosis } from "../../../types/diagnosis";
 
 // Disable Next.js body parser — we handle FormData manually.
 export const runtime = "nodejs";
@@ -43,52 +43,35 @@ export async function POST(
     // Step A: Parse incoming FormData
     // ------------------------------------------------------------------
     const formData = await request.formData();
-    const files = formData.getAll("file") as File[];
+    const filePartsString = formData.get("fileParts") as string;
     const vehicleMake = (formData.get("vehicleMake") as string) || "";
     const vehicleDetails = (formData.get("vehicleDetails") as string) || "";
     const userContext = (formData.get("context") as string) || "";
     const isFollowUp = formData.get("isFollowUp") === "true";
+    let fileParts: any[] = [];
 
-    if (!files || files.length === 0) {
+    if (filePartsString) {
+      try {
+        fileParts = JSON.parse(filePartsString);
+        // Track for cleanup
+        fileParts.forEach(fp => {
+          if (fp.fileData && fp.fileData.fileUri) {
+            const uri = fp.fileData.fileUri as string;
+            const parts = uri.split('/');
+            const filename = parts.pop();
+            if (filename) gcsFilePaths.push(`diagnostics/${filename}`);
+          }
+        });
+      } catch (e) {
+        console.error("[Sonic] Failed to parse fileParts", e);
+      }
+    }
+
+    if (!fileParts || fileParts.length === 0) {
       return NextResponse.json(
         { status: "error" as const, message: "Brak pliku do analizy." },
         { status: 400 }
       );
-    }
-
-    const storage = getStorage();
-    const bucketName = getBucketName();
-    const bucket = storage.bucket(bucketName);
-    
-    // Upload all files
-    const fileParts: any[] = [];
-    
-    for (const file of files) {
-      if (file.size === 0) continue;
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const mimeType = file.type || guessMimeType(file.name);
-      const ext = file.name?.split(".").pop()?.toLowerCase() || "bin";
-      
-      const gcsFilePath = `diagnostics/${randomUUID()}.${ext}`;
-      gcsFilePaths.push(gcsFilePath);
-      const gcsFile = bucket.file(gcsFilePath);
-  
-      await gcsFile.save(buffer, {
-        metadata: { contentType: mimeType },
-        resumable: false,
-      });
-  
-      const fileUri = `gs://${bucketName}/${gcsFilePath}`;
-      console.log(`[Sonic] Uploaded file to ${fileUri} (${buffer.length} bytes)`);
-      
-      fileParts.push({
-        fileData: {
-          fileUri,
-          mimeType,
-        },
-      });
     }
 
     // ------------------------------------------------------------------
@@ -173,7 +156,7 @@ export async function POST(
 
     const resJson = JSON.parse(rawText);
     const aiResponse = resJson;
-    
+
     // Log the outcome
     console.log(`[Sonic] AI Response status: ${aiResponse.status}`);
     if (aiResponse.status === "follow_up") {
