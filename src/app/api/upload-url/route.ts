@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getStorage, getBucketName } from "../../../lib/google-clients";
+import { getStorage, getBucketName } from "@/lib/google-clients";
 
 // Next.js App Router API
 export async function POST(request: NextRequest) {

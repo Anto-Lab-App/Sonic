@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getStorage, getBucketName, getGenAI } from "../../../lib/google-clients";
-import { diagnosisResponseSchema, SYSTEM_INSTRUCTION } from "../../../lib/diagnosis-schema";
-import type { DiagnoseApiResponse, Diagnosis } from "../../../types/diagnosis";
+import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
+import { diagnosisResponseSchema, SYSTEM_INSTRUCTION } from "@/lib/diagnosis-schema";
+import type { DiagnoseApiResponse, Diagnosis } from "@/types/diagnosis";
 
 // Disable Next.js body parser — we handle FormData manually.
 export const runtime = "nodejs";

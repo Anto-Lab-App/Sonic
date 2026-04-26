@@ -27,7 +27,6 @@ export function Header() {
                   userButtonAvatarBox: "w-8 h-8 border border-white/10",
                 }
               }}
-              afterSignOutUrl="/"
             />
           </div>
         )}

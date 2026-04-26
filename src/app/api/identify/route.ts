@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getStorage, getBucketName, getGenAI } from "../../../lib/google-clients";
+import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
 import { Type as SchemaType } from "@google/genai";
 
 export const runtime = "nodejs";
