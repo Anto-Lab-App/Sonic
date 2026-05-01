@@ -7,7 +7,9 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 import { ContextModal, type DiagnosticContextData } from './ContextModal';
 import { BikeDiagnosisReport } from './BikeDiagnosisReport';
 import { NoCreditsModal } from './NoCreditsModal';
+import { LoginRequiredModal } from './LoginRequiredModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@clerk/nextjs';
 import type { Diagnosis } from '@/types/diagnosis';
 
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -24,6 +26,7 @@ interface BikeScannerProps {
 
 export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const { t } = useLanguage();
+  const { isSignedIn } = useAuth();
   const targets = t.bike.targets;
 
   const [isRecording, setIsRecording] = useState(false);
@@ -42,6 +45,7 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
   const [isFollowUp, setIsFollowUp] = useState(false);
@@ -342,6 +346,12 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
+
+    if (!isSignedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const preScanSeen = localStorage.getItem('hasSeenBikePreScan') === 'true';
     if (!preScanSeen) {
       setShowPreScan(true);
@@ -645,6 +655,10 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}
+      />
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
   );

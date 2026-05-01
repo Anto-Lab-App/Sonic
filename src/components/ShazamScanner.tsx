@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AudioLines, Camera, Image as ImageIcon, Loader2, AlertCircle, X, CheckCircle2, Sparkles, XCircle, Gauge, Wind, Hash, Car } from 'lucide-react';
 import { IdentificationReport } from './IdentificationReport';
 import { NoCreditsModal } from './NoCreditsModal';
+import { LoginRequiredModal } from './LoginRequiredModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@clerk/nextjs';
 
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
 
@@ -27,6 +29,7 @@ interface ShazamScannerProps {
 
 export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps) {
   const { t } = useLanguage();
+  const { isSignedIn } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -44,6 +47,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const [identificationData, setIdentificationData] = useState<any | null>(null);
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -320,6 +324,12 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
 
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
+
+    if (!isSignedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const preScanSeen = localStorage.getItem('hasSeenShazamPreScan') === 'true';
     if (!preScanSeen) {
       setShowPreScan(true);
@@ -616,6 +626,10 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}
+      />
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
   );

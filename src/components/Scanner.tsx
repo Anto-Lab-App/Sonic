@@ -7,7 +7,9 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 import { ContextModal } from './ContextModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { NoCreditsModal } from './NoCreditsModal';
+import { LoginRequiredModal } from './LoginRequiredModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@clerk/nextjs';
 import type { Diagnosis } from '@/types/diagnosis';
 import type { DiagnosticContextData } from './ContextModal';
 
@@ -28,6 +30,7 @@ export function Scanner({
   onOpenChat
 }: ScannerProps) {
   const { t } = useLanguage();
+  const { isSignedIn } = useAuth();
   const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleDetails, setVehicleDetails] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -41,6 +44,7 @@ export function Scanner({
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const PENDING_HINTS = [
     "Plik gotowy — naciśnij aby analizować",
@@ -276,6 +280,11 @@ export function Scanner({
 
   const handleAnalyzeClick = () => {
     if (pendingFiles.length === 0) return;
+
+    if (!isSignedIn) {
+      setShowLoginModal(true);
+      return;
+    }
 
     const preScanSeen = localStorage.getItem('hasSeenPreScan') === 'true';
     if (!preScanSeen) {
@@ -1175,6 +1184,10 @@ export function Scanner({
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}
+      />
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
   );
