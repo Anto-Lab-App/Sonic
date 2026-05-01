@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Wrench, ChevronLeft, Mic, Image as ImageIcon, Info, ChevronDown, ChevronUp, Cpu, Menu, Plus, Clock, Hash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI } from "@google/genai";
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { getUserDiagnoses, getDiagnosisById } from '@/app/actions/history';
 
 interface Message {
   id: number;
@@ -16,6 +16,8 @@ interface Message {
 
 interface ChatProps {
   onBack?: () => void;
+  diagnosisId?: string | null;
+  onSelectDiagnosis?: (id: string) => void;
 }
 
 const MessageItem = ({ msg }: { msg: Message, key?: React.Key }) => {
@@ -106,7 +108,7 @@ const defaultMessages: Message[] = [
   }
 ];
 
-export function Chat({ onBack }: ChatProps) {
+export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('mechanik-ai-messages');
@@ -129,8 +131,57 @@ export function Chat({ onBack }: ChatProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isObdMode, setIsObdMode] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    getUserDiagnoses().then(setHistoryItems);
+  }, []);
+
+  useEffect(() => {
+    if (diagnosisId) {
+      // Clear messages immediately while loading
+      setMessages([]);
+
+      getDiagnosisById(diagnosisId).then(diag => {
+        const title = diag ? getTitle(diag) : "Raportu";
+        const greeting: Message = {
+          id: Date.now(),
+          sender: 'ai',
+          text: `Witaj! Przeanalizowałem Twój raport: ${title}. Posiadam pełną wiedzę na temat tej usterki oraz ogólną wiedzę mechaniczną. W czym mogę Ci dzisiaj pomóc?`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages([greeting]);
+        localStorage.setItem('mechanik-ai-messages', JSON.stringify([greeting]));
+      });
+    } else {
+      // Restore default or saved messages if no specific diagnosis is selected
+      const saved = localStorage.getItem('mechanik-ai-messages');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.length > 0) setMessages(parsed);
+          else setMessages(defaultMessages);
+        } catch (e) {
+          setMessages(defaultMessages);
+        }
+      } else {
+        setMessages(defaultMessages);
+      }
+    }
+  }, [diagnosisId]);
+
+  const getTitle = (item: any) => {
+    if (item.aiReport?.final_diagnosis?.title) return item.aiReport.final_diagnosis.title;
+    if (item.aiReport?.name) return item.aiReport.name;
+    try {
+      const parsed = JSON.parse(item.vehicleData);
+      return parsed.make || 'Nieznany pojazd';
+    } catch {
+      return 'Diagnoza';
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -212,90 +263,44 @@ export function Chat({ onBack }: ChatProps) {
     const isObdCode = /^[PCBU]\d{4}$/i.test(userText.trim()) || isObdMode;
 
     try {
-      const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
-        (typeof process !== 'undefined' && process.env?.API_KEY) ||
-        (import.meta as any).env.VITE_GEMINI_API_KEY;
+      const chatMessages = [...messages, newUserMsg];
 
-      if (!apiKey) {
-        throw new Error("Brak klucza API Gemini");
-      }
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          diagnosisId: diagnosisId || null,
+          messages: chatMessages,
+        })
+      });
 
-      const ai = new GoogleGenAI({ apiKey });
+      if (!response.ok) throw new Error('API Error');
 
-      if (isObdCode) {
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: `Jesteś ekspertem mechaniki samochodowej. Użytkownik podał kod błędu OBD-II: ${userText}. 
-          Podaj krótkie wyjaśnienie tego błędu, a następnie wymień w punktach potencjalne przyczyny oraz proponowane rozwiązania. 
-          Zwróć odpowiedź w formacie JSON z polami: 
-          "explanation" (string, krótkie wyjaśnienie), 
-          "causes" (string, przyczyny w formie tekstu z punktorami), 
-          "solutions" (string, rozwiązania w formie tekstu z punktorami).`,
-          config: {
-            responseMimeType: "application/json",
-          }
-        });
+      const result = await response.json();
 
-        const data = JSON.parse(response.text || "{}");
+      setIsTyping(false);
+      setIsObdMode(false);
 
-        setIsTyping(false);
-        setIsObdMode(false);
-        const newAiMsg: Message = {
-          id: Date.now() + 1,
-          sender: 'ai',
-          text: `Kod błędu ${userText.toUpperCase()}:\n${data.explanation || 'Nie udało się pobrać szczegółów.'}`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          detailedInfo: `Potencjalne przyczyny:\n${data.causes || 'Brak danych'}\n\nRekomendowane rozwiązania:\n${data.solutions || 'Brak danych'}`
-        };
-        setMessages(prev => [...prev, newAiMsg]);
-      } else {
-        const history = messages.slice(-5).map(m => `${m.sender === 'ai' ? 'Asystent' : 'Użytkownik'}: ${m.text}`).join('\n');
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: `Jesteś wirtualnym asystentem serwisowym (mechanikiem samochodowym). 
-          Oto historia rozmowy:\n${history}\nUżytkownik: ${userText}\n
-          Odpowiedz jako mechanik. Jeśli to możliwe, podaj krótką odpowiedź główną oraz szczegółowe informacje (przyczyny, rozwiązania) w osobnym polu.
-          Zwróć JSON: { "text": "odpowiedź główna", "detailedInfo": "opcjonalne szczegóły z punktorami (przyczyny, zalecenia) lub puste" }`,
-          config: {
-            responseMimeType: "application/json",
-          }
-        });
-        const data = JSON.parse(response.text || "{}");
-        setIsTyping(false);
-        const newAiMsg: Message = {
-          id: Date.now() + 1,
-          sender: 'ai',
-          text: data.text || 'Przepraszam, nie zrozumiałem.',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          detailedInfo: data.detailedInfo || undefined
-        };
-        setMessages(prev => [...prev, newAiMsg]);
-      }
-    } catch (error) {
-      console.error("Gemini API error:", error);
-      setTimeout(() => {
-        setIsTyping(false);
-        setIsObdMode(false);
-        if (isObdCode) {
-          const newAiMsg: Message = {
-            id: Date.now() + 1,
-            sender: 'ai',
-            text: `Kod błędu ${userText.toUpperCase()}: Wykryto problem z układem pojazdu (tryb offline).`,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            detailedInfo: `Potencjalne przyczyny:\n• Usterka czujnika\n• Problem z okablowaniem\n\nRekomendowane rozwiązania:\n• Sprawdź połączenia elektryczne\n• Skonsultuj się z mechanikiem`
-          };
-          setMessages(prev => [...prev, newAiMsg]);
-        } else {
-          const newAiMsg: Message = {
-            id: Date.now() + 1,
-            sender: 'ai',
-            text: 'Rozumiem. Zalecam weryfikację w warsztacie w celu uniknięcia kosztowniejszych uszkodzeń. (Tryb offline)',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            detailedInfo: 'Wibracje podczas hamowania to główny objaw krzywych tarcz hamulcowych.'
-          };
-          setMessages(prev => [...prev, newAiMsg]);
-        }
-      }, 1500);
+      const newAiMsg: Message = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: result.data?.text || 'Przepraszam, nie zrozumiałem.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        detailedInfo: result.data?.detailedInfo || undefined
+      };
+
+      setMessages(prev => [...prev, newAiMsg]);
+    } catch (error: any) {
+      console.error("Chat API error:", error);
+      setIsTyping(false);
+      setIsObdMode(false);
+      const errorMsg: Message = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: `Błąd asystenta AI: ${error.message || 'Nie udało się uzyskać odpowiedzi'}. Spróbuj ponownie za chwilę.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, errorMsg]);
     }
   };
 
@@ -357,65 +362,35 @@ export function Chat({ onBack }: ChatProps) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scrollbar-hide">
-
-                {/* Dzisiaj */}
                 <div>
-                  <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">{t.chat.today}</h3>
-                  <div className="flex flex-col gap-2">
-                    <button onClick={() => setIsHistoryOpen(false)} className="flex items-center gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20 text-left transition-colors relative overflow-hidden group">
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
-                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 ml-1">
-                        <Hash size={14} className="text-primary" />
-                      </div>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm text-gray-100 font-medium truncate">Problem z hamulcami</span>
-                        <span className="text-xs text-primary/80">Aktywna sesja</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Wczoraj */}
-                <div>
-                  <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">{t.chat.yesterday}</h3>
+                  <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">Zapisane Diagnozy</h3>
                   <div className="flex flex-col gap-1">
-                    <button onClick={() => setIsHistoryOpen(false)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-foreground/[0.03] border border-transparent text-left transition-colors group">
-                      <div className="w-9 h-9 rounded-full bg-foreground/[0.05] group-hover:bg-foreground/[0.1] flex items-center justify-center shrink-0 transition-colors ml-1">
-                        <Cpu size={14} className="text-emerald-400" />
-                      </div>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm text-gray-300 group-hover:text-gray-100 font-medium truncate transition-colors">Kod błędu P0300 (Wypadanie zapłonów)</span>
-                        <span className="text-xs text-gray-500">14:30</span>
-                      </div>
-                    </button>
-                    <button onClick={() => setIsHistoryOpen(false)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-foreground/[0.03] border border-transparent text-left transition-colors group">
-                      <div className="w-9 h-9 rounded-full bg-foreground/[0.05] group-hover:bg-foreground/[0.1] flex items-center justify-center shrink-0 transition-colors ml-1">
-                        <Clock size={14} className="text-gray-400" />
-                      </div>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm text-gray-300 group-hover:text-gray-100 font-medium truncate transition-colors">Wymiana płynu chłodniczego</span>
-                        <span className="text-xs text-gray-500">09:15</span>
-                      </div>
-                    </button>
+                    {historyItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setIsHistoryOpen(false);
+                          if (onSelectDiagnosis) onSelectDiagnosis(item.id);
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-colors group ${diagnosisId === item.id ? 'bg-primary/10 border-primary/20 relative overflow-hidden' : 'hover:bg-foreground/[0.03] border-transparent'}`}
+                      >
+                        {diagnosisId === item.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ml-1 transition-colors ${diagnosisId === item.id ? 'bg-primary/20' : 'bg-foreground/[0.05] group-hover:bg-foreground/[0.1]'}`}>
+                          <Hash size={14} className={diagnosisId === item.id ? 'text-primary' : 'text-gray-400'} />
+                        </div>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className={`text-sm font-medium truncate transition-colors ${diagnosisId === item.id ? 'text-gray-100' : 'text-gray-300 group-hover:text-gray-100'}`}>{getTitle(item)}</span>
+                          <span className={`text-xs ${diagnosisId === item.id ? 'text-primary/80' : 'text-gray-500'}`}>
+                            {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                    {historyItems.length === 0 && (
+                      <div className="text-center py-4 text-xs text-gray-500">Brak historii</div>
+                    )}
                   </div>
                 </div>
-
-                {/* Poprzednie 7 dni */}
-                <div>
-                  <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">{t.chat.last7days}</h3>
-                  <div className="flex flex-col gap-1">
-                    <button onClick={() => setIsHistoryOpen(false)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-foreground/[0.03] border border-transparent text-left transition-colors group">
-                      <div className="w-9 h-9 rounded-full bg-foreground/[0.05] group-hover:bg-foreground/[0.1] flex items-center justify-center shrink-0 transition-colors ml-1">
-                        <Clock size={14} className="text-gray-400" />
-                      </div>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm text-gray-300 group-hover:text-gray-100 font-medium truncate transition-colors">Piszczący pasek klinowy</span>
-                        <span className="text-xs text-gray-500">22 Mar, 16:40</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
               </div>
             </motion.div>
           </>
@@ -510,8 +485,8 @@ export function Chat({ onBack }: ChatProps) {
             <button
               onClick={toggleRecording}
               className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ${isRecording
-                  ? 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
-                  : 'bg-foreground/[0.05] text-gray-300 hover:bg-foreground/10 border-foreground/[0.08]'
+                ? 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                : 'bg-foreground/[0.05] text-gray-300 hover:bg-foreground/10 border-foreground/[0.08]'
                 }`}
             >
               <Mic size={18} strokeWidth={1.5} className={isRecording ? "animate-pulse" : ""} />

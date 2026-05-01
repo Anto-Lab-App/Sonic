@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioLines, Camera, Image as ImageIcon, Loader2, AlertCircle, X, CheckCircle2, Sparkles, XCircle, Gauge, Wind, Hash, Car } from 'lucide-react';
 import { IdentificationReport } from './IdentificationReport';
+import { NoCreditsModal } from './NoCreditsModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -15,11 +16,16 @@ const ICON_MAP: Record<string, any> = {
   "Car": Car
 };
 
+const MAX_VIDEO_SIZE_MB = 30;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_AUDIO_SIZE_MB = 10;
+
 interface ShazamScannerProps {
   onScanComplete?: () => void;
+  onOpenChat?: (id: string) => void;
 }
 
-export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
+export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps) {
   const { t } = useLanguage();
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -36,6 +42,8 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
 
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [identificationData, setIdentificationData] = useState<any | null>(null);
+  const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -277,6 +285,10 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
       }
 
       if (!res.ok) {
+        if (res.status === 403) {
+          setShowNoCreditsModal(true);
+          return;
+        }
         throw new Error(json?.message || `Zwrócono błąd serwera. Status: ${res.status}`);
       }
 
@@ -290,6 +302,7 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
         }
 
         setIdentificationData(json.data);
+        setDiagnosisId(json.diagnosisId);
         setIsReportOpen(true);
         if (onScanComplete) onScanComplete();
       } else {
@@ -327,9 +340,24 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const sizeMB = file.size / (1024 * 1024);
+
+      if (file.type.startsWith('video/') && sizeMB > MAX_VIDEO_SIZE_MB) {
+        alert(`Wideo jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_VIDEO_SIZE_MB}MB.`);
+        return;
+      }
+      if (file.type.startsWith('image/') && sizeMB > MAX_IMAGE_SIZE_MB) {
+        alert(`Zdjęcie jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_IMAGE_SIZE_MB}MB.`);
+        return;
+      }
+      if (file.type.startsWith('audio/') && sizeMB > MAX_AUDIO_SIZE_MB) {
+        alert(`Audio jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_AUDIO_SIZE_MB}MB.`);
+        return;
+      }
+
       setIsLoadingFile(true);
       setMode(e.target.accept.includes('video') || e.target.accept.includes('image') ? 'visual' : 'audio');
-      const file = e.target.files[0];
       await new Promise(r => setTimeout(r, 400));
       setPendingFile(file);
       setIsLoadingFile(false);
@@ -577,11 +605,18 @@ export function ShazamScanner({ onScanComplete }: ShazamScannerProps) {
             onClose={() => {
               setIsReportOpen(false);
               setPendingFile(null);
+              setDiagnosisId(undefined);
             }}
+            diagnosisId={diagnosisId}
+            onOpenChat={onOpenChat}
           />
         )}
       </AnimatePresence>
 
+      <NoCreditsModal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+      />
     </div>
   );
 }

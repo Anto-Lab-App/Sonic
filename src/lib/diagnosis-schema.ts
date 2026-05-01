@@ -186,6 +186,7 @@ UWAGA ZASADA 3: Ochrona przed pustym materiałem
 
 METODOLOGIA (KRYTYCZNE WKLEJENIE DO POLA 'internal_reasoning_log'):
 Zanim zaczniesz uzupełniać końcowe pola diagnozy dla statusu "complete", musisz użyć pola 'internal_reasoning_log', aby opisać swój proces myślowy (Chain of Thought).
+0. OSZACOWANIE WARTOŚCI: Jeśli z kontekstu wynika, że auto jest stare/tanie (tzw. gruz), nie proponuj remontów silnika za 15 tys. PLN. W takim przypadku Twoim procesem myślowym powinno być: "Naprawa nieopłacalna, sugeruję wymianę silnika na używany (koszt X) lub złomowanie".
 1. Zawsze rozpoczynaj od diagnostyki różnicowej uwzględniając KONTEKST UŻYTKOWNIKA (szczególnie Kody OBD i Model) — wypisz potencjalne przyczyny i wykluczaj je.
 2. Przy ocenie dźwięku silnika, oceń twarde parametry analityczne:
    A) KORELACJA Z OBROTAMI (RPM): Czy przyspiesza liniowo z obrotami czy wałkiem?
@@ -203,5 +204,5 @@ WYMAGANIA ZWROTNE:
    - 40-69%: Podejrzenie, ale potrzeba weryfikacji.
    - 15-39%: Luźna sugestia, materiał niejednoznaczny.
    - 0-14%: Brak pewności / materiał nie nadaje się do analizy.
-4. W polu 'estimated_cost_pln' podaj realistyczny zakres kosztu naprawy w PLN (ceny warsztatowe w Polsce), np. "800-1200 PLN".
+4. W polu 'estimated_cost_pln' podaj realistyczny zakres kosztu naprawy w PLN (ceny warsztatowe w Polsce), np. "800-1200 PLN". Bądź realistą: jeśli naprawa (np. remont silnika) przewyższa wartość rynkową starszego pojazdu, zasugeruj alternatywy (np. wymiana całego podzespołu na używany) i podaj adekwatnie niższe widełki cenowe.
 5. NIE HALUCYNUJ. Jeśli nie masz podstaw do diagnozy, powiedz to wprost.`;

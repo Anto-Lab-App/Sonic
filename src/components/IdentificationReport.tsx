@@ -11,10 +11,14 @@ interface IdentificationReportProps {
     description: string;
     specs: { label: string; value: string; icon: any }[];
   };
+  diagnosisId?: string;
+  onOpenChat?: (id: string) => void;
 }
 
 export function IdentificationReport({
   onClose,
+  diagnosisId,
+  onOpenChat,
   identifiedCar = {
     name: "Ford Mustang GT (S550)",
     engine: "5.0L Coyote V8",
@@ -120,6 +124,24 @@ export function IdentificationReport({
 
           </div>
         </motion.div>
+
+        {/* AI Chat Action */}
+        <div className="sticky bottom-0 left-0 right-0 px-4 pb-6 pt-3 z-10 w-full mt-4">
+          <button
+            onClick={() => {
+              if (diagnosisId && onOpenChat) {
+                onOpenChat(diagnosisId);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-bold text-sm tracking-wide
+              bg-gradient-to-r from-blue-600 to-purple-600 border border-blue-500/50 text-white
+              hover:from-blue-500 hover:to-purple-500 transition-all
+              shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+          >
+            <span className="text-xl">💬</span>
+            <span>Zapytaj AI o ten element</span>
+          </button>
+        </div>
 
       </div>
     </div>

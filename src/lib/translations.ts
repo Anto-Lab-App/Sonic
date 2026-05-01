@@ -90,7 +90,7 @@ export const translations = {
             title: 'Ustawienia',
             logout: 'Wyloguj się',
             tabs: {
-                profile: 'Profil',
+                profile: 'Moje Konto',
                 history: 'Historia analiz',
                 preferences: 'Preferencje',
                 notifications: 'Powiadomienia',
@@ -110,8 +110,8 @@ export const translations = {
                 desc: 'Przeglądaj swoje poprzednie diagnozy i wygenerowane raporty.'
             },
             profile: {
-                title: 'Profil',
-                desc: 'Zarządzaj swoimi danymi osobowymi.',
+                title: 'Moje Konto',
+                desc: 'Zarządzaj swoimi danymi, portfelem i subskrypcją.',
                 photoTitle: 'Zdjęcie profilowe',
                 photoDesc: 'Zalecany rozmiar to 256x256px. Maksymalnie 2MB.',
                 changePhoto: 'Zmień zdjęcie',

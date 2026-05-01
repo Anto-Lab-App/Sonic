@@ -6,17 +6,23 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 
 import { ContextModal, type DiagnosticContextData } from './ContextModal';
 import { BikeDiagnosisReport } from './BikeDiagnosisReport';
+import { NoCreditsModal } from './NoCreditsModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Diagnosis } from '@/types/diagnosis';
 
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
 
+const MAX_VIDEO_SIZE_MB = 30;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_AUDIO_SIZE_MB = 10;
+
 interface BikeScannerProps {
   targets?: string[];
   defaultTarget?: string;
+  onOpenChat?: (id: string) => void;
 }
 
-export function BikeScanner({ defaultTarget }: BikeScannerProps) {
+export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const { t } = useLanguage();
   const targets = t.bike.targets;
 
@@ -34,6 +40,8 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
   const [analyzingText, setAnalyzingText] = useState(t.bike.status.init);
   const [pendingHint, setPendingHint] = useState(0);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
+  const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
 
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
   const [isFollowUp, setIsFollowUp] = useState(false);
@@ -233,7 +241,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
     }
 
     let interval: NodeJS.Timeout | undefined;
-    
+
     try {
       const allFilesToUpload: File[] = [];
       if (isFollowUp && firstFile) allFilesToUpload.push(firstFile);
@@ -299,7 +307,13 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
       clearInterval(interval);
       setIsAnalyzing(false);
 
-      if (!response.ok) throw new Error(data?.message || "Błąd wykonania zapytania AI");
+      if (!response.ok) {
+        if (response.status === 403) {
+          setShowNoCreditsModal(true);
+          return;
+        }
+        throw new Error(data?.message || "Błąd wykonania zapytania AI");
+      }
 
       const aiResponse = data.aiResponse;
       if (aiResponse?.status === "follow_up" && aiResponse?.follow_up_request) {
@@ -310,6 +324,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
       } else if (aiResponse?.status === "complete" || data.diagnosis) {
         const diagnosis = aiResponse?.final_diagnosis || data.diagnosis;
         setDiagnosisData(diagnosis);
+        setDiagnosisId(data.diagnosisId);
         setIsDiagnosisOpen(true);
         setIsFollowUp(false);
         setFollowUpRequest(null);
@@ -337,9 +352,24 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const sizeMB = file.size / (1024 * 1024);
+
+      if (file.type.startsWith('video/') && sizeMB > MAX_VIDEO_SIZE_MB) {
+        alert(`Wideo jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_VIDEO_SIZE_MB}MB.`);
+        return;
+      }
+      if (file.type.startsWith('image/') && sizeMB > MAX_IMAGE_SIZE_MB) {
+        alert(`Zdjęcie jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_IMAGE_SIZE_MB}MB.`);
+        return;
+      }
+      if (file.type.startsWith('audio/') && sizeMB > MAX_AUDIO_SIZE_MB) {
+        alert(`Audio jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_AUDIO_SIZE_MB}MB.`);
+        return;
+      }
+
       setIsLoadingFile(true);
       setMode(e.target.accept.includes('video') || e.target.accept.includes('image') ? 'visual' : 'audio');
-      const file = e.target.files[0];
       await new Promise(r => setTimeout(r, 400));
       setPendingFile(file);
       setIsLoadingFile(false);
@@ -579,7 +609,7 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
           setDiagnosisData(null);
           setDiagnosticContext(null);
           setFirstFile(null);
-        }} data={diagnosisData} />}
+        }} data={diagnosisData} diagnosisId={diagnosisId} onOpenChat={onOpenChat} />}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -612,6 +642,10 @@ export function BikeScanner({ defaultTarget }: BikeScannerProps) {
       <input type="file" accept="image/*,video/*,audio/*" className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
       <input type="file" accept="image/*,video/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
 
+      <NoCreditsModal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as Image
 
 import { ContextModal } from './ContextModal';
 import { DiagnosisReport } from './DiagnosisReport';
+import { NoCreditsModal } from './NoCreditsModal';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Diagnosis } from '@/types/diagnosis';
 import type { DiagnosticContextData } from './ContextModal';
@@ -13,12 +14,18 @@ import type { DiagnosticContextData } from './ContextModal';
 // Utility for smooth animation interpolation
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
 
+const MAX_VIDEO_SIZE_MB = 30;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_AUDIO_SIZE_MB = 10;
+
 interface ScannerProps {
   mode?: 'audio' | 'visual';
+  onOpenChat?: (id: string) => void;
 }
 
 export function Scanner({
-  mode = 'audio'
+  mode = 'audio',
+  onOpenChat
 }: ScannerProps) {
   const { t } = useLanguage();
   const [vehicleMake, setVehicleMake] = useState("");
@@ -32,6 +39,8 @@ export function Scanner({
   const [analyzingText, setAnalyzingText] = useState(t.auto.status.init);
   const [pendingHint, setPendingHint] = useState(0);
   const [diagnosisData, setDiagnosisData] = useState<Diagnosis | null>(null);
+  const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
+  const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
 
   const PENDING_HINTS = [
     "Plik gotowy — naciśnij aby analizować",
@@ -457,6 +466,10 @@ export function Scanner({
       console.log('[Sonic Frontend] Response:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
+        if (response.status === 403) {
+          setShowNoCreditsModal(true);
+          return;
+        }
         throw new Error(data.message || (t.auto.status as any).error || "Błąd analizy");
       }
 
@@ -475,6 +488,7 @@ export function Scanner({
           throw new Error("AI zwróciło status 'complete', ale brak danych diagnozy.");
         }
         setDiagnosisData(diagnosis);
+        setDiagnosisId(data.diagnosisId);
         setIsDiagnosisOpen(true);
         setIsFollowUp(false);
         setFollowUpRequest(null);
@@ -508,7 +522,13 @@ export function Scanner({
       const acceptedFiles: File[] = [];
 
       for (const file of incomingFiles) {
+        const sizeMB = file.size / (1024 * 1024);
+
         if (file.type.startsWith('video/')) {
+          if (sizeMB > MAX_VIDEO_SIZE_MB) {
+            alert(`Wideo "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_VIDEO_SIZE_MB}MB.`);
+            continue;
+          }
           if (currentVideos < 1) {
             acceptedFiles.push(file);
             currentVideos++;
@@ -516,6 +536,10 @@ export function Scanner({
             alert("Możesz dodać maksymalnie 1 wideo.");
           }
         } else if (file.type.startsWith('image/')) {
+          if (sizeMB > MAX_IMAGE_SIZE_MB) {
+            alert(`Zdjęcie "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_IMAGE_SIZE_MB}MB.`);
+            continue;
+          }
           if (currentImages < 3) {
             acceptedFiles.push(file);
             currentImages++;
@@ -523,6 +547,10 @@ export function Scanner({
             alert("Możesz dodać maksymalnie 3 zdjęcia.");
           }
         } else if (file.type.startsWith('audio/')) {
+          if (sizeMB > MAX_AUDIO_SIZE_MB) {
+            alert(`Audio "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_AUDIO_SIZE_MB}MB.`);
+            continue;
+          }
           if (currentAudio < 1 && currentVideos < 1) {
             acceptedFiles.push(file);
             currentAudio++;
@@ -1012,12 +1040,13 @@ export function Scanner({
         {isDiagnosisOpen && diagnosisData && <DiagnosisReport onClose={() => {
           setIsDiagnosisOpen(false);
           setDiagnosisData(null);
+          setDiagnosisId(undefined);
           setDiagnosticContext(null);
           setVehicleMake('');
           setVehicleDetails('');
           setFirstFiles([]);
           // Set to idle mode implicitly
-        }} data={diagnosisData} />}
+        }} data={diagnosisData} diagnosisId={diagnosisId} onOpenChat={onOpenChat} />}
       </AnimatePresence>
 
       {/* Pre-Scan Tips Overlay — shown once before first analysis */}
@@ -1142,6 +1171,11 @@ export function Scanner({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <NoCreditsModal
+        isOpen={showNoCreditsModal}
+        onClose={() => setShowNoCreditsModal(false)}
+      />
     </div>
   );
 }

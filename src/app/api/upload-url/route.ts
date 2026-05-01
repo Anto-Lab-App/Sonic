@@ -1,10 +1,16 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
+import { auth } from "@clerk/nextjs/server";
 import { getStorage, getBucketName } from "@/lib/google-clients";
 
 // Next.js App Router API
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { files } = body as { files: { filename: string; contentType: string }[] };
 

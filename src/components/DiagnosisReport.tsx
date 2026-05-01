@@ -53,9 +53,11 @@ function buildRepairTimeData(totalHours: number) {
 interface DiagnosisReportProps {
   onClose: () => void;
   data: Diagnosis;
+  diagnosisId?: string;
+  onOpenChat?: (id: string) => void;
 }
 
-export function DiagnosisReport({ onClose, data }: DiagnosisReportProps) {
+export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: DiagnosisReportProps) {
   const { t } = useLanguage();
 
   const complexity = parseComplexity(data.parameters.complexity);
@@ -383,18 +385,21 @@ export function DiagnosisReport({ onClose, data }: DiagnosisReportProps) {
 
         </div>
 
-        {/* AI Chat Placeholder Action */}
+        {/* AI Chat Action */}
         <div className="sticky bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
-          <button 
-            disabled 
+          <button
+            onClick={() => {
+              if (diagnosisId && onOpenChat) {
+                onOpenChat(diagnosisId);
+              }
+            }}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-bold text-sm tracking-wide
-              bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/25 text-foreground/70
-              cursor-not-allowed opacity-70
-              shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+              bg-gradient-to-r from-blue-600 to-purple-600 border border-blue-500/50 text-white
+              hover:from-blue-500 hover:to-purple-500 transition-all
+              shadow-[0_0_30px_rgba(59,130,246,0.3)]"
           >
             <span className="text-xl">💬</span>
             <span>Zapytaj AI o ten raport</span>
-            <span className="ml-auto text-[10px] font-semibold bg-foreground/10 rounded-full px-2.5 py-1 uppercase tracking-widest">Wkrótce</span>
           </button>
         </div>
       </main>

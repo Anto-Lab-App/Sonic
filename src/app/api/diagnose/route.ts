@@ -1,6 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
+import { auth } from "@clerk/nextjs/server";
 import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
+import prisma from "@/lib/prisma";
 import { diagnosisResponseSchema, SYSTEM_INSTRUCTION } from "@/lib/diagnosis-schema";
 import type { DiagnoseApiResponse, Diagnosis } from "@/types/diagnosis";
 
@@ -40,7 +42,36 @@ export async function POST(
 
   try {
     // ------------------------------------------------------------------
-    // Step A: Parse incoming FormData
+    // Step 0: Gatekeeper (Auth & Credits)
+    // ------------------------------------------------------------------
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { status: "error", message: "Nie jesteś zalogowany." },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId: userId }
+    });
+
+    /**
+     * TODO: PRODUCTION READINESS - CREDIT CHECK
+     * Re-enable the block below to enforce credit limits.
+     * Integrating Stripe webhooks should replenish user.credits.
+     */
+    /*
+    if (!user || user.credits < 1) {
+      return NextResponse.json(
+        { status: "error", message: "Brak darmowych skanów. Wykup pakiet PRO." },
+        { status: 403 }
+      );
+    }
+    */
+
+    // ------------------------------------------------------------------
+    // Step 1: Parse incoming FormData
     // ------------------------------------------------------------------
     const formData = await request.formData();
     const filePartsString = formData.get("fileParts") as string;
@@ -163,10 +194,39 @@ export async function POST(
       console.log(`[Sonic] FollowUp requested: ${aiResponse.follow_up_request?.action_required}`);
     } else {
       console.log(`[Sonic] Diagnosis complete: "${aiResponse.final_diagnosis?.title}" (${aiResponse.final_diagnosis?.confidence_score}%)`);
+
+      // Zapisz diagnozę w bazie
+      /**
+       * TODO: PRODUCTION READINESS - TRANSACTION & CREDITS
+       * For production, use prisma.$transaction to decrement credits AND create diagnosis log:
+       * await prisma.$transaction([
+       *   prisma.diagnosis.create(...),
+       *   prisma.user.update({ where: { id: user.id }, data: { credits: { decrement: 1 } } })
+       * ]);
+       */
+      const diagnosisRecord = await prisma.diagnosis.create({
+        data: {
+          userId: user!.id,
+          vehicleData: JSON.stringify({ make: vehicleMake, details: vehicleDetails }),
+          symptoms: userContext,
+          aiReport: aiResponse as any,
+        }
+      });
+
+      // ------------------------------------------------------------------
+      // Step D: Return the structured response
+      // ------------------------------------------------------------------
+      return NextResponse.json({
+        status: "success" as const,
+        aiResponse,
+        diagnosis: aiResponse.final_diagnosis, // legacy mapping if needed
+        diagnosisId: diagnosisRecord.id, // return the DB ID
+        usedModel: usedModelId || "unknown"
+      });
     }
 
     // ------------------------------------------------------------------
-    // Step D: Return the structured response
+    // Step D: Return the structured response (follow up case)
     // ------------------------------------------------------------------
     return NextResponse.json({
       status: "success" as const,

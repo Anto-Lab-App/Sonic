@@ -28,9 +28,11 @@ const repairTimeData = [
 interface BikeDiagnosisReportProps {
   onClose: () => void;
   data?: Diagnosis;
+  diagnosisId?: string;
+  onOpenChat?: (id: string) => void;
 }
 
-export function BikeDiagnosisReport({ onClose, data }: BikeDiagnosisReportProps) {
+export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: BikeDiagnosisReportProps) {
   const { t } = useLanguage();
 
   // Use AI data when available, fall back to hardcoded defaults
@@ -302,6 +304,24 @@ export function BikeDiagnosisReport({ onClose, data }: BikeDiagnosisReportProps)
             </div>
           </div>
 
+        </div>
+
+        {/* AI Chat Action */}
+        <div className="sticky bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
+          <button
+            onClick={() => {
+              if (diagnosisId && onOpenChat) {
+                onOpenChat(diagnosisId);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] font-bold text-sm tracking-wide
+              bg-gradient-to-r from-emerald-600 to-teal-600 border border-emerald-500/50 text-white
+              hover:from-emerald-500 hover:to-teal-500 transition-all
+              shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+          >
+            <span className="text-xl">💬</span>
+            <span>Zapytaj AI o ten raport</span>
+          </button>
         </div>
       </main>
     </div>
