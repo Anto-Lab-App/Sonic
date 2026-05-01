@@ -38,6 +38,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPreScan, setShowPreScan] = useState(false);
+  const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
   const [stickyError, setStickyError] = useState<string | null>(null);
 
   const [analyzingText, setAnalyzingText] = useState(t.shazam.status.init);
@@ -403,6 +404,28 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         >
           <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-3">{t.shazam.title}</h1>
           <p className="text-muted font-medium px-4 text-sm leading-relaxed">{t.shazam.desc}</p>
+
+          {/* Legal Disclaimer Checkbox */}
+          <div className="w-full mt-4 flex justify-center">
+            <label className="flex gap-3 cursor-pointer group max-w-[320px] text-left">
+              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={isDisclaimerAccepted}
+                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
+                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-primary checked:border-primary transition-all duration-300"
+                />
+                <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <span className="text-[10px] text-foreground/40 leading-relaxed group-hover:text-foreground/60 transition-colors">
+                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
+              </span>
+            </label>
+          </div>
         </motion.div>
 
         {/* Central Animation Area */}
@@ -471,7 +494,8 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   onClick={handleAnalyzeClick}
-                  className="relative w-32 h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary/20 hover:bg-primary/30 border border-primary/40 shadow-[0_0_50px_rgba(var(--color-primary),0.3)] transition-all group z-20"
+                  disabled={!isDisclaimerAccepted}
+                  className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary/20 hover:bg-primary/30 border border-primary/40 shadow-[0_0_50px_rgba(var(--color-primary),0.3)] transition-all group z-20 ${!isDisclaimerAccepted ? 'opacity-40 pointer-events-none' : ''}`}
                 >
                   <Sparkles className="w-12 h-12 text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),1)]" />
                 </motion.button>

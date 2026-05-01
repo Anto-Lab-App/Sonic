@@ -60,6 +60,7 @@ export function Scanner({
   const [firstFiles, setFirstFiles] = useState<File[]>([]);
 
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPreScan, setShowPreScan] = useState(false);
@@ -673,6 +674,28 @@ export function Scanner({
           >
             <AlertCircle size={14} className="shrink-0" /> <span className="truncate">{t.auto.protips}</span>
           </button>
+
+          {/* Legal Disclaimer Checkbox */}
+          <div className="w-full px-2 mt-2">
+            <label className="flex gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={isDisclaimerAccepted}
+                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
+                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-[#0A84FF] checked:border-[#0A84FF] transition-all duration-300"
+                />
+                <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <span className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors">
+                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
+              </span>
+            </label>
+          </div>
         </motion.div>
 
         {/* Center Concentric Visualizer & Button */}
@@ -802,11 +825,13 @@ export function Scanner({
             {/* Central Button (Steve Jobs / Apple Style with Logo) */}
             <motion.button
               onClick={pendingFiles.length > 0 ? handleAnalyzeClick : toggleRecording}
-              style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
+              style={{ pointerEvents: (isAnalyzing || (!isDisclaimerAccepted && pendingFiles.length > 0)) ? 'none' : 'auto' }}
+              disabled={!isDisclaimerAccepted && pendingFiles.length > 0}
               animate={
                 isRecording || pendingFiles.length > 0
                   ? {
                     scale: [0.98, 1.02, 0.98],
+                    opacity: (!isDisclaimerAccepted && pendingFiles.length > 0) ? 0.6 : 1,
                     boxShadow: [
                       '0 0 30px rgba(0, 209, 255, 0.2), inset 0 2px 20px rgba(0, 209, 255, 0.1)',
                       '0 0 60px rgba(0, 209, 255, 0.4), inset 0 2px 20px rgba(0, 209, 255, 0.2)',

@@ -110,6 +110,7 @@ const defaultMessages: Message[] = [
 
 export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const { t } = useLanguage();
+  const MAX_USER_MESSAGES = 5;
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('mechanik-ai-messages');
     if (saved) {
@@ -242,6 +243,9 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
+
+    const userMessagesCount = messages.filter(m => m.sender === 'user').length;
+    if (userMessagesCount >= MAX_USER_MESSAGES) return;
 
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -457,42 +461,50 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
 
       {/* Input Area */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pt-12 bg-gradient-to-t from-[#06080F] via-[#06080F]/95 to-transparent z-20">
-        <div className={`bg-foreground/[0.05] backdrop-blur-3xl border rounded-full p-1.5 pl-4 flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-colors duration-300 ${isRecording ? 'border-red-500/30 bg-red-500/5' : isObdMode ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-foreground/[0.08]'}`}>
-          <button
-            onClick={() => setIsObdMode(!isObdMode)}
-            className={`p-1.5 rounded-full transition-colors ${isObdMode ? 'text-emerald-400 bg-emerald-500/20' : 'text-gray-400 hover:text-gray-100 hover:bg-foreground/10'}`}
-            title={t.chat.scanObd}
-          >
-            <Cpu size={22} strokeWidth={1.5} />
-          </button>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={isRecording ? t.chat.listening : isObdMode ? t.chat.obdPrompt : t.chat.msgPrompt}
-            className={`flex-1 bg-transparent border-none outline-none text-[15px] font-medium transition-colors ${isRecording ? 'text-red-200 placeholder:text-red-400/50' : isObdMode ? 'text-emerald-100 placeholder:text-emerald-500/50' : 'text-gray-100 placeholder:text-gray-500'}`}
-            disabled={isRecording}
-          />
-          {inputValue.trim() && !isRecording ? (
+        {messages.filter(m => m.sender === 'user').length >= MAX_USER_MESSAGES ? (
+          <div className="bg-foreground/[0.05] backdrop-blur-3xl border border-foreground/[0.08] rounded-2xl p-4 text-center">
+            <p className="text-sm text-gray-400 font-medium italic">
+              Sesja konsultacyjna dla tego raportu została zakończona.
+            </p>
+          </div>
+        ) : (
+          <div className={`bg-foreground/[0.05] backdrop-blur-3xl border rounded-full p-1.5 pl-4 flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-colors duration-300 ${isRecording ? 'border-red-500/30 bg-red-500/5' : isObdMode ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-foreground/[0.08]'}`}>
             <button
-              onClick={handleSend}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#005bb5] flex items-center justify-center text-foreground hover:opacity-90 transition-opacity shadow-[0_2px_10px_rgba(10,132,255,0.5)] shrink-0 border border-blue-400/30"
+              onClick={() => setIsObdMode(!isObdMode)}
+              className={`p-1.5 rounded-full transition-colors ${isObdMode ? 'text-emerald-400 bg-emerald-500/20' : 'text-gray-400 hover:text-gray-100 hover:bg-foreground/10'}`}
+              title={t.chat.scanObd}
             >
-              <Send size={16} className="ml-0.5" strokeWidth={2} />
+              <Cpu size={22} strokeWidth={1.5} />
             </button>
-          ) : (
-            <button
-              onClick={toggleRecording}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ${isRecording
-                ? 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
-                : 'bg-foreground/[0.05] text-gray-300 hover:bg-foreground/10 border-foreground/[0.08]'
-                }`}
-            >
-              <Mic size={18} strokeWidth={1.5} className={isRecording ? "animate-pulse" : ""} />
-            </button>
-          )}
-        </div>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder={isRecording ? t.chat.listening : isObdMode ? t.chat.obdPrompt : t.chat.msgPrompt}
+              className={`flex-1 bg-transparent border-none outline-none text-[15px] font-medium transition-colors ${isRecording ? 'text-red-200 placeholder:text-red-400/50' : isObdMode ? 'text-emerald-100 placeholder:text-emerald-500/50' : 'text-gray-100 placeholder:text-gray-500'}`}
+              disabled={isRecording}
+            />
+            {inputValue.trim() && !isRecording ? (
+              <button
+                onClick={handleSend}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A84FF] to-[#005bb5] flex items-center justify-center text-foreground hover:opacity-90 transition-opacity shadow-[0_2px_10px_rgba(10,132,255,0.5)] shrink-0 border border-blue-400/30"
+              >
+                <Send size={16} className="ml-0.5" strokeWidth={2} />
+              </button>
+            ) : (
+              <button
+                onClick={toggleRecording}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ${isRecording
+                  ? 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                  : 'bg-foreground/[0.05] text-gray-300 hover:bg-foreground/10 border-foreground/[0.08]'
+                  }`}
+              >
+                <Mic size={18} strokeWidth={1.5} className={isRecording ? "animate-pulse" : ""} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

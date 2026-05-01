@@ -55,6 +55,7 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPreScan, setShowPreScan] = useState(false);
+  const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
   const [stickyError, setStickyError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -468,6 +469,28 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
           >
             <AlertCircle size={14} className="shrink-0" /> <span className="truncate">Wskazówki</span>
           </button>
+
+          {/* Legal Disclaimer Checkbox */}
+          <div className="w-full px-2 mt-2">
+            <label className="flex gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={isDisclaimerAccepted}
+                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
+                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-[#10B981] checked:border-[#10B981] transition-all duration-300"
+                />
+                <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <span className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors">
+                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
+              </span>
+            </label>
+          </div>
         </motion.div>
 
         {/* Central Record/Visualizer */}
@@ -509,7 +532,7 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
             <AnimatePresence mode="wait">
               {pendingFile && !isAnalyzing ? (
-                <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} className="relative w-32 h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30">
+                <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} disabled={!isDisclaimerAccepted} className={`relative w-32 h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30 transition-opacity ${!isDisclaimerAccepted ? 'opacity-40 pointer-events-none' : ''}`}>
                   <Sparkles className="w-12 h-12 text-emerald-400 drop-shadow-md" />
                 </motion.button>
               ) : (
