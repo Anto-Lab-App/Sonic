@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 import { getStorage, getBucketName, getGenAI } from "@/lib/google-clients";
 import { Type as SchemaType } from "@google/genai";
@@ -75,17 +75,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { clerkUserId: userId }
     });
 
-    // TESTING OVERRIDE: Unlimited credits
-    // if (!user || user.credits < 1) {
-    //   return NextResponse.json(
-    //     { status: "error", message: "Brak darmowych skanów. Wykup pakiet PRO." },
-    //     { status: 403 }
-    //   );
-    // }
+    // Fallback: create user in DB if clerk webhook was missed or delayed
+    if (!user) {
+      const clerkUser = await currentUser();
+      if (clerkUser) {
+        user = await prisma.user.create({
+          data: {
+            clerkUserId: userId,
+            email: clerkUser.emailAddresses[0].emailAddress,
+            credits: 1, // 1 free credit on start
+          }
+        });
+      } else {
+        return NextResponse.json(
+          { status: "error", message: "Błąd uwierzytelniania." },
+          { status: 401 }
+        );
+      }
+    }
+
+    if (user.credits < 1) {
+      return NextResponse.json(
+        { status: "error", message: "Brak darmowych skanów. Wykup pakiet PRO." },
+        { status: 403 }
+      );
+    }
 
     const formData = await request.formData();
     const filePartsString = formData.get("fileParts") as string;
@@ -164,14 +182,11 @@ export async function POST(request: NextRequest) {
 
     const result = JSON.parse(rawText);
 
-    /**
-     * TODO: PRODUCTION READINESS - CREDITS
-     * For production, uncomment to decrement credits:
-     * await prisma.user.update({
-     *   where: { id: user.id },
-     *   data: { credits: { decrement: 1 } }
-     * });
-     */
+    // Transaction: Decrement credits on successful identification
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { credits: { decrement: 1 } }
+    });
 
     return NextResponse.json({ status: "success", data: result });
 

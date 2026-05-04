@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles } from 'lucide-react';
 
 import { ContextModal } from './ContextModal';
+import { DisclaimerModal } from './DisclaimerModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { NoCreditsModal } from './NoCreditsModal';
 import { LoginRequiredModal } from './LoginRequiredModal';
@@ -45,6 +46,8 @@ export function Scanner({
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
+  const [showDisclaimerWarning, setShowDisclaimerWarning] = useState(false);
 
   const PENDING_HINTS = [
     "Plik gotowy — naciśnij aby analizować",
@@ -281,6 +284,12 @@ export function Scanner({
 
   const handleAnalyzeClick = () => {
     if (pendingFiles.length === 0) return;
+
+    if (!isDisclaimerAccepted) {
+      setShowDisclaimerWarning(true);
+      setTimeout(() => setShowDisclaimerWarning(false), 2000);
+      return;
+    }
 
     if (!isSignedIn) {
       setShowLoginModal(true);
@@ -642,13 +651,13 @@ export function Scanner({
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex flex-col items-center pt-4 pb-1 relative z-20 gap-3 shrink-0"
+          className="w-full px-6 flex flex-col items-center pt-24 md:pt-24 pb-1 relative z-20 gap-3 shrink-0"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
-          <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-4 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-3">
+          <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-3 md:p-4 rounded-[24px] md:rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-2 md:gap-3">
             <div className="flex flex-col items-start px-2">
               <span className="text-[10px] font-semibold tracking-widest text-[#00D1FF] uppercase mb-0.5">{t.auto.vehicleData}</span>
-              <span className="text-xs text-foreground/50">{t.auto.vehicleDataSub}</span>
+              <span className="text-[11px] md:text-xs text-foreground/50">{t.auto.vehicleDataSub}</span>
             </div>
             <div className="flex flex-col gap-2">
               <input
@@ -656,34 +665,37 @@ export function Scanner({
                 placeholder={t.auto.makeModelPlaceholder}
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
               <input
                 type="text"
                 placeholder={t.auto.yearEnginePlaceholder}
                 value={vehicleDetails}
                 onChange={(e) => setVehicleDetails(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
             </div>
           </div>
 
           <button
             onClick={() => setShowPreScan(true)}
-            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-5 py-2.5 rounded-full shadow-sm max-w-full"
+            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-sm max-w-full"
           >
             <AlertCircle size={14} className="shrink-0" /> <span className="truncate">{t.auto.protips}</span>
           </button>
 
           {/* Legal Disclaimer Checkbox */}
-          <div className="w-full px-2 mt-2">
-            <label className="flex gap-3 cursor-pointer group">
-              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+          <div className={`w-full px-2 mt-2 flex justify-center transition-all duration-300 ${showDisclaimerWarning ? 'scale-105' : ''}`}>
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center shrink-0">
                 <input
                   type="checkbox"
                   checked={isDisclaimerAccepted}
-                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
-                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-[#0A84FF] checked:border-[#0A84FF] transition-all duration-300"
+                  onChange={(e) => {
+                    setIsDisclaimerAccepted(e.target.checked);
+                    if (e.target.checked) setShowDisclaimerWarning(false);
+                  }}
+                  className={`peer appearance-none w-5 h-5 rounded-md border bg-white/5 checked:bg-primary checked:border-primary transition-all duration-300 ${showDisclaimerWarning ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border-white/10'}`}
                 />
                 <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
                   <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
@@ -691,18 +703,29 @@ export function Scanner({
                   </svg>
                 </div>
               </div>
-              <span className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors">
-                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
-              </span>
+              <div className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors select-none">
+                {t.disclaimer.checkbox}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDisclaimerModalOpen(true);
+                  }}
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
+                >
+                  {t.disclaimer.link}
+                </button>
+              </div>
             </label>
           </div>
         </motion.div>
 
         {/* Center Concentric Visualizer & Button */}
-        <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]`}>
+        <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[220px] md:min-h-[280px]`}>
 
           {/* Status Text - always visible, cycles through states */}
-          <div className="h-16 mb-4 flex flex-col items-center justify-end z-10">
+          <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
             <AnimatePresence mode="wait">
               {isAnalyzing ? (
                 <motion.div
@@ -755,7 +778,7 @@ export function Scanner({
             </AnimatePresence>
           </div>
 
-          <div className="relative flex items-center justify-center w-[200px] h-[200px]">
+          <div className="relative flex items-center justify-center w-[180px] h-[180px] md:w-[200px] md:h-[200px]">
 
             {/* Concentric Rings (Solid circles expanding outwards and fading) */}
             <div className="absolute inset-0 pointer-events-none" style={{ display: mode === 'visual' ? 'none' : 'block' }}>
@@ -763,7 +786,7 @@ export function Scanner({
                 <div
                   key={i}
                   ref={(el) => { ringsRef.current[i] = el; }}
-                  className="absolute top-1/2 left-1/2 w-[160px] h-[160px] rounded-full bg-[#00D1FF] mix-blend-screen transition-opacity duration-200"
+                  className="absolute top-1/2 left-1/2 w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full bg-[#00D1FF] mix-blend-screen transition-opacity duration-200"
                   style={{
                     transform: 'translate(-50%, -50%) scale(1)',
                     opacity: 0,
@@ -825,13 +848,13 @@ export function Scanner({
             {/* Central Button (Steve Jobs / Apple Style with Logo) */}
             <motion.button
               onClick={pendingFiles.length > 0 ? handleAnalyzeClick : toggleRecording}
-              style={{ pointerEvents: (isAnalyzing || (!isDisclaimerAccepted && pendingFiles.length > 0)) ? 'none' : 'auto' }}
-              disabled={!isDisclaimerAccepted && pendingFiles.length > 0}
+              style={{ pointerEvents: isAnalyzing ? 'none' : 'auto' }}
+              disabled={isAnalyzing}
               animate={
                 isRecording || pendingFiles.length > 0
                   ? {
                     scale: [0.98, 1.02, 0.98],
-                    opacity: (!isDisclaimerAccepted && pendingFiles.length > 0) ? 0.6 : 1,
+                    opacity: 1,
                     boxShadow: [
                       '0 0 30px rgba(0, 209, 255, 0.2), inset 0 2px 20px rgba(0, 209, 255, 0.1)',
                       '0 0 60px rgba(0, 209, 255, 0.4), inset 0 2px 20px rgba(0, 209, 255, 0.2)',
@@ -848,7 +871,7 @@ export function Scanner({
                   ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
                   : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
               }
-              className={`relative z-10 w-[160px] h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl group ${pendingFiles.length > 0 ? 'bg-surface-elevated/60 border border-blue-500/20' : 'bg-surface-elevated/90 border border-foreground/[0.08]'}`}
+              className={`relative z-10 w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full flex items-center justify-center overflow-hidden backdrop-blur-3xl group ${pendingFiles.length > 0 ? 'bg-surface-elevated/60 border border-blue-500/20' : 'bg-surface-elevated/90 border border-foreground/[0.08]'}`}
             >
               {/* Inner Depth Shadow */}
               <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.6)] pointer-events-none" />
@@ -952,17 +975,17 @@ export function Scanner({
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20"
+          className="w-full px-6 flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
           <button
             onClick={() => galleryInputRef.current?.click()}
-            className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-5 rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${pendingFiles.length > 0
+            className={`flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2 md:gap-2.5 transition-all duration-500 py-3 md:py-5 rounded-[24px] md:rounded-[32px] border backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] ${pendingFiles.length > 0
               ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30'
               : 'bg-white/5 hover:bg-white/10 border-white/10'
               }`}
           >
-            <div className={`w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${pendingFiles.length > 0 ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
+            <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full transition-all duration-500 flex items-center justify-center shadow-inner border ${pendingFiles.length > 0 ? 'bg-[#00D1FF]/10 border-[#00D1FF]/20' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'
               }`}>
               {isLoadingFile ? (
                 <Loader2 className="w-4 h-4 text-[#00D1FF] animate-spin" />
@@ -982,8 +1005,8 @@ export function Scanner({
             </span>
           </button>
 
-          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 bg-white/5 hover:bg-white/10 transition-all duration-500 py-5 rounded-[32px] border border-white/10 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <div className="w-10 h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
+          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 group relative overflow-hidden flex flex-col items-center justify-center gap-2 md:gap-2.5 bg-white/5 hover:bg-white/10 transition-all duration-500 py-3 md:py-5 rounded-[24px] md:rounded-[32px] border border-white/10 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-foreground/5 group-hover:bg-foreground/10 group-hover:scale-105 transition-all duration-500 flex items-center justify-center shadow-inner border border-foreground/5">
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
             </div>
             <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
@@ -1206,6 +1229,10 @@ export function Scanner({
         )}
       </AnimatePresence>
 
+      <DisclaimerModal
+        isOpen={isDisclaimerModalOpen}
+        onClose={() => setIsDisclaimerModalOpen(false)}
+      />
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}

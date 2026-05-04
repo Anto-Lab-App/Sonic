@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles, XCircle } from 'lucide-react';
 
 import { ContextModal, type DiagnosticContextData } from './ContextModal';
+import { DisclaimerModal } from './DisclaimerModal';
 import { BikeDiagnosisReport } from './BikeDiagnosisReport';
 import { NoCreditsModal } from './NoCreditsModal';
 import { LoginRequiredModal } from './LoginRequiredModal';
@@ -46,6 +47,8 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
+  const [showDisclaimerWarning, setShowDisclaimerWarning] = useState(false);
 
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
   const [isFollowUp, setIsFollowUp] = useState(false);
@@ -348,6 +351,12 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
 
+    if (!isDisclaimerAccepted) {
+      setShowDisclaimerWarning(true);
+      setTimeout(() => setShowDisclaimerWarning(false), 2000);
+      return;
+    }
+
     if (!isSignedIn) {
       setShowLoginModal(true);
       return;
@@ -424,9 +433,9 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}
-          className="w-full px-6 flex flex-col items-center pt-8 pb-1 relative z-20 gap-3 shrink-0"
+          className="w-full px-6 flex flex-col items-center pt-24 pb-1 relative z-20 gap-3 shrink-0"
         >
-          <div className="w-full bg-surface/80 p-4 rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-3">
+          <div className="w-full bg-surface/80 p-3 md:p-4 rounded-[24px] md:rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-2 md:gap-3">
             <div className="flex flex-col items-start px-2">
               <span className="text-[10px] font-semibold tracking-widest text-emerald-400 uppercase mb-0.5">{"Wybierz element"}</span>
             </div>
@@ -471,14 +480,17 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
           </button>
 
           {/* Legal Disclaimer Checkbox */}
-          <div className="w-full px-2 mt-2">
-            <label className="flex gap-3 cursor-pointer group">
-              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+          <div className={`w-full px-2 mt-2 flex justify-center transition-all duration-300 ${showDisclaimerWarning ? 'scale-105' : ''}`}>
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center shrink-0">
                 <input
                   type="checkbox"
                   checked={isDisclaimerAccepted}
-                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
-                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-[#10B981] checked:border-[#10B981] transition-all duration-300"
+                  onChange={(e) => {
+                    setIsDisclaimerAccepted(e.target.checked);
+                    if (e.target.checked) setShowDisclaimerWarning(false);
+                  }}
+                  className={`peer appearance-none w-5 h-5 rounded-md border bg-white/5 checked:bg-emerald-500 checked:border-emerald-500 transition-all duration-300 ${showDisclaimerWarning ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border-white/10'}`}
                 />
                 <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
                   <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
@@ -486,16 +498,27 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
                   </svg>
                 </div>
               </div>
-              <span className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors">
-                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
-              </span>
+              <div className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors select-none">
+                {t.disclaimer.checkbox}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDisclaimerModalOpen(true);
+                  }}
+                  className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors font-medium"
+                >
+                  {t.disclaimer.link}
+                </button>
+              </div>
             </label>
           </div>
         </motion.div>
 
         {/* Central Record/Visualizer */}
-        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]">
-          <div className="h-16 mb-4 flex flex-col items-center justify-end z-10">
+        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[220px] md:min-h-[280px]">
+          <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
             <AnimatePresence mode="wait">
               {isAnalyzing ? (
                 <motion.div key="analyzing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
@@ -518,13 +541,13 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
             </AnimatePresence>
           </div>
 
-          <div className="relative flex items-center justify-center w-[200px] h-[200px]">
+          <div className="relative flex items-center justify-center w-[180px] h-[180px] md:w-[200px] md:h-[200px]">
             <div className="absolute inset-0 pointer-events-none">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
                   ref={(el) => { ringsRef.current[i] = el; }}
-                  className="absolute top-1/2 left-1/2 w-[140px] h-[140px] rounded-full bg-emerald-500 transition-opacity duration-200"
+                  className="absolute top-1/2 left-1/2 w-[130px] h-[130px] md:w-[140px] md:h-[140px] rounded-full bg-emerald-500 transition-opacity duration-200"
                   style={{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0 }}
                 />
               ))}
@@ -532,15 +555,15 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
             <AnimatePresence mode="wait">
               {pendingFile && !isAnalyzing ? (
-                <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} disabled={!isDisclaimerAccepted} className={`relative w-32 h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30 transition-opacity ${!isDisclaimerAccepted ? 'opacity-40 pointer-events-none' : ''}`}>
-                  <Sparkles className="w-12 h-12 text-emerald-400 drop-shadow-md" />
+                <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} className={`relative w-28 h-28 md:w-32 md:h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30 transition-opacity`}>
+                  <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-emerald-400 drop-shadow-md" />
                 </motion.button>
               ) : (
                 <motion.button
                   key="record"
                   onClick={async () => { if (isRecording) { const f = await stopRecording(); if (f) setPendingFile(f); } else { setMode('visual'); fileInputRef.current?.click(); } }}
                   disabled={isAnalyzing}
-                  className="relative z-20 w-[120px] h-[120px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500 shadow-xl shadow-emerald-500/20 border-4 border-background"
+                  className="relative z-20 w-[110px] h-[110px] md:w-[120px] md:h-[120px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500 shadow-xl shadow-emerald-500/20 border-4 border-background"
                 >
                   {isAnalyzing ? <Loader2 className="w-10 h-10 text-white animate-spin" /> : (isRecording ? <Mic className="w-10 h-10 text-white animate-pulse" /> : <Camera className="w-10 h-10 text-white" />)}
                 </motion.button>
@@ -558,12 +581,12 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
           </div>
         </div>
 
-        <motion.div animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }} className="w-full px-6 flex gap-4 pt-4 shrink-0 relative z-20">
+        <motion.div animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }} className="w-full px-6 flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 relative z-20">
           <button
             onClick={() => galleryInputRef.current?.click()}
-            className={`flex-1 flex flex-col items-center justify-center gap-2 py-5 rounded-[32px] border backdrop-blur-3xl transition-all ${pendingFile ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/5 border-white/10'}`}
+            className={`flex-1 flex flex-col items-center justify-center gap-2 py-3 md:py-5 rounded-[24px] md:rounded-[32px] border backdrop-blur-3xl transition-all ${pendingFile ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/5 border-white/10'}`}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${pendingFile ? 'bg-emerald-500/10' : 'bg-foreground/5'}`}>
+            <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center ${pendingFile ? 'bg-emerald-500/10' : 'bg-foreground/5'}`}>
               {pendingFile ? <span className="text-emerald-400 text-base">✓</span> : mode === 'audio' ? <Upload className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
             </div>
             <span className={`text-[10px] font-semibold uppercase tracking-widest ${pendingFile ? 'text-emerald-400' : 'text-foreground/50'}`}>
@@ -571,7 +594,7 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
             </span>
           </button>
 
-          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 flex flex-col items-center justify-center gap-2 bg-white/5 border-white/10 py-5 rounded-[32px] backdrop-blur-3xl transition-all">
+          <button onClick={() => setIsContextModalOpen(true)} className="flex-1 flex flex-col items-center justify-center gap-2 bg-white/5 border-white/10 py-3 md:py-5 rounded-[24px] md:rounded-[32px] backdrop-blur-3xl transition-all">
             <div className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center">
               <FileText className="w-4 h-4 text-foreground/60" />
             </div>
@@ -675,6 +698,10 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
       <input type="file" accept="image/*,video/*,audio/*" className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
       <input type="file" accept="image/*,video/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
 
+      <DisclaimerModal
+        isOpen={isDisclaimerModalOpen}
+        onClose={() => setIsDisclaimerModalOpen(false)}
+      />
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}

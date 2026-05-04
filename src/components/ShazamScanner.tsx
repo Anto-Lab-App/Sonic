@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioLines, Camera, Image as ImageIcon, Loader2, AlertCircle, X, CheckCircle2, Sparkles, XCircle, Gauge, Wind, Hash, Car } from 'lucide-react';
+import { DisclaimerModal } from './DisclaimerModal';
 import { IdentificationReport } from './IdentificationReport';
 import { NoCreditsModal } from './NoCreditsModal';
 import { LoginRequiredModal } from './LoginRequiredModal';
@@ -49,6 +50,8 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const [diagnosisId, setDiagnosisId] = useState<string | undefined>();
   const [showNoCreditsModal, setShowNoCreditsModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
+  const [showDisclaimerWarning, setShowDisclaimerWarning] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -326,6 +329,12 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const handleAnalyzeClick = () => {
     if (!pendingFile) return;
 
+    if (!isDisclaimerAccepted) {
+      setShowDisclaimerWarning(true);
+      setTimeout(() => setShowDisclaimerWarning(false), 2000);
+      return;
+    }
+
     if (!isSignedIn) {
       setShowLoginModal(true);
       return;
@@ -400,20 +409,23 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         {/* Title Section */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}
-          className="w-full text-center mt-12 mb-6 px-6"
+          className="w-full text-center pt-24 md:pt-24 mb-4 md:mb-6 px-6"
         >
-          <h1 className="text-4xl font-bold tracking-tighter text-foreground mb-3">{t.shazam.title}</h1>
-          <p className="text-muted font-medium px-4 text-sm leading-relaxed">{t.shazam.desc}</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-foreground mb-2 md:mb-3">{t.shazam.title}</h1>
+          <p className="text-muted font-medium px-4 text-xs md:text-sm leading-relaxed">{t.shazam.desc}</p>
 
           {/* Legal Disclaimer Checkbox */}
-          <div className="w-full mt-4 flex justify-center">
-            <label className="flex gap-3 cursor-pointer group max-w-[320px] text-left">
-              <div className="relative flex items-center justify-center shrink-0 mt-0.5">
+          <div className={`w-full mt-3 md:mt-4 flex justify-center transition-all duration-300 ${showDisclaimerWarning ? 'scale-105' : ''}`}>
+            <label className="flex items-center gap-3 cursor-pointer group max-w-[320px] text-left">
+              <div className="relative flex items-center justify-center shrink-0">
                 <input
                   type="checkbox"
                   checked={isDisclaimerAccepted}
-                  onChange={(e) => setIsDisclaimerAccepted(e.target.checked)}
-                  className="peer appearance-none w-5 h-5 rounded-md border border-white/10 bg-white/5 checked:bg-primary checked:border-primary transition-all duration-300"
+                  onChange={(e) => {
+                    setIsDisclaimerAccepted(e.target.checked);
+                    if (e.target.checked) setShowDisclaimerWarning(false);
+                  }}
+                  className={`peer appearance-none w-5 h-5 rounded-md border bg-white/5 checked:bg-primary checked:border-primary transition-all duration-300 ${showDisclaimerWarning ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'border-white/10'}`}
                 />
                 <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-300">
                   <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
@@ -421,17 +433,28 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   </svg>
                 </div>
               </div>
-              <span className="text-[10px] text-foreground/40 leading-relaxed group-hover:text-foreground/60 transition-colors">
-                Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.
-              </span>
+              <div className="text-[10px] text-foreground/40 leading-relaxed group-hover:text-foreground/60 transition-colors select-none">
+                {t.disclaimer.checkbox}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDisclaimerModalOpen(true);
+                  }}
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
+                >
+                  {t.disclaimer.link}
+                </button>
+              </div>
             </label>
           </div>
         </motion.div>
 
         {/* Central Animation Area */}
-        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[280px]">
+        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[220px] md:min-h-[280px]">
           {/* Status Message */}
-          <div className="h-16 mb-4 flex flex-col items-center justify-end z-10">
+          <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
             <AnimatePresence mode="wait">
               {isAnalyzing ? (
                 <motion.div
@@ -472,14 +495,14 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
             </AnimatePresence>
           </div>
 
-          <div className="relative flex items-center justify-center w-[200px] h-[200px] md:w-[240px] md:h-[240px]">
+          <div className="relative flex items-center justify-center w-[180px] h-[180px] md:w-[240px] md:h-[240px]">
             {/* Liquid Rings */}
             <div className="absolute inset-0 pointer-events-none">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
                   ref={(el) => { ringsRef.current[i] = el; }}
-                  className="absolute top-1/2 left-1/2 w-[160px] h-[160px] md:w-[180px] md:h-[180px] rounded-full bg-primary mix-blend-screen transition-opacity duration-200"
+                  className="absolute top-1/2 left-1/2 w-[150px] h-[150px] md:w-[180px] md:h-[180px] rounded-full bg-primary mix-blend-screen transition-opacity duration-200"
                   style={{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, willChange: 'transform, opacity' }}
                 />
               ))}
@@ -494,10 +517,9 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   onClick={handleAnalyzeClick}
-                  disabled={!isDisclaimerAccepted}
-                  className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary/20 hover:bg-primary/30 border border-primary/40 shadow-[0_0_50px_rgba(var(--color-primary),0.3)] transition-all group z-20 ${!isDisclaimerAccepted ? 'opacity-40 pointer-events-none' : ''}`}
+                  className={`relative w-28 h-28 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary/20 hover:bg-primary/30 border border-primary/40 shadow-[0_0_50px_rgba(var(--color-primary),0.3)] transition-all group z-20`}
                 >
-                  <Sparkles className="w-12 h-12 text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),1)]" />
+                  <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),1)]" />
                 </motion.button>
               ) : (
                 <motion.button
@@ -507,7 +529,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   transition={{ duration: isRecording ? 2 : 0.3, repeat: isRecording ? Infinity : 0, ease: "easeInOut" }}
                   onClick={handleAudioClick}
                   disabled={isAnalyzing}
-                  className="relative z-20 w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary shadow-[0_0_50px_rgba(var(--color-primary),0.5)] border-4 border-background group shrink-0"
+                  className="relative z-20 w-[120px] h-[120px] md:w-[160px] md:h-[160px] rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary shadow-[0_0_50px_rgba(var(--color-primary),0.5)] border-4 border-background group shrink-0"
                 >
                   <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_20px_rgba(0,0,0,0.3)] pointer-events-none" />
                   {isAnalyzing ? (
@@ -570,13 +592,13 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         {/* Bottom Upload Action */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }}
-          className="w-full px-6 flex pt-4 relative z-20"
+          className="w-full px-6 flex pt-2 md:pt-4 relative z-20"
         >
           <button
             onClick={() => galleryInputRef.current?.click()}
-            className={`w-full group relative overflow-hidden flex flex-col items-center justify-center gap-2.5 transition-all duration-500 py-4 rounded-[32px] border backdrop-blur-3xl ${pendingFile ? 'bg-primary/20 border-primary/40' : 'bg-white/5 border-white/10'}`}
+            className={`w-full group relative overflow-hidden flex flex-col items-center justify-center gap-2 transition-all duration-500 py-3 md:py-4 rounded-[24px] md:rounded-[32px] border backdrop-blur-3xl ${pendingFile ? 'bg-primary/20 border-primary/40' : 'bg-white/5 border-white/10'}`}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${pendingFile ? 'bg-primary/20 border-primary/30' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'}`}>
+            <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center border ${pendingFile ? 'bg-primary/20 border-primary/30' : 'bg-foreground/5 group-hover:bg-foreground/10 border-foreground/5'}`}>
               {isLoadingFile ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : pendingFile ? <span className="text-primary text-base">✓</span> : <ImageIcon className="w-4 h-4 text-foreground/60" />}
             </div>
             <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLoadingFile ? 'text-primary/60' : pendingFile ? 'text-primary/80' : 'text-foreground/50'}`}>
@@ -647,6 +669,10 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         )}
       </AnimatePresence>
 
+      <DisclaimerModal
+        isOpen={isDisclaimerModalOpen}
+        onClose={() => setIsDisclaimerModalOpen(false)}
+      />
       <NoCreditsModal
         isOpen={showNoCreditsModal}
         onClose={() => setShowNoCreditsModal(false)}

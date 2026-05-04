@@ -13,6 +13,12 @@ export const translations = {
         loadingAI: 'Trwa Analiza AI...',
         understand: 'Rozumiem',
         dontShow: 'Nie pokazuj tego więcej',
+        disclaimer: {
+            checkbox: 'Akceptuję ',
+            link: 'Regulamin i Zastrzeżenia AI',
+            fullText: 'Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.',
+            shortNote: 'Korzystanie z aplikacji oznacza akceptację faktu, że AI może generować błędne informacje.'
+        },
         auto: {
             vehicleData: 'Dane pojazdu',
             vehicleDataSub: 'Wpisz ręcznie parametry, by pomóc diagnozie',
@@ -202,6 +208,12 @@ export const translations = {
         loadingAI: 'AI Analysis in progress...',
         understand: 'I understand',
         dontShow: 'Do not show again',
+        disclaimer: {
+            checkbox: 'I accept ',
+            link: 'Terms and AI Disclaimers',
+            fullText: 'I understand that Sonic is an AI assistant, not a certified mechanic. Results are for informational purposes only, and a workshop should be consulted before making driving decisions. The creators are not responsible for damages.',
+            shortNote: 'Using the application means accepting the fact that AI can generate incorrect information.'
+        },
         auto: {
             vehicleData: 'Vehicle Data',
             vehicleDataSub: 'Enter parameters manually to help diagnosis',
@@ -391,6 +403,12 @@ export const translations = {
         loadingAI: 'KI-Analyse läuft...',
         understand: 'Ich verstehe',
         dontShow: 'Nicht mehr anzeigen',
+        disclaimer: {
+            checkbox: 'Ich akzeptiere ',
+            link: 'Bedingungen und KI-Haftungsausschluss',
+            fullText: 'Ich verstehe, dass Sonic ein KI-Assistent ist, kein zertifizierter Mechaniker. Die Ergebnisse dienen nur zu Informationszwecken. Vor Fahrbescheiden sollte eine Werkstatt konsultiert werden. Die Ersteller haften nie für Schäden.',
+            shortNote: 'Die Nutzung der Anwendung bedeutet die Akzeptanz der Tatsache, dass die KI fehlerhafte Informationen generieren kann.'
+        },
         auto: {
             vehicleData: 'Fahrzeugdaten',
             vehicleDataSub: 'Parameter manuell eingeben, um die Diagnose zu unterstützen',
