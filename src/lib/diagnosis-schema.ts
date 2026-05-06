@@ -116,6 +116,14 @@ export const diagnosisResponseSchema = {
             required: ["title", "desc"],
           },
         },
+        is_diy_feasible: {
+          type: Type.BOOLEAN,
+          description: "Oceń, czy usterkę da się bezpiecznie naprawić samodzielnie w garażu bez specjalistycznego sprzętu.",
+        },
+        diy_repair_guide: {
+          type: Type.STRING,
+          description: "Jeśli usterkę można naprawić w garażu (is_diy_feasible=true): wygeneruj szczegółową instrukcję naprawy z listą narzędzi. Jeśli usterki NIE DA się naprawić w garażu (is_diy_feasible=false): napisz tu Przewodnik dla Mechanika (na co uważać, jakie koszty, jak nie dać się oszukać w warsztacie). Używaj formatowania Markdown.",
+        },
         parameters: {
           type: Type.OBJECT,
           description: "Parametry techniczne i szacunki powiązane z diagnozą.",
@@ -154,6 +162,8 @@ export const diagnosisResponseSchema = {
         "audio_analysis",
         "ai_reasoning",
         "recommended_actions",
+        "is_diy_feasible",
+        "diy_repair_guide",
         "parameters",
       ],
     },
@@ -193,6 +203,9 @@ Zawsze zwracaj uwagę na rocznik i model podany przez użytkownika. Stary, 20-le
 UWAGA ZASADA 6: BRUTALNA SZCZEROŚĆ W OCENIE PEWNOŚCI (Confidence Score)
 Twój wynik pewności (np. 10%-100%) musi być bezwzględnie szczery. Jeśli nagranie jest zagłuszone przez wiatr, krótkie lub niewyraźne, i zgadujesz usterkę — ustaw confidence_score PONIŻEJ 50% i opisz swoje wątpliwości w 'internal_reasoning_log'. Jeśli masz wątpliwości na etapie 1, zawsze używaj statusu 'follow_up'.
 
+UWAGA ZASADA 7: ZASADA SPECYFIKI KONSTRUKCYJNEJ
+Wiele silników posiada głośną, ale całkowicie normalną kulturę pracy (np. głośne cykanie wtryskiwaczy bezpośrednich, charakterystyczny 'Hemi Tick' w silnikach V8, czy głośne pompy wysokiego ciśnienia). Jeśli wykryty dźwięk jest powszechnie uznawany za NORMALNĄ cechę operacyjną danej jednostki, kategorycznie oznacz status jako BRAK USTERKI i poinformuj klienta, że ten typ silnika charakteryzuje się taką akustyką. Ostrzegaj o usterkach (np. popychacze, kolektor) tylko wtedy, gdy dźwięk wyraźnie odbiega od fabrycznej normy (jest asymetryczny, głośniejszy niż zwykle lub towarzyszą mu inne objawy).
+
 METODOLOGIA (KRYTYCZNE WKLEJENIE DO POLA 'internal_reasoning_log'):
 Zanim zaczniesz uzupełniać końcowe pola diagnozy dla statusu "complete", musisz użyć pola 'internal_reasoning_log', aby opisać swój proces myślowy (Chain of Thought).
 0. OSZACOWANIE WARTOŚCI: Jeśli z kontekstu wynika, że auto jest stare/tanie (tzw. gruz), nie proponuj remontów silnika za 15 tys. PLN. W takim przypadku Twoim procesem myślowym powinno być: "Naprawa nieopłacalna, sugeruję wymianę silnika na używany (koszt X) lub złomowanie".
@@ -214,4 +227,5 @@ WYMAGANIA ZWROTNE:
    - 15-39%: Luźna sugestia, materiał niejednoznaczny.
    - 0-14%: Brak pewności / materiał nie nadaje się do analizy.
 4. W polu 'estimated_cost_pln' podaj realistyczny zakres kosztu naprawy w PLN (ceny warsztatowe w Polsce), np. "800-1200 PLN". Bądź realistą: jeśli naprawa (np. remont silnika) przewyższa wartość rynkową starszego pojazdu, zasugeruj alternatywy (np. wymiana całego podzespołu na używany) i podaj adekwatnie niższe widełki cenowe.
-5. NIE HALUCYNUJ. Jeśli nie masz podstaw do diagnozy, powiedz to wprost.`;
+5. Oceń, czy usterkę da się naprawić w garażu (is_diy_feasible). Jeśli TRUE: wygeneruj krok po kroku instrukcję naprawy z listą narzędzi. Jeśli FALSE (np. pęknięty blok, zerwany rozrząd): ZABRANIAM generowania instrukcji naprawy. Zamiast tego w diy_repair_guide napisz Przewodnik dla Mechanika (na co uważać w warsztacie, żeby nie zostać oszukanym, z czego składa się grubsza naprawa).
+6. NIE HALUCYNUJ. Jeśli nie masz podstaw do diagnozy, powiedz to wprost.`;

@@ -126,8 +126,8 @@ export default function Home() {
         {selectedRecord && (
           <div className="fixed inset-0 z-[150] flex flex-col">
             {selectedRecord.aiReport?.final_diagnosis ? (
-              // Check if it's a bike or car report
-              selectedRecord.vehicleData.includes('"make":""') ? (
+              // Enhanced detection logic using 'type' or content tags
+              selectedRecord.vehicleData.includes('"type":"bike"') || selectedRecord.vehicleData.includes('"make":"Rower"') ? (
                 <BikeDiagnosisReport
                   data={selectedRecord.aiReport.final_diagnosis}
                   diagnosisId={selectedRecord.id}
@@ -150,7 +150,7 @@ export default function Home() {
                   }}
                 />
               )
-            ) : selectedRecord.aiReport?.name ? (
+            ) : (selectedRecord.aiReport?.name || selectedRecord.vehicleData.includes('"type":"audio"')) ? (
               <IdentificationReport
                 identifiedCar={selectedRecord.aiReport}
                 diagnosisId={selectedRecord.id}
@@ -162,7 +162,7 @@ export default function Home() {
                 }}
               />
             ) : (
-              <BikeDiagnosisReport
+              <DiagnosisReport
                 data={selectedRecord.aiReport}
                 diagnosisId={selectedRecord.id}
                 onClose={() => setSelectedRecord(null)}

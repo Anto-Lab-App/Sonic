@@ -26,25 +26,40 @@ export async function POST(req: Request) {
     const session = event.data.object as any;
 
     const userId = session.metadata?.userId;
-    const credits = session.metadata?.credits ? parseInt(session.metadata.credits) : 0;
+    const packageType = session.metadata?.packageType; // 'unlock_1' or 'bundle_3'
+    const diagnosisId = session.metadata?.diagnosisId;
 
-    if (userId && credits > 0) {
+    if (userId) {
       try {
-        const user = await prisma.user.update({
-          where: { clerkUserId: userId },
-          data: {
-            credits: {
-              increment: credits
+        let creditsToAdd = packageType === 'bundle_3' ? 3 : 1;
+
+        if (diagnosisId) {
+          // Unlocking a specific report
+          await prisma.diagnosis.update({
+            where: { id: diagnosisId },
+            data: { isUnlocked: true } as any
+          });
+          console.log(`[Stripe Webhook] Successfully unlocked report ${diagnosisId}`);
+          creditsToAdd -= 1; // 1 credit was consumed to unlock this specific report
+        }
+
+        if (creditsToAdd > 0) {
+          const user = await prisma.user.update({
+            where: { clerkUserId: userId },
+            data: {
+              credits: {
+                increment: creditsToAdd
+              }
             }
-          }
-        });
-        console.log(`[Stripe Webhook] Successfully added ${credits} credits to user ${userId}. New balance: ${user.credits}`);
+          });
+          console.log(`[Stripe Webhook] Successfully added ${creditsToAdd} credits to user ${userId}. New balance: ${user.credits}`);
+        }
       } catch (dbError) {
-        console.error('[Stripe Webhook DB Error] Failed to update user credits:', dbError);
+        console.error('[Stripe Webhook DB Error]', dbError);
         return new NextResponse('Database Error', { status: 500 });
       }
     } else {
-      console.warn('[Stripe Webhook] Missing userId or credits in session metadata', session.metadata);
+      console.warn('[Stripe Webhook] Missing userId in session metadata', session.metadata);
     }
   }
 

@@ -235,6 +235,8 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
     const formData = new FormData();
     formData.append("isFollowUp", isFollowUp ? "true" : "false");
+    formData.append("vehicleType", "bike");
+    formData.append("vehicleMake", "Rower");
     formData.append("context", `Sprzęt rowerowy: ${target}`);
 
     if (diagnosticContext) {

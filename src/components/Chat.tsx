@@ -133,6 +133,8 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const [isObdMode, setIsObdMode] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [isLocked, setIsLocked] = useState(false);
+  const [serverMessageCount, setServerMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -146,6 +148,14 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
       setMessages([]);
 
       getDiagnosisById(diagnosisId).then(diag => {
+        const diagAny = diag as any;
+        if (diagAny && !diagAny.isUnlocked) {
+          setIsLocked(true);
+        } else {
+          setIsLocked(false);
+          setServerMessageCount(diagAny?.chatMessageCount || 0);
+        }
+
         const title = diag ? getTitle(diag) : "Raportu";
         const greeting: Message = {
           id: Date.now(),
@@ -242,10 +252,10 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   };
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLocked) return;
 
     const userMessagesCount = messages.filter(m => m.sender === 'user').length;
-    if (userMessagesCount >= MAX_USER_MESSAGES) return;
+    if (userMessagesCount >= MAX_USER_MESSAGES || serverMessageCount >= MAX_USER_MESSAGES) return;
 
     if (isRecording) {
       recognitionRef.current?.stop();
@@ -284,6 +294,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
 
       setIsTyping(false);
       setIsObdMode(false);
+      setServerMessageCount(prev => prev + 1);
 
       const newAiMsg: Message = {
         id: Date.now() + 1,
@@ -461,7 +472,13 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
 
       {/* Input Area */}
       <div className="absolute bottom-0 left-0 right-0 p-5 pt-12 bg-gradient-to-t from-[#06080F] via-[#06080F]/95 to-transparent z-20">
-        {messages.filter(m => m.sender === 'user').length >= MAX_USER_MESSAGES ? (
+        {isLocked ? (
+          <div className="bg-foreground/[0.05] backdrop-blur-3xl border border-red-500/30 rounded-2xl p-4 text-center">
+            <p className="text-sm text-red-400 font-medium italic">
+              Zablokowany dostęp do czatu. Odblokuj pełny raport, aby rozmawiać z asystentem.
+            </p>
+          </div>
+        ) : messages.filter(m => m.sender === 'user').length >= MAX_USER_MESSAGES || serverMessageCount >= MAX_USER_MESSAGES ? (
           <div className="bg-foreground/[0.05] backdrop-blur-3xl border border-foreground/[0.08] rounded-2xl p-4 text-center">
             <p className="text-sm text-gray-400 font-medium italic">
               Sesja konsultacyjna dla tego raportu została zakończona.

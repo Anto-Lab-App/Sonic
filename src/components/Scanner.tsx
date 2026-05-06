@@ -375,6 +375,7 @@ export function Scanner({
     // Create form data for our backend API
     const formData = new FormData();
     formData.append("isFollowUp", isFollowUp ? "true" : "false");
+    formData.append("vehicleType", "auto");
     formData.append("vehicleMake", vehicleMake);
     formData.append("vehicleDetails", vehicleDetails);
 

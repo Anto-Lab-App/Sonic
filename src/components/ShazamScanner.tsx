@@ -276,6 +276,8 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
       }];
 
       const formData = new FormData();
+      formData.append("vehicleType", "audio");
+      formData.append("vehicleMake", "Audio");
       formData.append("fileParts", JSON.stringify(uploadedFileParts));
 
       const res = await fetch('/api/identify', {

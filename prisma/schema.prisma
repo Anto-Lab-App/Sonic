@@ -17,11 +17,13 @@ model User {
 }
 
 model Diagnosis {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  vehicleData String
-  symptoms    String
-  aiReport    Json
-  createdAt   DateTime @default(now())
+  id               String   @id @default(cuid())
+  userId           String
+  vehicleData      String
+  symptoms         String
+  aiReport         Json
+  isUnlocked       Boolean  @default(false)
+  chatMessageCount Int      @default(0)
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id])
 }

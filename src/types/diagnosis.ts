@@ -32,10 +32,12 @@ export interface FinalDiagnosis {
   criticality: string;
   description: string;
   confidence_score: number;
-  audio_analysis: AudioAnalysis;
+  audio_analysis: AudioAnalysis | string;
   ai_reasoning: AiReasoningStep[];
-  recommended_actions: RecommendedAction[];
-  parameters: DiagnosisParameters;
+  recommended_actions: RecommendedAction[] | string;
+  is_diy_feasible?: boolean;
+  diy_repair_guide?: string;
+  parameters: DiagnosisParameters | string;
 }
 
 // For backwards compatibility in frontend, Diagnosis is aliased to FinalDiagnosis.
@@ -59,7 +61,7 @@ export interface DiagnoseApiResponse {
   status: "success" | "error";
   aiResponse?: AiUnifiedResponse;
   // Fallback for legacy compatibility
-  diagnosis?: Diagnosis; 
+  diagnosis?: Diagnosis;
   usedModel?: string;
   message?: string;
 }

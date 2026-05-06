@@ -13,9 +13,12 @@ import {
   RefreshCw,
   Gauge,
   CircleDashed,
-  Hammer
+  Hammer,
+  Lock,
+  BookOpen
 } from 'lucide-react';
 import type { Diagnosis } from '@/types/diagnosis';
+import { PricingModal } from './PricingModal';
 
 const repairTimeData = [
   { stage: 'Diagnoza', minutes: 10, color: '#3b82f6' },
@@ -43,8 +46,17 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
   const audioAnalysis = data?.audio_analysis;
   const aiReasoning = data?.ai_reasoning;
   const recommendedActions = data?.recommended_actions;
+
+  const isLocked = typeof audioAnalysis === 'string';
+  const [showPricing, setShowPricing] = React.useState(isLocked);
+
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        diagnosisId={diagnosisId || ''}
+      />
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-6 max-w-7xl mx-auto">
         <button onClick={onClose} className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-border-subtle hover:bg-surface-elevated transition-colors cursor-pointer">
@@ -70,7 +82,6 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                 </div>
                 <div>
                   <h2 className="text-xs md:text-sm font-bold text-orange-400 uppercase tracking-wider">{t.report.urgent}</h2>
-                  <p className="text-[10px] md:text-xs text-muted/80 mt-0.5 md:mt-1 font-medium">Napęd (Łańcuch / Kaseta)</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-orange-500/10 ring-1 ring-inset ring-orange-500/20 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.1)]">
@@ -94,7 +105,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
             <div className="flex flex-col md:items-center flex-1">
               <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">{t.report.confidence}</h2>
               <p className="hidden md:block text-xs text-muted mt-6 text-center font-medium">
-                {audioAnalysis?.characteristics ?? 'Porównano geometrię zębatek (rekinia płetwa) oraz odstępów rolek.'}
+                {!isLocked ? (audioAnalysis as any)?.characteristics ?? 'Porównano geometrię zębatek (rekinia płetwa) oraz odstępów rolek.' : '***'}
               </p>
               <button onClick={onClose} className="mt-2 md:mt-6 flex w-fit items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-primary/10 hover:bg-surface-elevated text-primary ring-1 ring-inset ring-primary/20 rounded-lg md:rounded-xl transition-all text-xs md:text-sm font-semibold z-10 cursor-pointer shadow-[0_0_15px_rgba(var(--color-primary),0.1)]">
                 <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
@@ -137,7 +148,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
           {/* What it heard / saw (Input Data) */}
-          <div className="bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8">
+          <div className={`bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 relative ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <CircleDashed className="w-4 h-4 md:w-5 md:h-5 text-primary" />
@@ -147,14 +158,14 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Nagrane:</strong> {audioAnalysis?.recorded ?? 'Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.'}
+                <strong className="text-foreground font-semibold">Nagrane:</strong> {!isLocked ? (audioAnalysis as any)?.recorded ?? 'Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.' : '********************'}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Cechy:</strong> {audioAnalysis?.characteristics ?? 'Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.'}
+                <strong className="text-foreground font-semibold">Cechy:</strong> {!isLocked ? (audioAnalysis as any)?.characteristics ?? 'Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.' : '********************'}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
-                {(audioAnalysis?.tags ?? ['Luzy boczne tarczy', 'Zniekształcona kaseta', 'Wymagany przymiar']).map((tag, i) => (
+                {(!isLocked ? ((audioAnalysis as any)?.tags ?? ['Luzy boczne tarczy', 'Zniekształcona kaseta', 'Wymagany przymiar']) : []).map((tag: string, i: number) => (
                   <span key={i} className={`px-2.5 py-1 md:px-3 md:py-1.5 ${i === 0 ? 'bg-surface-hover text-orange-400 ring-1 ring-inset ring-orange-500/20' : 'bg-surface-hover text-foreground/90 ring-1 ring-inset ring-foreground/5'} rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium shadow-sm flex items-center gap-1 md:gap-1.5`}>
                     {i === 0 && <Activity className="w-3 h-3 md:w-3.5 md:h-3.5" />}
                     {tag}
@@ -195,25 +206,53 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
           </div>
         </div>
 
+        {/* DIY Repair Guide */}
+        {data?.diy_repair_guide && !isLocked && (
+          <div className="bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 mt-4 md:mt-6">
+            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="p-2 md:p-3 bg-blue-500/10 rounded-xl md:rounded-2xl border border-blue-500/20">
+                <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+              </div>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">
+                {data.is_diy_feasible ? 'Przewodnik Naprawy DIY' : 'Przewodnik dla Mechanika (Zabezpiecz się)'}
+              </h2>
+            </div>
+            <div className="prose prose-sm md:prose-base prose-invert max-w-none text-muted">
+              <div className="whitespace-pre-wrap leading-relaxed">
+                {data.diy_repair_guide}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Section: Actions & Params */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 relative">
+
+          {isLocked && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+              <button onClick={() => setShowPricing(true)} className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-primary/30">
+                <Lock className="w-5 h-5" />
+                Odblokuj Pełny Raport
+              </button>
+            </div>
+          )}
 
           {/* Recommended Actions */}
-          <div className="lg:col-span-2 bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8">
+          <div className={`lg:col-span-2 bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-emerald-500/10 rounded-xl md:rounded-2xl border border-emerald-500/20">
                 <Wrench className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
               </div>
-              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.bikeWorkshop}</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">{t.report.recommendedActions}</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
-              {(recommendedActions ?? [
+              {(!isLocked ? (recommendedActions as any[] ?? [
                 { title: 'Weryfikacja przymiarem', desc: 'Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.' },
                 { title: 'Skuwacz i Bacik', desc: 'Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego łańcucha oraz klucza francuskiego i tzw. "bacika" na kasetę.' },
                 { title: 'Wymiana komponentów', desc: 'Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).' },
                 { title: 'Regulacja przerzutki', desc: 'Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.' },
-              ]).map((action, i) => (
+              ]) : []).map((action: any, i: number) => (
                 <div key={i} className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
                   <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
                     <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">{i + 1}</span>
@@ -226,7 +265,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
           </div>
 
           {/* Professional Parameters */}
-          <div className="bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-col">
+          <div className={`bg-surface border border-border-subtle rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-col ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <Hammer className="w-4 h-4 md:w-5 md:h-5 text-primary" />
@@ -276,30 +315,46 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                 </div>
               </div>
 
-              {/* Tools required block */}
-              <div className="group bg-background p-3 md:p-4 rounded-xl border border-border-subtle">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1.5 text-muted">
-                    <Settings2 className="w-3.5 h-3.5" />
-                    <span className="text-[10px] md:text-xs font-medium">{t.report.toolsNeeded}</span>
+              {/* Tools required block - only for bike */}
+              {isLocked === false && !data?.title?.toLowerCase().includes('hemi') && (
+                <div className="group bg-background p-3 md:p-4 rounded-xl border border-border-subtle">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5 text-muted">
+                      <Settings2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] md:text-xs font-medium">{t.report.toolsNeeded}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Skuwacz łańcucha</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Klucz do kaset (Bacik)</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Imbus 5mm</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Rękawiczki smarne</span>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Skuwacz łańcucha</span>
-                  <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Klucz do kaset (Bacik)</span>
-                  <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Imbus 5mm</span>
-                  <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Rękawiczki smarne</span>
-                </div>
-              </div>
+              )}
 
               {/* Replacement Parts Cost logic or tags */}
-              <div className="pt-4 border-t border-border-subtle">
-                <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.partsCost}</p>
-                <div className="flex flex-wrap gap-1.5 md:gap-2">
-                  <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Łańcuch (100 - 250 PLN)</span>
-                  <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Kaseta (150 - 600 PLN)</span>
+              {(!isLocked && (data?.parameters as any)?.estimated_cost_pln) ? (
+                <div className="pt-4 border-t border-border-subtle">
+                  <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border border-emerald-500/15 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <span className="text-lg">💰</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">Szacunkowy koszt części</p>
+                      <p className="text-base md:text-lg font-bold text-emerald-400">{(data?.parameters as any)?.estimated_cost_pln}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="pt-4 border-t border-border-subtle">
+                  <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.partsCost}</p>
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
+                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Łańcuch (100 - 250 PLN)</span>
+                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Kaseta (150 - 600 PLN)</span>
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>

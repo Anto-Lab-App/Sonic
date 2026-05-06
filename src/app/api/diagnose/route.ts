@@ -75,18 +75,12 @@ export async function POST(
       }
     }
 
-    if (user.credits < 1) {
-      return NextResponse.json(
-        { status: "error", message: "Brak darmowych skanów. Wykup pakiet PRO." },
-        { status: 403 }
-      );
-    }
-
     // ------------------------------------------------------------------
     // Step 1: Parse incoming FormData
     // ------------------------------------------------------------------
     const formData = await request.formData();
     const filePartsString = formData.get("fileParts") as string;
+    const vehicleType = (formData.get("vehicleType") as string) || "auto";
     const vehicleMake = (formData.get("vehicleMake") as string) || "";
     const vehicleDetails = (formData.get("vehicleDetails") as string) || "";
     const userContext = (formData.get("context") as string) || "";
@@ -207,29 +201,54 @@ export async function POST(
     } else {
       console.log(`[Sonic] Diagnosis complete: "${aiResponse.final_diagnosis?.title}" (${aiResponse.final_diagnosis?.confidence_score}%)`);
 
-      // Transaction: Record diagnosis AND decrement credits
-      const [diagnosisRecord] = await prisma.$transaction([
+      const hasCredits = user.credits > 0;
+
+      // Transaction: Record diagnosis AND decrement credits if they have them
+      const transactions: any[] = [];
+
+      transactions.push(
         prisma.diagnosis.create({
           data: {
             userId: user.id,
-            vehicleData: JSON.stringify({ make: vehicleMake, details: vehicleDetails }),
+            vehicleData: JSON.stringify({ type: vehicleType, make: vehicleMake, details: vehicleDetails }),
             symptoms: userContext,
             aiReport: aiResponse as any,
-          }
-        }),
-        prisma.user.update({
-          where: { id: user.id },
-          data: { credits: { decrement: 1 } }
+            isUnlocked: hasCredits
+          } as any
         })
-      ]);
+      );
+
+      if (hasCredits) {
+        transactions.push(
+          prisma.user.update({
+            where: { id: user.id },
+            data: { credits: { decrement: 1 } }
+          })
+        );
+      }
+
+      const results = await prisma.$transaction(transactions);
+      const diagnosisRecord = results[0];
+
+      let finalAiResponse = aiResponse;
+      if (!hasCredits && finalAiResponse.final_diagnosis) {
+        // Deep copy
+        finalAiResponse = JSON.parse(JSON.stringify(aiResponse));
+        const hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+
+        finalAiResponse.final_diagnosis.audio_analysis = hiddenMsg as any;
+        finalAiResponse.final_diagnosis.recommended_actions = hiddenMsg as any;
+        finalAiResponse.final_diagnosis.diy_repair_guide = hiddenMsg;
+        finalAiResponse.final_diagnosis.parameters = hiddenMsg as any;
+      }
 
       // ------------------------------------------------------------------
       // Step D: Return the structured response
       // ------------------------------------------------------------------
       return NextResponse.json({
         status: "success" as const,
-        aiResponse,
-        diagnosis: aiResponse.final_diagnosis, // legacy mapping if needed
+        aiResponse: finalAiResponse,
+        diagnosis: finalAiResponse.final_diagnosis, // legacy mapping if needed
         diagnosisId: diagnosisRecord.id, // return the DB ID
         usedModel: usedModelId || "unknown"
       });

@@ -14,8 +14,11 @@ import {
   Clock,
   ShieldAlert,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  BookOpen
 } from 'lucide-react';
+import { PricingModal } from './PricingModal';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -60,16 +63,25 @@ interface DiagnosisReportProps {
 export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: DiagnosisReportProps) {
   const { t } = useLanguage();
 
-  const complexity = parseComplexity(data.parameters.complexity);
-  const riskPercent = parsePercent(data.parameters.risk_level);
-  const repairTimeData = buildRepairTimeData(data.parameters.estimated_time_hours);
+  const isLocked = typeof data.audio_analysis === 'string';
+
+  const complexity = parseComplexity(!isLocked ? (data.parameters as any).complexity : '5/5');
+  const riskPercent = parsePercent(!isLocked ? (data.parameters as any).risk_level : '100%');
+  const repairTimeData = buildRepairTimeData(!isLocked ? (data.parameters as any).estimated_time_hours : 10);
 
   // Determine criticality color
   const isCritical = data.criticality.toLowerCase().includes('krytyczn');
   const critColor = isCritical ? 'red' : 'yellow';
 
+  const [showPricing, setShowPricing] = React.useState(isLocked);
+
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        diagnosisId={diagnosisId || ''}
+      />
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-6 max-w-7xl mx-auto">
         <button onClick={onClose} className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-foreground/5 hover:bg-foreground/5 transition-colors cursor-pointer">
@@ -177,7 +189,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
           {/* What it heard */}
-          <div className="bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8">
+          <div className={`bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 relative ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-primary" />
@@ -187,14 +199,14 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Zarejestrowano:</strong> {data.audio_analysis.recorded}
+                <strong className="text-foreground font-semibold">Zarejestrowano:</strong> {!isLocked ? (data.audio_analysis as any).recorded : '********************'}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Charakterystyka:</strong> {data.audio_analysis.characteristics}
+                <strong className="text-foreground font-semibold">Charakterystyka:</strong> {!isLocked ? (data.audio_analysis as any).characteristics : '********************'}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
-                {data.audio_analysis.tags.map((tag, i) => (
+                {!isLocked && (data.audio_analysis as any).tags.map((tag: string, i: number) => (
                   <span key={i} className="px-2.5 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-blue-300 rounded-lg md:rounded-xl text-[10px] md:text-xs font-medium flex items-center gap-1 md:gap-1.5 ring-1 ring-inset ring-blue-500/20 shadow-sm">
                     {i === 0 && <Activity className="w-3 h-3 md:w-3.5 md:h-3.5 text-primary" />}
                     {tag}
@@ -229,11 +241,40 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
           </div>
         </div>
 
+        {/* DIY Repair Guide */}
+        {data.diy_repair_guide && !isLocked && (
+          <div className="bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 mt-4 md:mt-6">
+            <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="p-2 md:p-3 bg-blue-500/10 rounded-xl md:rounded-2xl border border-blue-500/20">
+                <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+              </div>
+              <h2 className="text-sm md:text-lg font-semibold text-foreground">
+                {data.is_diy_feasible ? 'Przewodnik Naprawy DIY' : 'Przewodnik dla Mechanika (Zabezpiecz się)'}
+              </h2>
+            </div>
+            <div className="prose prose-sm md:prose-base prose-invert max-w-none text-muted">
+              {/* Simply render with whitespace formatting since it might be raw text or markdown */}
+              <div className="whitespace-pre-wrap leading-relaxed">
+                {data.diy_repair_guide}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Section: Actions & Params */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 relative">
+
+          {isLocked && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+              <button onClick={() => setShowPricing(true)} className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-primary/30">
+                <Lock className="w-5 h-5" />
+                Odblokuj Pełny Raport
+              </button>
+            </div>
+          )}
 
           {/* Recommended Actions */}
-          <div className="lg:col-span-2 bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8">
+          <div className={`lg:col-span-2 bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-emerald-500/10 rounded-xl md:rounded-2xl border border-emerald-500/20">
                 <Wrench className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
@@ -242,7 +283,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
-              {data.recommended_actions.map((action, i) => (
+              {!isLocked && (data.recommended_actions as any[]).map((action, i) => (
                 <div key={i} className="p-3 md:p-5 bg-background/50 border border-foreground/5 rounded-xl md:rounded-2xl hover:bg-background transition-colors">
                   <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
                     <span className="flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs font-bold">{i + 1}</span>
@@ -255,7 +296,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
           </div>
 
           {/* Professional Parameters */}
-          <div className="bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-col">
+          <div className={`bg-surface border border-foreground/5 rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-col ${isLocked ? 'blur-md pointer-events-none select-none opacity-50' : ''}`}>
             <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
               <div className="p-2 md:p-3 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20">
                 <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-primary" />
@@ -271,7 +312,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                     <Clock className="w-4 h-4" />
                     <span className="text-xs md:text-sm font-medium">{t.report.estimatedTime}</span>
                   </div>
-                  <span className="text-xs md:text-sm font-bold text-foreground">{data.parameters.estimated_time_hours} rbh</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{!isLocked ? (data.parameters as any).estimated_time_hours : 'X'} rbh</span>
                 </div>
                 <div className="h-32 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -314,7 +355,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                       <Activity className="w-3.5 h-3.5" />
                       <span className="text-[10px] md:text-xs font-medium">{t.report.failureRisk}</span>
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-red-400">{data.parameters.risk_level}</span>
+                    <span className="text-[10px] md:text-xs font-bold text-red-400">{!isLocked ? (data.parameters as any).risk_level : '***'}</span>
                   </div>
                   <div className="flex gap-1 h-1.5 w-full">
                     {[0, 1, 2, 3].map((seg) => {
@@ -340,7 +381,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                       <ShieldAlert className="w-3.5 h-3.5" />
                       <span className="text-[10px] md:text-xs font-medium">{t.report.complexity}</span>
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-primary">{data.parameters.complexity}</span>
+                    <span className="text-[10px] md:text-xs font-bold text-primary">{!isLocked ? (data.parameters as any).complexity : '***'}</span>
                   </div>
                   <div className="flex gap-1 h-1.5 w-full">
                     {Array.from({ length: complexity.max }, (_, i) => (
@@ -358,7 +399,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
               <div className="pt-4 border-t border-foreground/5">
                 <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.obdCodes}</p>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
-                  {data.parameters.obd_codes.map((code) => (
+                  {!isLocked && (data.parameters as any).obd_codes?.map((code: string) => (
                     <span key={code} className="px-2 py-1 md:px-3 md:py-1.5 bg-[#1e293b]/80 text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-mono font-semibold ring-1 ring-inset ring-blue-500/20 shadow-sm hover:bg-primary/20 transition-colors cursor-pointer">
                       {code}
                     </span>
@@ -367,7 +408,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
               </div>
 
               {/* Estimated Cost */}
-              {data.parameters.estimated_cost_pln && (
+              {(!isLocked && (data.parameters as any).estimated_cost_pln) && (
                 <div className="pt-4 border-t border-foreground/5">
                   <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 border border-emerald-500/15 rounded-2xl p-4 flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center shrink-0">
@@ -375,7 +416,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                     </div>
                     <div>
                       <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">Szacunkowy koszt naprawy</p>
-                      <p className="text-base md:text-lg font-bold text-emerald-400">{data.parameters.estimated_cost_pln}</p>
+                      <p className="text-base md:text-lg font-bold text-emerald-400">{(data.parameters as any).estimated_cost_pln}</p>
                     </div>
                   </div>
                 </div>

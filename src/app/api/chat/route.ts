@@ -24,12 +24,24 @@ Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej i powinieneś ją wyk
 Jeśli to możliwe, podaj krótką odpowiedź główną oraz szczegółowe informacje (przyczyny, rozwiązania) w osobnym polu.
 MUSISZ zwrócić odpowiedź jako czysty obiekt JSON: { "text": "odpowiedź główna", "detailedInfo": "opcjonalne szczegóły z punktorami (przyczyny, zalecenia) lub pomiń to pole" }`;
 
+        let currentDiagnosis: any = null;
+
         if (diagnosisId) {
             const diagnosis = await prisma.diagnosis.findUnique({
                 where: { id: diagnosisId }
             });
 
             if (diagnosis && diagnosis.userId === user.id) {
+                const diagAny = diagnosis as any;
+                if (!diagAny.isUnlocked) {
+                    return NextResponse.json({ error: "Raport nie jest odblokowany." }, { status: 403 });
+                }
+
+                if (diagAny.chatMessageCount >= 5) {
+                    return NextResponse.json({ error: "Limit wiadomości dla tego raportu został wyczerpany." }, { status: 403 });
+                }
+
+                currentDiagnosis = diagnosis;
                 systemInstruction = `Jesteś wirtualnym asystentem serwisowym. Odpowiadaj profesjonalnie na pytania klienta. 
 Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej, którą powinieneś wykorzystywać, ale w swoich odpowiedziach ZAWSZE odnoś się do wyników załączonego raportu diagnostycznego pojazdu klienta: \n\n${JSON.stringify(diagnosis.aiReport)}\n\nOdpowiedz jako mechanik. Jeśli to możliwe, podaj krótką odpowiedź główną oraz szczegółowe informacje (przyczyny, rozwiązania) w osobnym polu. MUSISZ zwrócić odpowiedź jako czysty obiekt JSON: { "text": "odpowiedź główna", "detailedInfo": "opcjonalne szczegóły z punktorami (przyczyny, zalecenia) lub pomiń to pole" }`;
             }
@@ -92,6 +104,13 @@ Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej, którą powinieneś 
         }
 
         const data = JSON.parse(rawText);
+
+        if (currentDiagnosis) {
+            await prisma.diagnosis.update({
+                where: { id: currentDiagnosis.id },
+                data: { chatMessageCount: { increment: 1 } } as any
+            });
+        }
 
         return NextResponse.json({ status: "success", data });
 
