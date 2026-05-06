@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
 import { X, Search, CheckCircle2, Car, Gauge, Wind, Hash } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { PricingModal } from './PricingModal';
+import { Lock } from 'lucide-react';
+import React from 'react';
 
 interface IdentificationReportProps {
   onClose: () => void;
@@ -33,8 +36,16 @@ export function IdentificationReport({
   }
 }: IdentificationReportProps) {
   const { t } = useLanguage();
+  const isLocked = identifiedCar.name === "[UKRYTE DLA WERSJI DARMOWEJ]";
+  const [showPricing, setShowPricing] = React.useState(isLocked);
+
   return (
     <div className="fixed inset-0 z-[100] h-[100dvh] overflow-y-auto bg-background text-foreground font-sans selection:bg-primary/30">
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        diagnosisId={diagnosisId || ''}
+      />
       <div className="max-w-5xl mx-auto md:p-6 lg:p-8 min-h-full flex flex-col pt-16 md:pt-0">
 
         {/* Header */}
@@ -59,13 +70,24 @@ export function IdentificationReport({
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="flex-1 w-full bg-surface border-x md:border border-border-subtle md:rounded-[2rem] p-6 md:p-10 flex flex-col my-auto relative overflow-hidden"
         >
+          {isLocked && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/20 backdrop-blur-sm">
+              <button 
+                onClick={() => setShowPricing(true)} 
+                className="flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-xl shadow-primary/30 hover:scale-105 active:scale-95"
+              >
+                <Lock className="w-5 h-5" />
+                Odblokuj Dane Techniczne
+              </button>
+            </div>
+          )}
           {/* Subtle background glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
 
           <div className="flex flex-col md:flex-row gap-10 items-center justify-center flex-1 z-10">
 
             {/* Visual Representation (Left) */}
-            <div className="w-full md:w-1/2 flex flex-col items-center justify-center relative">
+            <div className={`w-full md:w-1/2 flex flex-col items-center justify-center relative ${isLocked ? 'blur-md pointer-events-none' : ''}`}>
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-background border-4 border-surface-hover shadow-2xl flex items-center justify-center relative z-10 overflow-hidden">
                 {/* Simulated Car Image Placeholder */}
                 <Car className="w-24 h-24 text-muted/50" strokeWidth={1} />
@@ -85,7 +107,7 @@ export function IdentificationReport({
             </div>
 
             {/* Information (Right) */}
-            <div className="w-full md:w-1/2 flex flex-col gap-6 text-center md:text-left">
+            <div className={`w-full md:w-1/2 flex flex-col gap-6 text-center md:text-left ${isLocked ? 'blur-md pointer-events-none' : ''}`}>
               <div>
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-foreground mb-2 shadow-sm">{identifiedCar.name}</h2>
                 <h3 className="text-2xl font-semibold text-primary">{identifiedCar.engine}</h3>

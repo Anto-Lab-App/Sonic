@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
           data: {
             clerkUserId: userId,
             email: clerkUser.emailAddresses[0].emailAddress,
-            credits: 1, // 1 free credit on start
+            credits: 0, // No free credits by default
           }
         });
       } else {
@@ -98,12 +98,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // We allow identification even with 0 credits, but we blur the result.
+    /*
     if (user.credits < 1) {
       return NextResponse.json(
         { status: "error", message: "Brak darmowych skanów. Wykup pakiet PRO." },
         { status: 403 }
       );
     }
+    */
 
     const formData = await request.formData();
     const filePartsString = formData.get("fileParts") as string;
@@ -182,13 +185,29 @@ export async function POST(request: NextRequest) {
 
     const result = JSON.parse(rawText);
 
+    const hasCredits = user.credits > 0;
+    
     // Transaction: Decrement credits on successful identification
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { credits: { decrement: 1 } }
-    });
+    if (hasCredits) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { credits: { decrement: 1 } }
+      });
+    }
 
-    return NextResponse.json({ status: "success", data: result });
+    let finalData = result;
+    if (!hasCredits) {
+      const hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+      finalData = {
+        ...result,
+        name: hiddenMsg,
+        engine: hiddenMsg,
+        description: "Rozpoznano model pojazdu, ale szczegółowe dane są dostępne po odblokowaniu raportu.",
+        specs: result.specs.map((s: any) => ({ ...s, value: "***" }))
+      };
+    }
+
+    return NextResponse.json({ status: "success", data: finalData });
 
   } catch (err: unknown) {
     console.error("[Sonic] API Identify route error:", err);

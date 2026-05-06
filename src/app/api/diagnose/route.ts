@@ -64,7 +64,7 @@ export async function POST(
           data: {
             clerkUserId: userId,
             email: clerkUser.emailAddresses[0].emailAddress,
-            credits: 1, // 1 free credit on start
+            credits: 0, // No free credits by default
           }
         });
       } else {
