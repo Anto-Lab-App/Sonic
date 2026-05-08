@@ -22,21 +22,23 @@ export function IdentificationReport({
   onClose,
   diagnosisId,
   onOpenChat,
-  identifiedCar = {
+  identifiedCar: providedCar
+}: IdentificationReportProps) {
+  const { t } = useLanguage();
+
+  const identifiedCar = providedCar || {
     name: "Ford Mustang GT (S550)",
     engine: "5.0L Coyote V8",
     confidence: 96,
     description: "Charakterystyczny, gardłowy ryk wolnossacego 5-litrowego silnika widlastego. Częstotliwości wskazują na brak doładowania wymuszonego.",
     specs: [
-      { label: "Pojemność", value: "4951 cm³", icon: Gauge },
-      { label: "Moc szacunkowa", value: "450-480 KM", icon: Wind },
-      { label: "Układ", value: "V8 DOHC", icon: Hash },
-      { label: "Rodzaj", value: "Wolnossący", icon: Car },
+      { label: t.shazam.specs.capacity, value: "4951 cm³", icon: Gauge },
+      { label: t.shazam.specs.power, value: "450-480 KM", icon: Wind },
+      { label: t.shazam.specs.layout, value: "V8 DOHC", icon: Hash },
+      { label: t.shazam.specs.type, value: "Wolnossący", icon: Car },
     ]
-  }
-}: IdentificationReportProps) {
-  const { t } = useLanguage();
-  const isLocked = identifiedCar.name === "[UKRYTE DLA WERSJI DARMOWEJ]";
+  };
+  const isLocked = typeof identifiedCar.name === "string" && identifiedCar.name.includes("UKRYTE") || identifiedCar.name.includes("HIDDEN") || identifiedCar.name.includes("OCULTO") || identifiedCar.name.includes("VERBORGEN");
   const [showPricing, setShowPricing] = React.useState(isLocked);
 
   return (
@@ -55,7 +57,7 @@ export function IdentificationReport({
               <Search className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-sm md:text-xl font-semibold tracking-tight leading-tight">Identyfikacja zakończona</h1>
+              <h1 className="text-sm md:text-xl font-semibold tracking-tight leading-tight">{t.shazam.identificationComplete}</h1>
               <p className="text-[10px] md:text-xs text-muted font-medium">{t.shazam.title}</p>
             </div>
           </div>
@@ -72,12 +74,12 @@ export function IdentificationReport({
         >
           {isLocked && (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/20 backdrop-blur-sm">
-              <button 
-                onClick={() => setShowPricing(true)} 
+              <button
+                onClick={() => setShowPricing(true)}
                 className="flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-xl shadow-primary/30 hover:scale-105 active:scale-95"
               >
                 <Lock className="w-5 h-5" />
-                Odblokuj Dane Techniczne
+                {t.report.unlockSpecs}
               </button>
             </div>
           )}
@@ -102,7 +104,7 @@ export function IdentificationReport({
                 className="absolute bottom-[-15px] z-20 px-6 py-2 rounded-full bg-surface border border-green-500/30 shadow-[0_4px_20px_rgba(34,197,94,0.2)] flex items-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
-                <span className="font-bold text-green-400 text-lg">{identifiedCar.confidence}% Pewności</span>
+                <span className="font-bold text-green-400 text-lg">{identifiedCar.confidence}% {t.report.confidenceScore}</span>
               </motion.div>
             </div>
 
@@ -161,7 +163,7 @@ export function IdentificationReport({
               shadow-[0_0_30px_rgba(59,130,246,0.3)]"
           >
             <span className="text-xl">💬</span>
-            <span>Zapytaj AI o ten element</span>
+            <span>{t.shazam.askAiAboutThis}</span>
           </button>
         </div>
 

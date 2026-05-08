@@ -85,6 +85,7 @@ export async function POST(
     const vehicleDetails = (formData.get("vehicleDetails") as string) || "";
     const userContext = (formData.get("context") as string) || "";
     const isFollowUp = formData.get("isFollowUp") === "true";
+    const locale = (formData.get("locale") as string) || "pl";
     let fileParts: any[] = [];
 
     if (filePartsString) {
@@ -118,21 +119,24 @@ export async function POST(
 
     // Build the user context string
     const contextParts: string[] = [];
-    if (vehicleMake) contextParts.push(`Pojazd: ${vehicleMake}`);
-    if (vehicleDetails) contextParts.push(`Szczegóły: ${vehicleDetails}`);
-    if (userContext) contextParts.push(`Opis problemu: ${userContext}`);
+    contextParts.push(`Category: ${vehicleType === 'bike' ? 'Bicycle / Bike' : 'Car / Vehicle'}`);
+    if (vehicleMake) contextParts.push(`Vehicle/Model: ${vehicleMake}`);
+    if (vehicleDetails) contextParts.push(`Details: ${vehicleDetails}`);
+    if (userContext) contextParts.push(`Problem Description: ${userContext}`);
 
     // Session context: tell AI how many files and what stage we're in
     if (isFollowUp) {
-      contextParts.push(`\nUWAGA SESYJNA: Przesyłam Ci ${fileParts.length} plików. Cześć z nich to oryginalny materiał z usterki, a kolejne to materiały po wykonaniu testu fizycznego (Follow-Up). MUSISZ odpowiedzieć ze statusem 'complete' i wydac ostateczną diagnozę.`);
+      contextParts.push(`\nSESSION NOTE: I am sending you ${fileParts.length} files. Some of them are the original material of the fault, and subsequent ones are materials after performing a physical test (Follow-Up). You MUST respond with 'complete' status and issue a final diagnosis.`);
     } else {
-      contextParts.push(`\nUWAGA SESYJNA: To jest PIERWSZY etap z sesji diagnostycznej (przesłano ${fileParts.length} plików startowych). Możesz odpowiedzieć 'follow_up' jeśli potrzebujesz dodatkowego testu fizycznego, albo 'complete' jeśli diagnoza jest oczywista.`);
+      contextParts.push(`\nSESSION NOTE: This is the FIRST stage of the diagnostic session (${fileParts.length} initial files sent). You can respond with 'follow_up' if you need an additional physical test, or 'complete' if the diagnosis is obvious.`);
     }
 
     const contextText =
       contextParts.length > 0
         ? contextParts.join("\n")
-        : "Użytkownik nie podał dodatkowego kontekstu. Wykonaj analizę na podstawie samego pliku.";
+        : "The user did not provide additional context. Perform the analysis based solely on the provided file.";
+
+    const systemPrompt = SYSTEM_INSTRUCTION + '\n\n' + `CRITICAL: All descriptive text fields in the generated report (and chat responses) MUST be written in the language specified by the following code: ${locale} (pl = Polish, en = English, de = German, es = Spanish).`;
 
     // ------------------------------------------------------------------
     // Step C: Generate structured diagnosis using JSON Schema
@@ -166,7 +170,7 @@ export async function POST(
             },
           ],
           config: {
-            systemInstruction: SYSTEM_INSTRUCTION,
+            systemInstruction: systemPrompt,
             responseMimeType: "application/json",
             responseSchema: diagnosisResponseSchema,
             temperature: 0.2,
@@ -234,7 +238,10 @@ export async function POST(
       if (!hasCredits && finalAiResponse.final_diagnosis) {
         // Deep copy
         finalAiResponse = JSON.parse(JSON.stringify(aiResponse));
-        const hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+        let hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+        if (locale === 'en') hiddenMsg = "[HIDDEN IN FREE VERSION]";
+        else if (locale === 'de') hiddenMsg = "[IN DER KOSTENLOSEN VERSION VERBORGEN]";
+        else if (locale === 'es') hiddenMsg = "[OCULTO EN VERSIÓN GRATUITA]";
 
         finalAiResponse.final_diagnosis.audio_analysis = hiddenMsg as any;
         finalAiResponse.final_diagnosis.recommended_actions = hiddenMsg as any;

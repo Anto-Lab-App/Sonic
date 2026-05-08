@@ -12,14 +12,25 @@ type LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const [language, setLanguage] = useState<Language>('pl');
+    const [language, setLanguage] = useState<Language>('en');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
         const savedLang = localStorage.getItem('sonic_language') as Language;
-        if (savedLang && ['pl', 'en', 'de'].includes(savedLang)) {
+        
+        if (savedLang && ['pl', 'en', 'de', 'es'].includes(savedLang)) {
             setLanguage(savedLang);
+        } else {
+            // Auto-detect browser language
+            const browserLang = navigator.language.split('-')[0].toLowerCase();
+            if (['pl', 'de', 'es'].includes(browserLang)) {
+                setLanguage(browserLang as Language);
+                localStorage.setItem('sonic_language', browserLang);
+            } else {
+                setLanguage('en');
+                localStorage.setItem('sonic_language', 'en');
+            }
         }
     }, []);
 
@@ -28,9 +39,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('sonic_language', lang);
     };
 
-    // During SSR or first render, use Polish to match the server HTML
+    // During SSR or first render, use English to match the server HTML
     // Once mounted, use the client-side language
-    const t = mounted ? translations[language] : translations.pl;
+    const t = mounted ? translations[language] : translations.en;
 
     return (
         <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>

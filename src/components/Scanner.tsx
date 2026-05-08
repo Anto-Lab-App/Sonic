@@ -27,13 +27,13 @@ interface ScannerProps {
 }
 
 export function Scanner({
-  mode = 'audio',
+  mode = 'visual',
   onOpenChat
 }: ScannerProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isSignedIn } = useAuth();
+  const [activeMode, setActiveMode] = useState(mode);
   const [vehicleMake, setVehicleMake] = useState("");
-  const [vehicleDetails, setVehicleDetails] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -49,12 +49,7 @@ export function Scanner({
   const [isDisclaimerModalOpen, setIsDisclaimerModalOpen] = useState(false);
   const [showDisclaimerWarning, setShowDisclaimerWarning] = useState(false);
 
-  const PENDING_HINTS = [
-    "Plik gotowy — naciśnij aby analizować",
-    "Możesz dodać dane pojazdu lub opis",
-    "Kliknij przycisk aby uruchomić AI",
-    "Dodaj kody OBD-II w kontekście",
-  ];
+  const PENDING_HINTS = t.auto.pendingHints;
 
   // New States for Follow-up Flow
   const [diagnosticContext, setDiagnosticContext] = useState<DiagnosticContextData | null>(null);
@@ -66,7 +61,6 @@ export function Scanner({
   const [isDisclaimerAccepted, setIsDisclaimerAccepted] = useState(false);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
-  const [showPreScan, setShowPreScan] = useState(false);
   const [showContextReminder, setShowContextReminder] = useState(false);
   const [stickyError, setStickyError] = useState<string | null>(null);
 
@@ -239,7 +233,7 @@ export function Scanner({
       }
 
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-      if (audioContextRef.current) audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') audioContextRef.current.close();
 
       setIsRecording(false);
       setIsDemoMode(false);
@@ -263,6 +257,8 @@ export function Scanner({
     }
     stopRecording();
     setPendingFiles([]);
+    setActiveMode('visual');
+    setShowContextReminder(false);
   };
 
   const toggleRecording = async () => {
@@ -271,10 +267,10 @@ export function Scanner({
       if (audioFile) {
         setPendingFiles(prev => [...prev, audioFile]);
       } else {
-        setError('Nie udało się nagrać audio. Spróbuj ponownie.');
+        setError(t.auto.errors.recordFailed);
       }
     } else {
-      if (mode === 'visual') {
+      if (activeMode === 'visual') {
         fileInputRef.current?.click();
       } else {
         startRecording();
@@ -296,13 +292,7 @@ export function Scanner({
       return;
     }
 
-    const preScanSeen = localStorage.getItem('hasSeenPreScan') === 'true';
-    if (!preScanSeen) {
-      setShowPreScan(true);
-      return;
-    }
-
-    if (!diagnosticContext && !vehicleMake && !vehicleDetails) {
+    if (!diagnosticContext && !vehicleMake) {
       setShowContextReminder(true);
       return;
     }
@@ -310,15 +300,11 @@ export function Scanner({
     runDiagnosis(pendingFiles, false);
   };
 
-  const handlePreScanProceed = () => {
-    localStorage.setItem('hasSeenPreScan', 'true');
-    setShowPreScan(false);
-    if (pendingFiles.length > 0) setTimeout(() => runDiagnosis(pendingFiles, false), 200);
-  };
-
   const runDiagnosis = async (files: File[], forceComplete: boolean = false) => {
     if (!files || files.length === 0) {
-      const msg = 'Najpierw nagraj dźwięk usterki!';
+      setIsAnalyzing(false);
+      setShowContextReminder(false);
+      const msg = t.auto.errors.recordFirst;
       alert(msg);
       setError(msg);
       return;
@@ -346,13 +332,13 @@ export function Scanner({
         });
 
         if (duration > 0 && duration < 1) {
-          const msg = 'Nagranie musi trwać co najmniej 1 sekundę!';
+          const msg = t.auto.errors.minDuration;
           alert(msg);
           setError(msg);
           return;
         }
         if (duration > 60 && file.type.startsWith('video/')) {
-          const msg = 'Wideo nie może być dłuższe niż 60 sekund. Skróć nagranie.';
+          const msg = t.auto.errors.maxVideoDuration;
           alert(msg);
           setError(msg);
           return;
@@ -375,18 +361,19 @@ export function Scanner({
     // Create form data for our backend API
     const formData = new FormData();
     formData.append("isFollowUp", isFollowUp ? "true" : "false");
+    formData.append("locale", language);
     formData.append("vehicleType", "auto");
-    formData.append("vehicleMake", vehicleMake);
-    formData.append("vehicleDetails", vehicleDetails);
+    formData.append("vehicleMake", vehicleMake || "Auto");
 
     // Build context text from diagnosticContext
     if (diagnosticContext) {
       const ctxParts = [];
-      if (diagnosticContext.mileage) ctxParts.push(`Przebieg: ${diagnosticContext.mileage}`);
-      if (diagnosticContext.obdCodes) ctxParts.push(`Kody OBD-II: ${diagnosticContext.obdCodes}`);
-      if (diagnosticContext.condition) ctxParts.push(`Okoliczności: ${diagnosticContext.condition}`);
-      if (diagnosticContext.tags.length > 0) ctxParts.push(`Tagi: ${diagnosticContext.tags.join(', ')}`);
-      if (diagnosticContext.description) ctxParts.push(`Opis: ${diagnosticContext.description}`);
+      if (diagnosticContext.yearEngine) ctxParts.push(`Rok i Silnik: ${diagnosticContext.yearEngine}`);
+      if (diagnosticContext.mileage) ctxParts.push(`${t.auto.labels.mileage} ${diagnosticContext.mileage}`);
+      if (diagnosticContext.obdCodes) ctxParts.push(`${t.auto.labels.obdCodes} ${diagnosticContext.obdCodes}`);
+      if (diagnosticContext.condition) ctxParts.push(`${t.auto.labels.condition} ${diagnosticContext.condition}`);
+      if (diagnosticContext.tags.length > 0) ctxParts.push(`${t.auto.labels.tags} ${diagnosticContext.tags.join(', ')}`);
+      if (diagnosticContext.description) ctxParts.push(`${t.auto.labels.description} ${diagnosticContext.description}`);
       formData.append("context", ctxParts.join('\n'));
 
       // Attach context files if any
@@ -396,14 +383,14 @@ export function Scanner({
     }
 
     if (forceComplete) {
-      formData.append("context", (formData.get("context") || "") + "\n\nUWAGA: Użytkownik odmówił przetestowania fizycznego - wymuś ostateczną diagnozę z dostępnym zestawem danych ze statusem 'complete'.");
+      formData.append("context", (formData.get("context") || "") + "\n\nATTENTION: User refused physical test - force final diagnosis with available data set with status 'complete'.");
     }
 
     let interval: NodeJS.Timeout | undefined;
 
     try {
       // 1. Get Signed URLs for direct GCS upload
-      setAnalyzingText("Łączenie z chmurą...");
+      setAnalyzingText(t.auto.status.cloud);
       const uploadUrlResponse = await fetch("/api/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -413,7 +400,7 @@ export function Scanner({
       });
 
       if (!uploadUrlResponse.ok) {
-        throw new Error(`Błąd dostępu do chmury: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
+        throw new Error(`${t.auto.status.cloud} Error: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
       }
       const uploadUrlText = await uploadUrlResponse.text();
       let urls;
@@ -422,11 +409,11 @@ export function Scanner({
         urls = parsed.urls;
       } catch (e) {
         console.error("Non-JSON response from /api/upload-url:", uploadUrlText);
-        throw new Error(`Błąd chmury: Otrzymano niepoprawny format (zaczyna się od: ${uploadUrlText.substring(0, 50)})`);
+        throw new Error(`${t.auto.status.cloud} Error: ${uploadUrlText.substring(0, 50)}`);
       }
 
       // 2. Upload files directly to GCS
-      setAnalyzingText("Wgrywanie plików na GCS...");
+      setAnalyzingText(t.auto.status.uploading);
       const uploadedFileParts = [];
       for (let i = 0; i < allFilesToUpload.length; i++) {
         const file = allFilesToUpload[i];
@@ -440,7 +427,7 @@ export function Scanner({
           body: file
         });
 
-        if (!putRes.ok) throw new Error("Błąd bezpośredniego wgrywania pliku.");
+        if (!putRes.ok) throw new Error(t.auto.errors.uploadFailed);
 
         uploadedFileParts.push({
           fileData: {
@@ -455,9 +442,9 @@ export function Scanner({
 
       // Mock progress messages for AI generation
       const statuses = [
-        (t.auto.status as any).audio || "Analiza audio...",
-        (t.auto.status as any).engine || "Sprawdzanie silnika...",
-        (t.auto.status as any).db || "Szukanie w bazie...",
+        t.auto.status.audio,
+        t.auto.status.engine,
+        t.auto.status.db,
       ];
       let statusIndex = 0;
       interval = setInterval(() => {
@@ -477,7 +464,7 @@ export function Scanner({
         data = JSON.parse(responseText);
       } catch (e) {
         console.error("Non-JSON response from /api/diagnose:", responseText);
-        throw new Error(`Serwer zwrócił błąd: ${response.status} ${response.statusText} - ${responseText.substring(0, 100)}`);
+        throw new Error(`${t.auto.errors.serverError} ${response.status} - ${responseText.substring(0, 100)}`);
       }
 
       clearInterval(interval);
@@ -490,7 +477,7 @@ export function Scanner({
           setShowNoCreditsModal(true);
           return;
         }
-        throw new Error(data.message || (t.auto.status as any).error || "Błąd analizy");
+        throw new Error(data.message || t.auto.status.error);
       }
 
       const aiResponse = data.aiResponse;
@@ -505,7 +492,7 @@ export function Scanner({
         // Accept either complete status or legacy diagnosis field
         const diagnosis = aiResponse?.final_diagnosis || data.diagnosis;
         if (!diagnosis) {
-          throw new Error("AI zwróciło status 'complete', ale brak danych diagnozy.");
+          throw new Error(t.auto.errors.noDiagnosis);
         }
         setDiagnosisData(diagnosis);
         setDiagnosisId(data.diagnosisId);
@@ -516,13 +503,13 @@ export function Scanner({
         setPendingFiles([]);
       } else {
         console.error('[Sonic Frontend] Unexpected response structure:', data);
-        throw new Error("Nieoczekiwana struktura odpowiedzi od AI. Spróbuj ponownie.");
+        throw new Error(t.auto.errors.unexpectedResponse);
       }
 
     } catch (err) {
       clearInterval(interval);
       setIsAnalyzing(false);
-      const msg = err instanceof Error ? err.message : ((t.auto.status as any).error || "Wystąpił błąd");
+      const msg = err instanceof Error ? err.message : t.auto.status.error;
       setError(msg);
       setStickyError(msg); // persistent so user can always read it
     }
@@ -546,36 +533,36 @@ export function Scanner({
 
         if (file.type.startsWith('video/')) {
           if (sizeMB > MAX_VIDEO_SIZE_MB) {
-            alert(`Wideo "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_VIDEO_SIZE_MB}MB.`);
+            alert(`${t.auto.labels.ready}: ${file.name}... ${t.auto.errors.maxSize} ${MAX_VIDEO_SIZE_MB}MB.`);
             continue;
           }
           if (currentVideos < 1) {
             acceptedFiles.push(file);
             currentVideos++;
           } else {
-            alert("Możesz dodać maksymalnie 1 wideo.");
+            alert(t.auto.errors.maxVideos);
           }
         } else if (file.type.startsWith('image/')) {
           if (sizeMB > MAX_IMAGE_SIZE_MB) {
-            alert(`Zdjęcie "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_IMAGE_SIZE_MB}MB.`);
+            alert(`${t.auto.labels.ready}: ${file.name}... ${t.auto.errors.maxSize} ${MAX_IMAGE_SIZE_MB}MB.`);
             continue;
           }
           if (currentImages < 3) {
             acceptedFiles.push(file);
             currentImages++;
           } else {
-            alert("Możesz dodać maksymalnie 3 zdjęcia.");
+            alert(t.auto.errors.maxImages);
           }
         } else if (file.type.startsWith('audio/')) {
           if (sizeMB > MAX_AUDIO_SIZE_MB) {
-            alert(`Audio "${file.name}" jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_AUDIO_SIZE_MB}MB.`);
+            alert(`${t.auto.labels.ready}: ${file.name}... ${t.auto.errors.maxSize} ${MAX_AUDIO_SIZE_MB}MB.`);
             continue;
           }
           if (currentAudio < 1 && currentVideos < 1) {
             acceptedFiles.push(file);
             currentAudio++;
           } else {
-            alert("Możesz dodać maksymalnie 1 plik audio/wideo.");
+            alert(t.auto.errors.maxAudio);
           }
         } else {
           acceptedFiles.push(file);
@@ -593,16 +580,22 @@ export function Scanner({
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-      if (audioContextRef.current) audioContextRef.current.close();
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') audioContextRef.current.close();
     };
   }, []);
 
   // Cycle through hint messages when file is pending
   useEffect(() => {
-    if (pendingFiles.length === 0) { setPendingHint(0); return; }
+    if (pendingFiles.length === 0) {
+      setPendingHint(0);
+      if (!isRecording && !isAnalyzing) {
+        setActiveMode('visual');
+      }
+      return;
+    }
     const id = setInterval(() => setPendingHint(h => (h + 1) % PENDING_HINTS.length), 2800);
     return () => clearInterval(id);
-  }, [pendingFiles.length]);
+  }, [pendingFiles.length, isRecording, isAnalyzing]);
 
   return (
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-[#00D1FF]/30">
@@ -648,42 +641,27 @@ export function Scanner({
           )}
         </AnimatePresence>
 
-        {/* Top Inputs + Protipy Button */}
+        {/* Top Inputs */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex flex-col items-center pt-24 md:pt-24 pb-1 relative z-20 gap-3 shrink-0"
+          className="w-full px-6 flex flex-col items-center pt-16 md:pt-24 pb-1 relative z-20 gap-2 md:gap-3 shrink-0"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
-          <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-3 md:p-4 rounded-[24px] md:rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-2 md:gap-3">
+          <div className="w-full bg-surface/80 hover:bg-surface-hover/90 transition-all duration-500 p-3 md:p-4 rounded-[24px] md:rounded-[32px] border border-foreground/[0.05] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] group flex flex-col gap-1 md:gap-3">
             <div className="flex flex-col items-start px-2">
               <span className="text-[10px] font-semibold tracking-widest text-[#00D1FF] uppercase mb-0.5">{t.auto.vehicleData}</span>
-              <span className="text-[11px] md:text-xs text-foreground/50">{t.auto.vehicleDataSub}</span>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="relative w-full">
               <input
                 type="text"
                 placeholder={t.auto.makeModelPlaceholder}
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
-              />
-              <input
-                type="text"
-                placeholder={t.auto.yearEnginePlaceholder}
-                value={vehicleDetails}
-                onChange={(e) => setVehicleDetails(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
+                className="w-full bg-background/50 border border-foreground/[0.05] rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-[#00D1FF]/40 focus:ring-1 focus:ring-[#00D1FF]/20 transition-all"
               />
             </div>
           </div>
-
-          <button
-            onClick={() => setShowPreScan(true)}
-            className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium tracking-wider text-foreground/40 hover:text-foreground/80 transition-colors bg-surface-elevated/50 border border-foreground/[0.05] px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-sm max-w-full"
-          >
-            <AlertCircle size={14} className="shrink-0" /> <span className="truncate">{t.auto.protips}</span>
-          </button>
 
           {/* Legal Disclaimer Checkbox */}
           <div className={`w-full px-2 mt-2 flex justify-center transition-all duration-300 ${showDisclaimerWarning ? 'scale-105' : ''}`}>
@@ -723,7 +701,7 @@ export function Scanner({
         </motion.div>
 
         {/* Center Concentric Visualizer & Button */}
-        <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[220px] md:min-h-[280px]`}>
+        <div className={`z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[180px] md:min-h-[280px]`}>
 
           {/* Status Text - always visible, cycles through states */}
           <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
@@ -749,7 +727,7 @@ export function Scanner({
                   transition={{ duration: 0.4 }}
                   className="flex flex-col items-center text-center px-2"
                 >
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">Gotowy do analizy</h2>
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.auto.status.ready}</h2>
                   <p className="text-sm text-[#00D1FF]/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
                 </motion.div>
               ) : (
@@ -762,12 +740,12 @@ export function Scanner({
                   className="flex flex-col items-center text-center px-2"
                 >
                   <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
-                    {mode === 'visual'
+                    {activeMode === 'visual'
                       ? (isRecording ? t.auto.audioOpening : t.auto.visualTitle)
                       : (isRecording ? (isDemoMode ? t.demoMode : t.auto.audioListening) : t.auto.audioTap)}
                   </h2>
                   <p className="text-sm text-foreground/50 font-medium tracking-wide text-center px-4">
-                    {mode === 'visual'
+                    {activeMode === 'visual'
                       ? t.auto.visualSub
                       : (isRecording
                         ? (isDemoMode ? t.auto.audioSubDemo : t.auto.audioSubSrc)
@@ -782,7 +760,7 @@ export function Scanner({
           <div className="relative flex items-center justify-center w-[180px] h-[180px] md:w-[200px] md:h-[200px]">
 
             {/* Concentric Rings (Solid circles expanding outwards and fading) */}
-            <div className="absolute inset-0 pointer-events-none" style={{ display: mode === 'visual' ? 'none' : 'block' }}>
+            <div className="absolute inset-0 pointer-events-none" style={{ display: activeMode === 'visual' ? 'none' : 'block' }}>
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
@@ -799,7 +777,7 @@ export function Scanner({
 
             {/* Continuous Subtle Waves (Emanating from center) */}
             <AnimatePresence>
-              {isRecording && mode === 'audio' && (
+              {isRecording && activeMode === 'audio' && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -836,7 +814,7 @@ export function Scanner({
             </AnimatePresence>
 
             {/* Idle Breathing Animation for Rings (only when not recording) */}
-            {!isRecording && mode === 'audio' && (
+            {!isRecording && activeMode === 'audio' && (
               <motion.div
                 animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.1, 0.03] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -888,7 +866,7 @@ export function Scanner({
                     <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
                   ) : pendingFiles.length > 0 ? (
                     <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]/60" />
-                  ) : mode === 'audio' ? (
+                  ) : activeMode === 'audio' ? (
                     <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
                   ) : (
                     <Camera className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-foreground' : 'text-foreground/80'}`} />
@@ -902,7 +880,7 @@ export function Scanner({
                     />
                   )}
 
-                  {(isRecording || isAnalyzing) && mode === 'audio' && (
+                  {(isRecording || isAnalyzing) && activeMode === 'audio' && (
                     <motion.div
                       className={`absolute inset-0 blur-xl rounded-full -z-10 ${isAnalyzing ? 'bg-purple-500' : 'bg-[#00D1FF]'}`}
                       animate={{ opacity: [0.2, 0.5, 0.2] }}
@@ -925,6 +903,21 @@ export function Scanner({
                 />
               )}
             </AnimatePresence>
+
+            {/* Small Mic Button overlapping main button */}
+            {pendingFiles.length === 0 && !isRecording && !isAnalyzing && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); setActiveMode('audio'); startRecording(); }}
+                className="absolute bottom-[5px] left-[-5px] z-30 w-14 h-14 rounded-full bg-surface border-4 border-background flex items-center justify-center shadow-lg group/mic overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-primary/10 animate-pulse" />
+                <Mic className="w-6 h-6 text-primary relative z-10" />
+              </motion.button>
+            )}
 
             <input type="file" accept="audio/*,video/*,image/*" capture="environment" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} />
             <input type="file" accept="audio/*,video/*,image/*" multiple className="hidden" ref={galleryInputRef} onChange={handleFileChange} />
@@ -958,7 +951,7 @@ export function Scanner({
               {pendingFiles.map((file, i) => (
                 <div key={i} className="flex items-center gap-2 bg-surface/80 border border-foreground/[0.05] rounded-full pl-3 pr-1 py-1 shrink-0 backdrop-blur-md">
                   <span className="text-[10px] text-foreground/80 font-medium truncate max-w-[80px]" title={file.name}>
-                    {file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name || 'Zrzut ekranu'}
+                    {file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name || t.shazam.screenshot}
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setPendingFiles(prev => prev.filter((_, idx) => idx !== i)); }}
@@ -976,7 +969,7 @@ export function Scanner({
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? 20 : 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full px-6 flex gap-3 md:gap-4 pt-2 md:pt-4 shrink-0 relative z-20"
+          className="w-full px-6 flex gap-3 md:gap-4 pt-1 md:pt-4 shrink-0 relative z-20"
           style={{ pointerEvents: (isRecording || isAnalyzing) ? 'none' : 'auto' }}
         >
           <button
@@ -992,7 +985,7 @@ export function Scanner({
                 <Loader2 className="w-4 h-4 text-[#00D1FF] animate-spin" />
               ) : pendingFiles.length > 0 ? (
                 <span className="text-[#00D1FF] text-base">✓</span>
-              ) : mode === 'audio' ? (
+              ) : activeMode === 'audio' ? (
                 <Upload className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
               ) : (
                 <ImageIcon className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
@@ -1002,7 +995,7 @@ export function Scanner({
               pendingFiles.length > 0 ? 'text-[#00D1FF]/80' :
                 'text-foreground/50 group-hover:text-foreground/90'
               }`}>
-              {isLoadingFile ? 'Wczytuję...' : pendingFiles.length > 0 ? `✓ Załadowano (${pendingFiles.length}/4)` : t.auto.uploadFiles}
+              {isLoadingFile ? t.auto.labels.loading : pendingFiles.length > 0 ? `✓ ${t.auto.labels.ready} (${pendingFiles.length}/4)` : t.auto.uploadFiles}
             </span>
           </button>
 
@@ -1011,7 +1004,7 @@ export function Scanner({
               <FileText className="w-4 h-4 text-foreground/60 group-hover:text-foreground transition-colors" />
             </div>
             <span className="text-[10px] font-semibold text-foreground/50 group-hover:text-foreground/90 uppercase tracking-widest transition-colors text-center px-2 truncate w-full">
-              {diagnosticContext ? "KONTEKST DODANY" : t.auto.uploadContext}
+              {diagnosticContext ? t.auto.contextReady : t.auto.uploadContext}
             </span>
           </button>
         </motion.div>
@@ -1035,15 +1028,15 @@ export function Scanner({
               <div className="flex items-center justify-center mb-6">
                 <div className="flex items-center gap-2 bg-[#00D1FF]/10 border border-[#00D1FF]/20 rounded-full px-4 py-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#00D1FF] animate-pulse" />
-                  <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">Etap 2 &middot; Test Diagnostyczny</span>
+                  <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">{t.auto.step2}</span>
                 </div>
               </div>
 
               {/* Message */}
               <div className="flex-1 flex flex-col items-center justify-center">
-                <h2 className="text-3xl font-bold text-foreground mb-6 leading-tight text-center">Jeden krok<br />do diagnozy</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-6 leading-tight text-center">{t.auto.oneStepToDiagnosis}</h2>
                 <div className="w-full bg-surface/40 border border-foreground/[0.06] rounded-[20px] p-5 backdrop-blur-sm">
-                  <p className="text-[10px] font-bold tracking-widest text-[#00D1FF]/70 uppercase mb-2">Analiza AI</p>
+                  <p className="text-[10px] font-bold tracking-widest text-[#00D1FF]/70 uppercase mb-2">{t.auto.aiInstruction}</p>
                   <p className="text-foreground/80 text-sm leading-relaxed">
                     {followUpRequest.message}
                   </p>
@@ -1055,14 +1048,14 @@ export function Scanner({
                 {/* Primary: Record */}
                 <button
                   onClick={() => {
-                    if (mode === 'audio') startRecording();
+                    if (activeMode === 'audio') startRecording();
                     else fileInputRef.current?.click();
                   }}
                   className="w-full flex items-center justify-center gap-3 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 hover:border-[#00D1FF]/40 text-[#00D1FF] font-bold tracking-wider uppercase text-[11px] py-5 px-6 rounded-[24px] transition-all active:scale-95"
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span>Nagraj live z kamery/mikrofonu</span>
+                    <span>{t.auto.recordLive}</span>
                   </div>
                 </button>
 
@@ -1072,7 +1065,7 @@ export function Scanner({
                   className="w-full flex items-center justify-center gap-3 bg-surface/50 hover:bg-surface border border-foreground/[0.06] hover:border-foreground/[0.12] text-foreground/80 hover:text-foreground font-bold tracking-wider uppercase text-[11px] py-4 px-6 rounded-[24px] transition-all active:scale-95"
                 >
                   <ImageIcon className="w-4 h-4" />
-                  Dodaj plik z biblioteki
+                  {t.auto.addFromLibrary}
                 </button>
 
                 {/* Skip */}
@@ -1082,7 +1075,7 @@ export function Scanner({
                   }}
                   className="w-full flex items-center justify-center text-foreground/30 hover:text-foreground/60 font-medium text-xs py-3 transition-colors"
                 >
-                  Nie mogę wykonać testu — pomiń i wydaj diagnozę
+                  {t.auto.skipTest}
                 </button>
               </div>
             </div>
@@ -1101,67 +1094,10 @@ export function Scanner({
           setDiagnosisId(undefined);
           setDiagnosticContext(null);
           setVehicleMake('');
-          setVehicleDetails('');
           setFirstFiles([]);
+          setActiveMode('visual');
           // Set to idle mode implicitly
         }} data={diagnosisData} diagnosisId={diagnosisId} onOpenChat={onOpenChat} />}
-      </AnimatePresence>
-
-      {/* Pre-Scan Tips Overlay — shown once before first analysis */}
-      <AnimatePresence>
-        {showPreScan && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 z-[70] flex flex-col"
-          >
-            <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" />
-            <div className="relative z-10 flex flex-col h-full pt-14 px-6 pb-8">
-              <div className="flex items-center justify-center mb-5">
-                <div className="flex items-center gap-2 bg-[#00D1FF]/10 border border-[#00D1FF]/20 rounded-full px-4 py-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00D1FF] animate-pulse" />
-                  <span className="text-[10px] font-bold tracking-widest text-[#00D1FF] uppercase">Wskazówki przed analizą</span>
-                </div>
-              </div>
-
-              <div className="flex-1 flex flex-col justify-center gap-4">
-                <h2 className="text-2xl font-bold text-foreground text-center mb-2">Jak uzyskać trafną diagnozę?</h2>
-
-                {/* Tips */}
-                {[
-                  { icon: '⚠️', tip: 'Przede wszystkim BHP! Uważaj na pracujący silnik, wentylatory, gorące elementy i ruszające pojazdy podczas nagrywania.' },
-                  { icon: '🎙️', tip: 'Nagraj wyraźnie słyszalną usterkę — silnik na biegu jałowym, jazda próbna, stukanie. Minimum 1 sekunda, unikaj szumu wiatru.' },
-                  { icon: '🚗', tip: 'Podaj markę, model i rocznik pojazdu — AI dopasuje bazę awarii do Twojego konkretnego silnika.' },
-                  { icon: '📋', tip: 'Masz kody OBD-II lub wiesz kiedy problem występuje np. "przy zimnym starcie"? Dodaj to w Kontekście.' },
-                ].map(({ icon, tip }) => (
-                  <div key={tip} className="flex items-start gap-3 bg-surface/40 border border-foreground/[0.05] rounded-[16px] p-4">
-                    <span className="text-xl shrink-0 mt-0.5">{icon}</span>
-                    <p className="text-sm text-foreground/70 leading-relaxed">{tip}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-3 mt-6">
-                {!diagnosticContext && !vehicleMake && (
-                  <button
-                    onClick={() => { setShowPreScan(false); setIsContextModalOpen(true); }}
-                    className="w-full flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/[0.08] text-foreground/60 hover:text-foreground font-semibold text-xs py-4 px-6 rounded-[20px] transition-all"
-                  >
-                    <FileText className="w-4 h-4" /> Dodaj dane pojazdu i kontekst
-                  </button>
-                )}
-                <button
-                  onClick={handlePreScanProceed}
-                  className="w-full flex items-center justify-center gap-2 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 text-[#00D1FF] font-bold tracking-wide text-sm py-5 px-6 rounded-[20px] transition-all active:scale-95"
-                >
-                  Rozumiem — analizuj teraz
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       {/* Context Reminder Overlay */}
@@ -1179,23 +1115,30 @@ export function Scanner({
                 <div className="w-16 h-16 rounded-full bg-[#00D1FF]/10 border border-[#00D1FF]/20 flex items-center justify-center mx-auto mb-2">
                   <FileText className="w-8 h-8 text-[#00D1FF]" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">Brak kontekstu</h2>
-                <p className="text-foreground/60 text-sm leading-relaxed">
-                  Wgrałeś plik, ale nie uzupełniłeś danych pojazdu ani kontekstu awarii. AI bez podpowiedzi (marka pojazdu itp.) może wydać mniej precyzyjną diagnozę.
-                </p>
+                <h2 className="text-2xl font-bold text-foreground">{t.auto.labels.noContextTitle}</h2>
+                {t.auto.labels.noContextDesc}
               </div>
               <div className="flex flex-col gap-3 mt-8">
                 <button
                   onClick={() => { setShowContextReminder(false); setIsContextModalOpen(true); }}
                   className="w-full flex items-center justify-center gap-2 bg-[#00D1FF]/10 hover:bg-[#00D1FF]/15 border border-[#00D1FF]/25 text-[#00D1FF] font-bold text-sm py-4 px-6 rounded-[20px] transition-all"
                 >
-                  Uzupełnij dane pojazdu
+                  {t.auto.labels.fillData}
                 </button>
                 <button
-                  onClick={() => { setShowContextReminder(false); runDiagnosis(pendingFiles, false); }}
+                  onClick={() => {
+                    if (pendingFiles.length > 0) {
+                      setShowContextReminder(false);
+                      runDiagnosis(pendingFiles, false);
+                    } else {
+                      setShowContextReminder(false);
+                      setIsAnalyzing(false);
+                      setActiveMode('visual');
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-2 bg-foreground/5 hover:bg-foreground/10 border border-foreground/[0.05] text-foreground/60 font-semibold text-sm py-4 px-6 rounded-[20px] transition-all"
                 >
-                  Kontynuuj bez kontekstu
+                  {t.auto.labels.continueWithoutContext}
                 </button>
               </div>
             </div>
@@ -1217,13 +1160,13 @@ export function Scanner({
               <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
                 <span className="text-3xl">⚠️</span>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Błąd analizy</h3>
+              <h3 className="text-xl font-bold text-foreground mb-3">{t.auto.status.error}</h3>
               <p className="text-foreground/60 text-sm leading-relaxed mb-8">{stickyError}</p>
               <button
                 onClick={() => { setStickyError(null); setError(null); }}
                 className="w-full bg-foreground/10 hover:bg-foreground/15 border border-foreground/10 text-foreground font-semibold text-sm py-4 rounded-[20px] transition-all"
               >
-                Zamknij i spróbuj ponownie
+                {t.auto.labels.closeAndTryAgain}
               </button>
             </div>
           </motion.div>

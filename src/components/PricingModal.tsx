@@ -45,12 +45,7 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
         }
     };
 
-    const prices = {
-        pl: { unlock: '19.99 PLN', bundle: '39.99 PLN' },
-        en: { unlock: '$4.99', bundle: '$9.99' },
-        es: { unlock: '€4.99', bundle: '€9.99' }
-    };
-    const currentPrices = prices[language as keyof typeof prices] || prices.en;
+    const currentPrices = t.modals.pricing;
 
     return (
         <AnimatePresence>
@@ -80,30 +75,30 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                     </div>
 
                     <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-3">
-                        Pełny Raport Zablokowany
+                        {currentPrices.title}
                     </h2>
                     <p className="text-center text-muted text-sm md:text-base mb-8">
-                        Dostęp do ukrytych sekcji, w tym wycen, zaleceń i przewodnika DIY, wymaga odblokowania raportu. Wybierz opcję, która najlepiej pasuje do Twoich potrzeb.
+                        {currentPrices.desc}
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Option 1 */}
                         <div className="relative p-5 border border-foreground/10 rounded-2xl bg-background/50 hover:border-blue-500/50 transition-colors flex flex-col">
-                            <h3 className="text-lg font-semibold text-foreground mb-1">Odblokuj Raport</h3>
-                            <p className="text-xs text-muted mb-4">Dostęp do tej jednej diagnozy na zawsze.</p>
+                            <h3 className="text-lg font-semibold text-foreground mb-1">{currentPrices.unlockTitle}</h3>
+                            <p className="text-xs text-muted mb-4">{currentPrices.unlockDesc}</p>
 
                             <div className="mb-6 flex-1 space-y-2">
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Pełna analiza dźwięku</span>
+                                    <span>{currentPrices.analysis}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Przewodnik naprawy DIY</span>
+                                    <span>{currentPrices.diy}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Koszty i wycena naprawy</span>
+                                    <span>{currentPrices.valuation}</span>
                                 </div>
                             </div>
 
@@ -114,7 +109,7 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                                     disabled={isLoading !== null}
                                     className="w-full py-3 bg-foreground/10 hover:bg-foreground/15 text-foreground font-semibold rounded-xl transition-colors border border-foreground/5 disabled:opacity-50"
                                 >
-                                    {isLoading === 'unlock_1' ? 'Ładowanie...' : 'Odblokuj Raport'}
+                                    {isLoading === 'unlock_1' ? currentPrices.loading : currentPrices.unlockTitle}
                                 </button>
                             </div>
                         </div>
@@ -122,24 +117,24 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                         {/* Option 2 */}
                         <div className="relative p-5 border-2 border-primary rounded-2xl bg-primary/5 flex flex-col overflow-hidden">
                             <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-                                Najlepszy wybór
+                                {currentPrices.bestValue}
                             </div>
 
-                            <h3 className="text-lg font-semibold text-foreground mb-1">Pakiet 3 Raportów</h3>
-                            <p className="text-xs text-muted mb-4">Ten i 2 dodatkowe raporty z czatem AI.</p>
+                            <h3 className="text-lg font-semibold text-foreground mb-1">{currentPrices.bundleTitle}</h3>
+                            <p className="text-xs text-muted mb-4">{currentPrices.bundleDesc}</p>
 
                             <div className="mb-6 flex-1 space-y-2">
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Zapisywane kredyty na koncie</span>
+                                    <span>{currentPrices.credits}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span className="font-medium text-primary">Czat z AI dla każdego raportu</span>
+                                    <span className="font-medium text-primary">{currentPrices.chat}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-foreground/90">
                                     <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Priorytetowe skanowanie</span>
+                                    <span>{currentPrices.priority}</span>
                                 </div>
                             </div>
 
@@ -150,7 +145,7 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                                     disabled={isLoading !== null}
                                     className="w-full py-3 bg-primary hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-primary/20 disabled:opacity-50"
                                 >
-                                    {isLoading === 'bundle_3' ? 'Ładowanie...' : 'Wykup Pakiet'}
+                                    {isLoading === 'bundle_3' ? currentPrices.loading : currentPrices.buy}
                                 </button>
                             </div>
                         </div>

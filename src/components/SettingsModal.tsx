@@ -123,8 +123,8 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
                       {loadingProfile ? '...' : profile?.initials || 'US'}
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium text-foreground">Twój Profil</h3>
-                      <p className="text-sm text-muted mb-4">Profil powiązany z kontem Google / Clerk.</p>
+                      <h3 className="text-lg font-medium text-foreground">{t.settings.profile.title}</h3>
+                      <p className="text-sm text-muted mb-4">{t.settings.profile.linkedDesc}</p>
                     </div>
                   </div>
 
@@ -161,11 +161,12 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
 
                   <div className="p-8 border-b border-border-subtle">
                     <h4 className="text-sm font-medium mb-4 text-foreground/70">{t.settings.preferences.langTitle}</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {[
-                        { id: 'pl', name: 'Polski', native: 'PL' },
-                        { id: 'en', name: 'Angielski', native: 'EN' },
-                        { id: 'de', name: 'Niemiecki', native: 'DE' },
+                        { id: 'pl', name: t.languages.pl, native: 'PL' },
+                        { id: 'en', name: t.languages.en, native: 'EN' },
+                        { id: 'de', name: t.languages.de, native: 'DE' },
+                        { id: 'es', name: t.languages.es, native: 'ES' },
                       ].map((lang) => (
                         <button
                           key={lang.id}
@@ -238,20 +239,20 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-2xl font-bold mb-2 text-white flex items-center gap-2">
-                        Twoje Kredyty
+                        {t.settings.profile.credits}
                         {!loadingProfile && profile?.credits === 0 && (
                           <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded-full uppercase tracking-wider">
-                            Brak środków
+                            {t.settings.profile.noCredits}
                           </span>
                         )}
                       </h3>
-                      <p className="text-muted text-sm max-w-sm">Doładuj konto, aby wykonywać nielimitowane, zaawansowane analizy z wykorzystaniem AI.</p>
+                      <p className="text-muted text-sm max-w-sm">{t.settings.profile.topupDesc}</p>
                     </div>
                     <div className="text-right flex flex-col items-end">
                       <span className="text-4xl font-black text-[#00D1FF] drop-shadow-md">
                         {loadingProfile ? '-' : profile?.credits || 0}
                       </span>
-                      <span className="text-xs text-foreground/50 uppercase tracking-widest font-semibold mt-1">Dostępne Skanowania</span>
+                      <span className="text-xs text-foreground/50 uppercase tracking-widest font-semibold mt-1">{t.settings.profile.available}</span>
                     </div>
                   </div>
 
@@ -264,7 +265,7 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
                       }}
                       className="px-8 py-4 bg-gradient-to-r from-[#00D1FF] via-[#0055FF] to-[#00D1FF] bg-[length:200%_auto] animate-gradient text-white font-bold rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(0,209,255,0.4)] flex items-center gap-2"
                     >
-                      <span className="text-lg">⚡</span> Doładuj Kredyty PRO
+                      <span className="text-lg">⚡</span> {t.settings.profile.buyPro}
                     </button>
                   </div>
                 </section>

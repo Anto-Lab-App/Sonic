@@ -86,41 +86,21 @@ const MessageItem = ({ msg }: { msg: Message, key?: React.Key }) => {
   );
 };
 
-const defaultMessages: Message[] = [
-  {
-    id: 1,
-    sender: 'ai',
-    text: 'Dzień dobry. Jestem Twoim wirtualnym asystentem serwisowym. W czym mogę dzisiaj pomóc? Proszę opisać problem z pojazdem.',
-    time: '11:00'
-  },
-  {
-    id: 2,
-    sender: 'user',
-    text: 'Gdy hamuję, słyszę dziwne piszczenie z przodu samochodu. Co to może być?',
-    time: '11:02'
-  },
-  {
-    id: 3,
-    sender: 'ai',
-    text: 'Piszczenie przy hamowaniu to najczęściej objaw zużytych klocków hamulcowych. Wiele z nich posiada czujniki akustyczne, które celowo emitują taki dźwięk, gdy kończy się okładzina cierna.\n\nCzy odczuwasz również drżenie kierownicy podczas hamowania?',
-    time: '11:03',
-    detailedInfo: 'Potencjalne przyczyny:\n• Zużyte klocki hamulcowe (najczęstsza przyczyna).\n• Zanieczyszczenia (piasek, kamyki) między klockiem a tarczą.\n• Zeszklenie powierzchni klocka z powodu przegrzania.\n• Brak smarowania na prowadnicach zacisku.\n\nRekomendowane działanie:\nWeryfikacja grubości okładzin ciernych, czyszczenie jarzma i smarowanie prowadnic.'
-  }
-];
+const getDefaultMessages = (t: any) => t.chat.defaultMsgs.map((m: any, i: number) => ({
+  id: i + 1,
+  sender: m.sender,
+  text: m.text,
+  time: '11:00',
+  detailedInfo: m.detailedInfo
+}));
 
 export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const MAX_USER_MESSAGES = 5;
   const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = localStorage.getItem('mechanik-ai-messages');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse messages from local storage', e);
-      }
-    }
-    return defaultMessages;
+    const defaultMsgs = getDefaultMessages(t);
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('mechanik-ai-messages') : null;
+    return saved ? JSON.parse(saved) : defaultMsgs;
   });
 
   useEffect(() => {
@@ -156,11 +136,11 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
           setServerMessageCount(diagAny?.chatMessageCount || 0);
         }
 
-        const title = diag ? getTitle(diag) : "Raportu";
+        const title = diag ? getTitle(diag) : (t.report.title || "Report");
         const greeting: Message = {
           id: Date.now(),
           sender: 'ai',
-          text: `Witaj! Przeanalizowałem Twój raport: ${title}. Posiadam pełną wiedzę na temat tej usterki oraz ogólną wiedzę mechaniczną. W czym mogę Ci dzisiaj pomóc?`,
+          text: t.chat.greeting.replace('{title}', title),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         setMessages([greeting]);
@@ -173,12 +153,12 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
         try {
           const parsed = JSON.parse(saved);
           if (parsed.length > 0) setMessages(parsed);
-          else setMessages(defaultMessages);
+          else setMessages(getDefaultMessages(t));
         } catch (e) {
-          setMessages(defaultMessages);
+          setMessages(getDefaultMessages(t));
         }
       } else {
-        setMessages(defaultMessages);
+        setMessages(getDefaultMessages(t));
       }
     }
   }, [diagnosisId]);
@@ -188,9 +168,9 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
     if (item.aiReport?.name) return item.aiReport.name;
     try {
       const parsed = JSON.parse(item.vehicleData);
-      return parsed.make || 'Nieznany pojazd';
+      return parsed.make || t.settings.history.unknownVehicle;
     } catch {
-      return 'Diagnoza';
+      return t.settings.history.diagnosis;
     }
   };
 
@@ -209,7 +189,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'pl-PL';
+      recognition.lang = language === 'pl' ? 'pl-PL' : language === 'de' ? 'de-DE' : language === 'es' ? 'es-ES' : 'en-US';
 
       recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
@@ -267,7 +247,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
       id: Date.now(),
       sender: 'user',
       text: userText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'es' ? 'es-ES' : 'pl-PL', { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages(prev => [...prev, newUserMsg]);
@@ -285,6 +265,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
         body: JSON.stringify({
           diagnosisId: diagnosisId || null,
           messages: chatMessages,
+          locale: language,
         })
       });
 
@@ -299,8 +280,8 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
       const newAiMsg: Message = {
         id: Date.now() + 1,
         sender: 'ai',
-        text: result.data?.text || 'Przepraszam, nie zrozumiałem.',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: result.data?.text || (t.chat.sorryNoUnderstand || 'Przepraszam, nie zrozumiałem.'),
+        time: new Date().toLocaleTimeString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'es' ? 'es-ES' : 'pl-PL', { hour: '2-digit', minute: '2-digit' }),
         detailedInfo: result.data?.detailedInfo || undefined
       };
 
@@ -312,8 +293,8 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
       const errorMsg: Message = {
         id: Date.now() + 1,
         sender: 'ai',
-        text: `Błąd asystenta AI: ${error.message || 'Nie udało się uzyskać odpowiedzi'}. Spróbuj ponownie za chwilę.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: `${t.chat.aiError || 'Błąd asystenta AI'}: ${error.message || (t.chat.noResponse || 'Nie udało się uzyskać odpowiedzi')}. ${t.chat.tryAgainLater || 'Spróbuj ponownie za chwilę.'}`,
+        time: new Date().toLocaleTimeString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'es' ? 'es-ES' : 'pl-PL', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMsg]);
     }
@@ -378,7 +359,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
               </div>
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scrollbar-hide">
                 <div>
-                  <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">Zapisane Diagnozy</h3>
+                <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest pl-2 mb-3">{t.chat.savedDiagnoses}</h3>
                   <div className="flex flex-col gap-1">
                     {historyItems.map((item) => (
                       <button
@@ -402,7 +383,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
                       </button>
                     ))}
                     {historyItems.length === 0 && (
-                      <div className="text-center py-4 text-xs text-gray-500">Brak historii</div>
+                      <div className="text-center py-4 text-xs text-gray-500">{t.chat.noHistory}</div>
                     )}
                   </div>
                 </div>
@@ -423,7 +404,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
               <button
                 onClick={onBack}
                 className="p-2 text-gray-400 hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/10 rounded-xl border border-foreground/[0.05] transition-colors"
-                title="Wróć"
+                title={t.chat.back}
               >
                 <ChevronLeft size={22} strokeWidth={2} />
               </button>
@@ -433,7 +414,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
             <button
               onClick={() => setIsHistoryOpen(true)}
               className="p-2 text-gray-400 hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/10 rounded-xl border border-foreground/[0.05] transition-colors"
-              title="Historia czatów"
+              title={t.chat.history}
             >
               <Menu size={22} strokeWidth={2} />
             </button>
@@ -444,7 +425,7 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
             <Wrench size={32} className="text-gray-200 relative z-10 drop-shadow-lg" strokeWidth={1.5} />
           </div>
           <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.2em] drop-shadow-md">{t.chat.title}</p>
-          <p className="text-xs text-gray-500 mt-1.5 font-medium">11:00</p>
+          <p className="text-xs text-gray-500 mt-1.5 font-medium">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
         </div>
 
         {messages.map((msg) => (
@@ -475,13 +456,13 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
         {isLocked ? (
           <div className="bg-foreground/[0.05] backdrop-blur-3xl border border-red-500/30 rounded-2xl p-4 text-center">
             <p className="text-sm text-red-400 font-medium italic">
-              Zablokowany dostęp do czatu. Odblokuj pełny raport, aby rozmawiać z asystentem.
+              {t.chat.chatLocked}
             </p>
           </div>
         ) : messages.filter(m => m.sender === 'user').length >= MAX_USER_MESSAGES || serverMessageCount >= MAX_USER_MESSAGES ? (
           <div className="bg-foreground/[0.05] backdrop-blur-3xl border border-foreground/[0.08] rounded-2xl p-4 text-center">
             <p className="text-sm text-gray-400 font-medium italic">
-              Sesja konsultacyjna dla tego raportu została zakończona.
+              {t.chat.sessionEnded}
             </p>
           </div>
         ) : (

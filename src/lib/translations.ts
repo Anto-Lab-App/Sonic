@@ -1,24 +1,17 @@
-export type Language = 'pl' | 'en' | 'de';
+export type Language = 'pl' | 'en' | 'de' | 'es';
 
 export const translations = {
     pl: {
-        nav: {
-            auto: 'Auto',
-            rower: 'rower',
-            shazam: 'shazam',
-        },
+        nav: { auto: 'Auto', rower: 'rower', shazam: 'shazam' },
         cancel: 'Anuluj',
         demoMode: 'Tryb Demo',
         loading: 'Trwa Analiza...',
         loadingAI: 'Trwa Analiza AI...',
         understand: 'Rozumiem',
         dontShow: 'Nie pokazuj tego więcej',
-        disclaimer: {
-            checkbox: 'Akceptuję ',
-            link: 'Regulamin i Zastrzeżenia AI',
-            fullText: 'Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.',
-            shortNote: 'Korzystanie z aplikacji oznacza akceptację faktu, że AI może generować błędne informacje.'
-        },
+        languages: { pl: 'Polski', en: 'Angielski', de: 'Niemiecki', es: 'Hiszpański' },
+        auth: { login: 'Zaloguj się', account: 'Konto' },
+        disclaimer: { checkbox: 'Akceptuję ', link: 'Regulamin i Zastrzeżenia AI', fullText: 'Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.', shortNote: 'Korzystanie z aplikacji oznacza akceptację faktu, że AI może generować błędne informacje.' },
         auto: {
             vehicleData: 'Dane pojazdu',
             vehicleDataSub: 'Wpisz ręcznie parametry, by pomóc diagnozie',
@@ -40,95 +33,97 @@ export const translations = {
             uploadContext: 'Wgraj kontekst',
             status: {
                 init: 'Inicjalizacja AI...',
-                iso: 'Izolowanie szumów tła...',
-                search: 'Przeszukiwanie bazy usterek...',
-                dev: 'Opracowywanie diagnozy...'
-            }
-        },
-        bike: {
-            section: 'Sekcja Roweru',
-            protips: 'Protipy: Jak ująć awarię na zdjęciu/wideo',
-            title: 'Zrób zdjęcie kasety / detalu',
-            subtitle: 'Szukamy zagiętych zębów, uszkodzeń ramy lub pęknięć. Zrób fotkę makro.',
-            gallery: 'Zdjęcie z galerii',
-            addContext: 'Dodaj Kontekst',
-            targets: [
-                'Napęd (Rozciągnięcie, Przeskoki)',
-                'Hamulce (Piszczenie, Tracie)',
-                'Suport (Trzaski podczas pedałowania)',
-                'Przerzutka (Problem zrzucania)',
-                'Amortyzator / Łożyska ramy'
-            ],
-            status: {
-                init: 'Inicjalizacja AI...',
-                analyze: 'Analiza struktury ze zdjęcia/wideo...',
-                check: 'Sprawdzanie stanu zębatki i uszkodzeń...',
-                dev: 'Opracowywanie diagnozy rowerowej...'
-            }
-        },
-        shazam: {
-            title: 'Sonic Shazam',
-            desc: 'Nagraj dźwięk silnika lub dodaj zdjęcie, aby inteligentna baza Sonic rozpoznała, z jakim autem masz do czynienia.',
-            listening: 'Słucham...',
-            status: {
-                init: 'Inicjalizacja AI...',
-                isoAudio: 'Izolowanie ścieżki dźwiękowej...',
-                isoVisual: 'Analiza zdjęcia i kształtów...',
-                search: 'Przeszukiwanie globalnej bazy modeli...',
-                identify: 'Identyfikacja...'
-            }
-        },
-        instructions: {
-            title: 'Jak poprawnie nagrać pod analizę',
-            car: {
-                light: 'Otwórz maskę (wyłącz radio i nawiew).',
-                video: 'Nagrywaj wideo (Daje diagnozie dodatkowy kontekst z wibracji itp.).',
-                secure: 'Zabezpiecz auto (hamulec ręczny, bieg jałowy/P). Uważaj na ruchome elementy silnika!',
-                steps: 'Zrób to w 3 krokach: Odpal silnik → poczekaj 5 sekund → lekko dodaj gazu.'
+                cloud: 'Łączenie z chmurą...',
+                uploading: 'Wgrywanie plików na GCS...',
+                analyze: 'Analizuj teraz',
+                audio: 'Analiza audio...',
+                engine: 'Sprawdzanie silnika...',
+                db: 'Szukanie w bazie...',
+                error: 'Błąd analizy',
+                ready: 'Gotowy do analizy'
             },
-            bike: {
-                light: 'Zadbaj o światło. Rób zdjęcie kasety/napędu w dobrze oświetlonym miejscu.',
-                video: 'Jeśli nagrywasz wideo kręć korbą ręcznie unikając wiatru i nagraj prosto przerzutkę.',
-                stable: 'Utrzymaj stabilność. Oprzyj rower lub postaw go na nóżce. Nie nagrywaj z ręki w trakcie jazdy!'
-            }
+            errors: {
+                recordFirst: 'Najpierw nagraj dźwięk usterki!',
+                minDuration: 'Nagranie musi trwać co najmniej 1 sekundę!',
+                maxVideoDuration: 'Wideo nie może być dłuższe niż 60 sekund. Skróć nagranie.',
+                checkoutFailed: 'Nie udało się rozpocząć płatności. Spróbuj ponownie później.',
+                fileTooLarge: 'Plik jest za duży',
+                maxSize: 'Maksymalny rozmiar to',
+                uploadFailed: 'Błąd wgrywania pliku.',
+                serverError: 'Serwer zwrócił błąd:',
+                noDiagnosis: 'AI nie zwróciło danych diagnozy.',
+                unexpectedResponse: 'Nieoczekiwana struktura odpowiedzi od AI. Spróbuj ponownie.',
+                generalError: 'Wystąpił nieoczekiwany błąd.',
+                maxVideos: 'Możesz dodać maksymalnie 1 wideo.',
+                maxImages: 'Możesz dodać maksymalnie 3 zdjęcia.',
+                maxAudio: 'Możesz dodać maksymalnie 1 plik audio/wideo.',
+                recordFailed: 'Nie udało się nagrać audio. Spróbuj ponownie.'
+            },
+            labels: {
+                mileage: 'Przebieg:',
+                obdCodes: 'Kody OBD-II:',
+                condition: 'Okoliczności:',
+                tags: 'Tagi:',
+                description: 'Opis:',
+                loading: 'Wczytuję...',
+                ready: 'Gotowo',
+                addData: 'Dodaj dane pojazdu i kontekst',
+                analyzeNow: 'Rozumiem — analizuj teraz',
+                noContextTitle: 'Brak kontekstu',
+                noContextDesc: 'Wgrałeś plik, ale nie uzupełniłeś danych pojazdu ani kontekstu awarii. AI bez podpowiedzi (marka pojazdu itp.) może wydać mniej precyzyjną diagnozę.',
+                fillData: 'Uzupełnij dane pojazdu',
+                continueWithoutContext: 'Kontynuuj bez kontekstu',
+                closeAndTryAgain: 'Zamknij i spróbuj ponownie'
+            },
+            noCredits: {
+                title: 'Koniec darmowych skanów',
+                desc: 'Wykorzystałeś już swój darmowy kredyt diagnostyczny. Wykup pakiet PRO, aby zyskać nielimitowany dostęp do naszej zaawansowanej AI.'
+            },
+            pendingHints: ["Plik gotowy — naciśnij aby analizować", "Możesz dodać dane pojazdu lub opis", "Kliknij przycisk aby uruchomić AI", "Dodaj kody OBD-II w kontekście"],
+            readyForAnalysis: "Gotowy do analizy",
+            loading: "Wczytuję...",
+            loaded: "Załadowano",
+            contextReady: "Kontekst gotowy",
+            files: "pliki",
+            almostReady: "Prawie gotowe",
+            recordLive: "Nagraj live z kamery/mikrofonu",
+            addFromLibrary: "Dodaj plik z biblioteki",
+            aiInstruction: "Instrukcja od AI",
+            oneStepToDiagnosis: "Jeden krok do diagnozy",
+            step2: "Etap 2 · Test Diagnostyczny",
+            skipTest: "Nie mogę wykonać testu — pomiń i wydaj diagnozę",
+            preScanTips: "Wskazówki przed analizą",
+            howToGetDiagnosis: "Jak uzyskać trafną diagnozę?",
+            preScanList: [
+                { icon: '⚠️', tip: 'Przede wszystkim BHP! Uważaj na pracujący silnik, wentylatory, gorące elementy i ruszające pojazdy podczas nagrywania.' },
+                { icon: '🎙️', tip: 'Nagraj wyraźnie słyszalną usterkę — silnik na biegu jałowym, jazda próbna, stukanie. Minimum 1 sekunda, unikaj szumu wiatru.' },
+                { icon: '🚗', tip: 'Podaj markę, model i rocznik pojazdu — AI dopasuje bazę awarii do Twojego konkretnego silnika.' },
+                { icon: '📋', tip: 'Masz kody OBD-II lub wiesz kiedy problem występuje np. "przy zimnym starcie"? Dodaj to w Kontekście.' }
+            ]
         },
+        bike: { section: 'Sekcja Roweru', protips: 'Protipy: Jak ująć awarię na zdjęciu/wideo', title: 'Zrób zdjęcie kasety / detalu', subtitle: 'Szukamy zagiętych zębów, uszkodzeń ramy lub pęknięć. Zrób fotkę makro.', gallery: 'Zdjęcie z galerii', addContext: 'Dodaj Kontekst', targets: ['Napęd (Rozciągnięcie, Przeskoki)', 'Hamulce (Piszczenie, Tracie)', 'Suport (Trzaski podczas pedałowania)', 'Przerzutka (Problem zrzucania)', 'Amortyzator / Łożyska ramy', 'Inne'], status: { init: 'Inicjalizacja AI...', analyze: 'Analiza struktury ze zdjęcia/wideo...', check: 'Analiza elementów mechanicznych...', dev: 'Opracowywanie diagnozy rowerowej...' }, pendingHints: ["Gotowe do diagnozy usterek", "Podaj kontekst by zwiększyć trafność", "Graj lub zrób zdjęcie łańcucha"], selectElement: "Wybierz element", visualScan: "Skan Wizualny", visualScanDesc: "Zrób zdjęcie ewidentnych uszkodzeń", protipsTitle: "Wskazówki Bikerów", protipsList: [{ icon: '⚠️', tip: 'Unieś koło, wkręć pedał przed skanem napędu, aby dźwięk był sterylny.' }, { icon: '📸', tip: 'Wgrywając zdjęcie ramy, dbaj o silne oświetlenie pęknięć karbonu / spawu.' }] },
+        shazam: { title: 'Sonic Shazam', desc: 'Nagraj dźwięk silnika lub dodaj zdjęcie, aby inteligentna baza Sonic rozpoznała, z jakim autem masz do czynienia.', listening: 'Słucham...', status: { init: 'Inicjalizacja AI...', isoAudio: 'Izolowanie ścieżki dźwiękowej...', isoVisual: 'Analiza zdjęcia i kształtów...', search: 'Przeszukiwanie globalnej bazy modeli...', identify: 'Identyfikacja...' }, identificationComplete: 'Identyfikacja zakończona', askAiAboutThis: 'Zapytaj AI o ten element', screenshot: 'Zrzut ekranu', specs: { capacity: 'Pojemność', power: 'Moc szacunkowa', layout: 'Układ', type: 'Rodzaj' }, pendingHints: ["Dźwięk gotowy — naciśnij aby rozpoznać", "Możesz też dodać pliki z biblioteki", "Uruchom silnik AI"], tapToListen: "Dotknij, aby nasłuchiwać", protipsTitle: "Wskazówki Shazam", protipsList: [{ icon: '🌪️', tip: 'Unikaj wiatru — rejestruj wydech w miejscu osłoniętym od porywów wiatru.' }, { icon: '🔊', tip: 'Złap pełny dźwięk wkręcania silnika na wyższe obroty, nie tylko bieg jałowy.' }, { icon: '📸', tip: 'Wgrywając zdjęcie, upewnij się że detale (badge, zbieg wydechów) nie są zamazane.' }] },
+        instructions: { title: 'Jak poprawnie nagrać pod analizę', car: { light: 'Otwórz maskę (wyłącz radio i nawiew).', video: 'Nagrywaj wideo (Daje diagnozie dodatkowy kontekst z wibracji itp.).', secure: 'Zabezpiecz auto (hamulec ręczny, bieg jałowy/P). Uważaj na ruchome elementy silnika!', steps: 'Zrób to w 3 krokach: Odpal silnik → poczekaj 5 sekund → lekko dodaj gazu.' }, bike: { light: 'Zadbaj o światło. Rób zdjęcie kasety/napędu w dobrze oświetlonym miejscu.', video: 'Jeśli nagrywasz wideo kręć korbą ręcznie unikając wiatru i nagraj prosto przerzutkę.', stable: 'Utrzymaj stabilność. Oprzyj rower lub postaw go na nóżce. Nie nagrywaj z ręki w trakcie jazdy!' } },
         settings: {
             title: 'Ustawienia',
             logout: 'Wyloguj się',
-            tabs: {
-                profile: 'Moje Konto',
-                history: 'Historia analiz',
-                preferences: 'Preferencje',
-                notifications: 'Powiadomienia',
-                security: 'Bezpieczeństwo'
-            },
-            preferences: {
-                title: 'Preferencje',
-                desc: 'Zarządzaj ustawieniami języka, wyglądu i regionu.',
-                langTitle: 'Język aplikacji',
-                langDesc: 'Wybierz język, w którym chcesz korzystać z interfejsu.',
-                themeTitle: 'Motyw',
-                themeDesc: 'Dostosuj wygląd aplikacji do swoich preferencji.',
-                themes: { system: 'Systemowy', light: 'Jasny', dark: 'Ciemny', pink: 'Różowy' }
-            },
+            tabs: { profile: 'Twój Profil', history: 'Historia analiz', preferences: 'Preferencje', notifications: 'Powiadomienia', security: 'Bezpieczeństwo' },
+            preferences: { title: 'Preferencje', desc: 'Zarządzaj ustawieniami języka, wyglądu i regionu.', langTitle: 'Język aplikacji', langDesc: 'Wybierz język, w którym chcesz korzystać z interfejsu.', themeTitle: 'Motyw', themeDesc: 'Dostosuj wygląd aplikacji do swoich preferencji.', themes: { system: 'Systemowy', light: 'Jasny', dark: 'Ciemny', pink: 'Różowy' } },
             history: {
                 title: 'Historia analiz',
-                desc: 'Przeglądaj swoje poprzednie diagnozy i wygenerowane raporty.'
+                desc: 'Przeglądaj swoje poprzednie diagnozy i wygenerowane raporty.',
+                loading: 'Ładowanie historii...',
+                empty: 'Brak historii analiz. Wykonaj swój pierwszy skan!',
+                noData: 'Brak danych',
+                identified: 'Rozpoznano',
+                highConfidence: 'Wysoka pewność',
+                requiresAttention: 'Wymaga uwagi',
+                anomalyDetected: 'Wykryto anomalię',
+                unknownVehicle: 'Nieznany pojazd',
+                diagnosis: 'Diagnoza'
             },
-            profile: {
-                title: 'Moje Konto',
-                desc: 'Zarządzaj swoimi danymi, portfelem i subskrypcją.',
-                photoTitle: 'Zdjęcie profilowe',
-                photoDesc: 'Zalecany rozmiar to 256x256px. Maksymalnie 2MB.',
-                changePhoto: 'Zmień zdjęcie',
-                name: 'Imię i nazwisko',
-                email: 'Adres email',
-                save: 'Zapisz zmiany'
-            },
-            comingSoon: {
-                title: 'Wkrótce dostępne',
-                desc: 'Ta sekcja ustawień jest w trakcie przygotowywania i będzie dostępna wkrótce.'
-            }
+            profile: { title: 'Twój Profil', desc: 'Zarządzaj swoimi danymi, portfelem i subskrypcją.', photoTitle: 'Zdjęcie profilowe', photoDesc: 'Zalecany rozmiar to 256x256px. Maksymalnie 2MB.', changePhoto: 'Zmień zdjęcie', name: 'Imię i nazwisko', email: 'Adres email', save: 'Zapisz zmiany', credits: 'Twoje Kredyty', noCredits: 'Brak środków', topupDesc: 'Doładuj konto, aby wykonywać nielimitowane, zaawansowane analizy z wykorzystaniem AI.', available: 'Dostępne Skanowania', buyPro: 'Doładuj Kredyty PRO', linkedDesc: 'Profil powiązany z kontem Google / Clerk.' },
+            comingSoon: { title: 'Wkrótce dostępne', desc: 'Ta sekcja ustawień jest w trakcie przygotowywania i będzie dostępna wkrótce.' }
         },
         chat: {
             title: 'Bezpieczne połączenie',
@@ -142,20 +137,41 @@ export const translations = {
             listening: 'Słucham...',
             scanObd: 'Skanuj kod OBD-II',
             moreInfo: 'Więcej informacji',
-            lessInfo: 'Zwiń szczegóły'
+            lessInfo: 'Zwiń szczegóły',
+            sorryNoUnderstand: 'Przepraszam, nie zrozumiałem.',
+            aiError: 'Błąd asystenta AI',
+            noResponse: 'Nie udało się uzyskać odpowiedzi',
+            tryAgainLater: 'Spróbuj ponownie za chwilę.',
+            savedDiagnoses: 'Zapisane Diagnozy',
+            noHistory: 'Brak historii',
+            chatLocked: 'Zablokowany dostęp do czatu. Odblokuj pełny raport, aby rozmawiać z asystentem.',
+            sessionEnded: 'Sesja konsultacyjna dla tego raportu została zakończona.',
+            back: 'Wróć',
+            history: 'Historia czatów',
+            greeting: 'Witaj! Przeanalizowałem Twój raport: {title}. Posiadam pełną wiedzę na temat tej usterki oraz ogólną wiedzę mechaniczną. W czym mogę Ci dzisiaj pomóc?',
+            defaultMsgs: [
+                { text: 'Dzień dobry. Jestem Twoim wirtualnym asystentem serwisowym. W czym mogę dzisiaj pomóc? Proszę opisać problem z pojazdem.', sender: 'ai' },
+                { text: 'Gdy hamuję, słyszę dziwne piszczenie z przodu samochodu. Co to może być?', sender: 'user' },
+                { text: 'Piszczenie przy hamowaniu to najczęściej objaw zużytych klocków hamulcowych. Wiele z nich posiada czujniki akustyczne, które celowo emitują taki dźwięk, gdy kończy się okładzina cierna.\n\nCzy odczuwasz również drżenie kierownicy podczas hamowania?', sender: 'ai', detailedInfo: 'Potencjalne przyczyny:\n• Zużyte klocki hamulcowe (najczęstsza przyczyna).\n• Zanieczyszczenia (piasek, kamyki) między klockiem a tarczą.\n• Zeszklenie powierzchni klocka z powodu przegrzania.\n• Brak smarowania na prowadnicach zacisku.\n\nRekomendowane działanie:\nWeryfikacja grubości okładzin ciernych, czyszczenie jarzma i smarowanie prowadnic.' }
+            ]
         },
         context: {
             title: 'Kontekst usterki',
             subtitle: 'Pomóż AI dokładniej zdiagnozować problem',
-            mileageBike: 'Przebieg napędu / roweru (Opcjonalnie)',
+            mileageBike: 'Typ roweru (Opcjonalnie)',
             mileageCar: 'Przebieg pojazdu (Opcjonalnie)',
-            mileageBikePh: 'np. 2000 km na tym łańcuchu...',
+            mileageBikePh: 'np. MTB, Szosa, Gravel...',
             mileageCarPh: 'np. 150 000 km...',
+            obdTitle: 'Kody błędów OBD-II (Opcjonalnie)',
+            obdPh: 'np. P0300, P0171',
+            obdBike: 'Model osprzętu (Opcjonalnie)',
+            obdBikePh: 'np. Shimano Deore, SRAM GX...',
             descTitle: 'Opis problemu',
             descBikePh: 'Np. podczas podjazdu pod górę przeskakuje łańcuch na twardych biegach...',
             descCarPh: 'Np. słychać metaliczne stukanie przy dodawaniu gazu...',
+            attachmentTooltip: 'Dołącz dodatkowe zdjęcia/wideo (np. kody błędów, uszkodzenia)',
             quickTagsTitle: 'Szybkie tagi (objawy)',
-            quickTagsBike: ['Przeskakuje', 'Piszczy/Ociera', 'Trzeszczy przy pedałowaniu', 'Źle zrzuca biegi', 'Miękka klamka', 'Bije na boki'],
+            quickTagsBike: ['Przeskakuje', 'Trzeszczy/Piszczy', 'Ociera', 'Luzy', 'Miękka klamka'],
             quickTagsCar: ['Stukanie', 'Piszczenie', 'Brak mocy', 'Szarpie', 'Dymi', 'Nierówna praca'],
             whenOccurs: 'Kiedy występuje?',
             whenBike: ['Pod obciążeniem (podjazd)', 'Na sucho', 'Cały czas', 'Przy hamowaniu'],
@@ -193,27 +209,71 @@ export const translations = {
             advanced: 'Zaawansowana',
             obdCodes: 'Powiązane kody OBD-II:',
             toolsNeeded: 'Potrzebne Narzędzia',
-            partsCost: 'Kategoria kosztów części:'
+            partsCost: 'Kategoria kosztów części:',
+            unlockReport: 'Odblokuj Pełny Raport',
+            unlockSpecs: 'Odblokuj Dane Techniczne',
+            confidenceScore: 'Pewności',
+            estimatedCost: 'Szacunkowy koszt naprawy',
+            partsCostEst: 'Szacunkowy koszt części',
+            askAiAboutReport: 'Zapytaj AI o ten raport',
+            confidenceNote: "Wysoka zgodność z wzorcami uszkodzeń mechanicznych z bazy danych.",
+            repairStages: { diagnosis: 'Diagnoza', teardown: 'Demontaż', replacement: 'Wymiana', assembly: 'Montaż', cleaning: 'Czyszczenie', testing: 'Testy' },
+            labels: { recorded: 'Zarejestrowano:', characteristics: 'Charakterystyka:', hoursUnit: 'rbh', minutesUnit: 'min', diyTitle: 'Przewodnik Naprawy DIY', mechanicTitle: 'Przewodnik dla Mechanika (Zabezpiecz się)', partsCostTitle: 'Szacunkowy koszt części', chain: 'Łańcuch', cassette: 'Kaseta' },
+            tools: {
+                chainBreaker: 'Skuwacz łańcucha', cassetteTool: 'Klucz do kaset (Bacik)', hexKey: 'Imbus 5mm', gloves: 'Rękawiczki smarne',
+                verify: 'Weryfikacja przymiarem',
+                verifyDesc: 'Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.',
+                cassetteToolTitle: 'Skuwacz i Bacik',
+                cassetteToolDesc: 'Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego huku oraz klucza francuskiego i tzw. "bacika" na kasetę.',
+                replacementTitle: 'Wymiana komponentów',
+                replacementDesc: 'Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).',
+                adjustmentTitle: 'Regulacja przerzutki',
+                adjustmentDesc: 'Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.'
+            }
+        },
+        modals: {
+            login: {
+                title: "Wymagane logowanie",
+                desc: "Zaloguj się, aby przejść do analizy i otrzymać darmowe skany diagnostyczne wspierane przez AI.",
+                btn: "Zaloguj się",
+                cancel: "Anuluj"
+            },
+            noCredits: {
+                buyBtn: "Kup 3 skany PRO za 29 PLN",
+                maybeLater: "Może później"
+            },
+            pricing: {
+                title: "Pełny Raport Zablokowany",
+                desc: "Dostęp do ukrytych sekcji, w tym wycen, zaleceń i przewodnika DIY, wymaga odblokowania raportu.",
+                unlock: '19.99 PLN',
+                unlockTitle: "Odblokuj Raport",
+                unlockDesc: "Dostęp do tej jednej diagnozy na zawsze.",
+                bundle: '39.99 PLN',
+                bundleTitle: "Pakiet 3 Raportów",
+                bundleDesc: "Ten i 2 dodatkowe raporty z czatem AI.",
+                analysis: "Pełna analiza dźwięku",
+                diy: "Przewodnik naprawy DIY",
+                valuation: "Koszty i wycena naprawy",
+                credits: "Zapisywane kredyty na koncie",
+                chat: "Czat z AI dla każdego raportu",
+                priority: "Priorytetowe skanowanie",
+                bestValue: "Najlepszy wybór",
+                loading: "Ładowanie...",
+                buy: "Wykup Pakiet"
+            }
         }
     },
     en: {
-        nav: {
-            auto: 'Auto',
-            rower: 'bike',
-            shazam: 'shazam',
-        },
+        nav: { auto: 'Auto', rower: 'bike', shazam: 'shazam' },
         cancel: 'Cancel',
         demoMode: 'Demo Mode',
         loading: 'Analyzing...',
         loadingAI: 'AI Analysis in progress...',
         understand: 'I understand',
         dontShow: 'Do not show again',
-        disclaimer: {
-            checkbox: 'I accept ',
-            link: 'Terms and AI Disclaimers',
-            fullText: 'I understand that Sonic is an AI assistant, not a certified mechanic. Results are for informational purposes only, and a workshop should be consulted before making driving decisions. The creators are not responsible for damages.',
-            shortNote: 'Using the application means accepting the fact that AI can generate incorrect information.'
-        },
+        languages: { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish' },
+        auth: { login: 'Sign In', account: 'Account' },
+        disclaimer: { checkbox: 'I accept ', link: 'Terms and AI Disclaimers', fullText: 'I understand that Sonic is an AI assistant, not a certified mechanic. Results are for informational purposes only, and a workshop should be consulted before making driving decisions. The creators are not responsible for damages.', shortNote: 'Using the application means accepting the fact that AI can generate incorrect information.' },
         auto: {
             vehicleData: 'Vehicle Data',
             vehicleDataSub: 'Enter parameters manually to help diagnosis',
@@ -235,95 +295,97 @@ export const translations = {
             uploadContext: 'Add context',
             status: {
                 init: 'Initializing AI...',
-                iso: 'Isolating background noise...',
-                search: 'Searching fault database...',
-                dev: 'Developing diagnosis...'
-            }
-        },
-        bike: {
-            section: 'Bike Section',
-            protips: 'Pro tips: How to capture the fault',
-            title: 'Take a photo of the cassette / detail',
-            subtitle: 'Looking for bent teeth, frame damage or cracks. Take a macro shot.',
-            gallery: 'Photo from gallery',
-            addContext: 'Add Context',
-            targets: [
-                'Drivetrain (Stretching, Skipping)',
-                'Brakes (Squeaking, Rubbing)',
-                'Bottom Bracket (Creaking when pedaling)',
-                'Derailleur (Shifting problem)',
-                'Shock absorber / Frame bearings'
-            ],
-            status: {
-                init: 'Initializing AI...',
-                analyze: 'Analyzing structure from photo/video...',
-                check: 'Checking chainring condition and damage...',
-                dev: 'Developing bike diagnosis...'
-            }
-        },
-        shazam: {
-            title: 'Sonic Shazam',
-            desc: 'Record engine sound or add a photo so Sonic intelligent database can recognize the car.',
-            listening: 'Listening...',
-            status: {
-                init: 'Initializing AI...',
-                isoAudio: 'Isolating audio track...',
-                isoVisual: 'Analyzing photo and shapes...',
-                search: 'Searching global model database...',
-                identify: 'Identifying...'
-            }
-        },
-        instructions: {
-            title: 'How to record correctly for analysis',
-            car: {
-                light: 'Open the hood (turn off radio and AC).',
-                video: 'Record a video (Gives diagnosis additional context from vibrations etc.).',
-                secure: 'Secure the car (handbrake, neutral/P). Watch out for moving engine parts!',
-                steps: 'Do it in 3 steps: Start engine → wait 5 seconds → slightly press gas.'
+                cloud: 'Connecting to cloud...',
+                uploading: 'Uploading to GCS...',
+                analyze: 'Analyze now',
+                audio: 'Audio analysis...',
+                engine: 'Checking engine...',
+                db: 'Searching database...',
+                error: 'Analysis error',
+                ready: 'Ready for analysis'
             },
-            bike: {
-                light: 'Take care of light. Take a photo of the cassette/drivetrain in a well-lit place.',
-                video: 'If recording a video, turn the crank manually avoiding wind and record the derailleur straight.',
-                stable: 'Keep stable. Lean the bike or put it on a kickstand. Do not record handheld while riding!'
-            }
+            errors: {
+                recordFirst: 'Record fault sound first!',
+                minDuration: 'Recording must be at least 1 second long!',
+                maxVideoDuration: 'Video cannot be longer than 60 seconds. Please shorten it.',
+                checkoutFailed: 'Failed to start payment. Please try again later.',
+                fileTooLarge: 'File is too large',
+                maxSize: 'Maximum size is',
+                uploadFailed: 'File upload error.',
+                serverError: 'Server returned an error:',
+                noDiagnosis: 'AI did not return diagnosis data.',
+                unexpectedResponse: 'Unexpected response structure from AI. Try again.',
+                generalError: 'An unexpected error occurred.',
+                maxVideos: 'You can add maximum 1 video.',
+                maxImages: 'You can add maximum 3 images.',
+                maxAudio: 'You can add maximum 1 audio/video file.',
+                recordFailed: 'Failed to record audio. Try again.'
+            },
+            labels: {
+                mileage: 'Mileage:',
+                obdCodes: 'OBD-II Codes:',
+                condition: 'Circumstances:',
+                tags: 'Tags:',
+                description: 'Description:',
+                loading: 'Loading...',
+                ready: 'Ready',
+                addData: 'Add vehicle data and context',
+                analyzeNow: 'I understand — analyze now',
+                noContextTitle: 'No context',
+                noContextDesc: 'You uploaded a file but did not provide vehicle data or fault context. AI without hints (vehicle make, etc.) may issue a less precise diagnosis.',
+                fillData: 'Fill in vehicle data',
+                continueWithoutContext: 'Continue without context',
+                closeAndTryAgain: 'Close and try again'
+            },
+            noCredits: {
+                title: 'No free scans left',
+                desc: 'You have used your free diagnostic credit. Buy the PRO package to get unlimited access to our advanced AI.'
+            },
+            pendingHints: ["File ready — press to analyze", "You can add vehicle data or description", "Click the button to start AI", "Add OBD-II codes in context"],
+            readyForAnalysis: "Ready for analysis",
+            loading: "Loading...",
+            loaded: "Loaded",
+            contextReady: "Context ready",
+            files: "files",
+            almostReady: "Almost ready",
+            recordLive: "Record live from camera/mic",
+            addFromLibrary: "Add file from library",
+            aiInstruction: "AI Instruction",
+            oneStepToDiagnosis: "One step to diagnosis",
+            step2: "Step 2 · Diagnostic Test",
+            skipTest: "I cannot perform the test — skip and issue diagnosis",
+            preScanTips: "Pre-scan tips",
+            howToGetDiagnosis: "How to get a correct diagnosis?",
+            preScanList: [
+                { icon: '⚠️', tip: 'Safety first! Watch out for running engine, fans, hot elements and moving vehicles while recording.' },
+                { icon: '🎙️', tip: 'Record a clearly audible fault — engine idle, test drive, knocking. Minimum 1 second, avoid wind noise.' },
+                { icon: '🚗', tip: 'Provide vehicle make, model and year — AI will match the fault database to your specific engine.' },
+                { icon: '📋', tip: 'Do you have OBD-II codes or know when the problem occurs e.g. "on cold start"? Add it in Context.' }
+            ]
         },
+        bike: { section: 'Bike Section', protips: 'Pro tips: How to capture the fault', title: 'Take a photo of the cassette / detail', subtitle: 'Looking for bent teeth, frame damage or cracks. Take a macro shot.', gallery: 'Photo from gallery', addContext: 'Add Context', targets: ['Drivetrain (Stretching, Skipping)', 'Brakes (Squeaking, Rubbing)', 'Bottom Bracket (Creaking when pedaling)', 'Derailleur (Shifting problem)', 'Shock absorber / Frame bearings', 'Other'], status: { init: 'Initializing AI...', analyze: 'Analyzing structure from photo/video...', check: 'Analyzing mechanical components...', dev: 'Developing bike diagnosis...' }, pendingHints: ["Ready for fault diagnosis", "Provide context to increase accuracy", "Play sound or take a photo of the chain"], selectElement: "Select component", visualScan: "Visual Scan", visualScanDesc: "Take a photo of evident damage", protipsTitle: "Biker Tips", protipsList: [{ icon: '⚠️', tip: 'Lift the wheel, spin the pedal before scanning to keep sound clean.' }, { icon: '📸', tip: 'When uploading frame photo, ensure strong lighting on carbon cracks/welds.' }] },
+        shazam: { title: 'Sonic Shazam', desc: 'Record engine sound or add a photo so Sonic intelligent database can recognize the car.', listening: 'Listening...', status: { init: 'Initializing AI...', isoAudio: 'Isolating audio track...', isoVisual: 'Analyzing photo and shapes...', search: 'Searching global model database...', identify: 'Identifying...' }, identificationComplete: 'Identification Complete', askAiAboutThis: 'Ask AI about this part', screenshot: 'Screenshot', specs: { capacity: 'Capacity', power: 'Estimated Power', layout: 'Layout', type: 'Type' }, pendingHints: ["Sound ready — press to recognize", "You can also add files from library", "Start AI engine"], tapToListen: "Tap to listen", protipsTitle: "Shazam Tips", protipsList: [{ icon: '🌪️', tip: 'Avoid wind — record exhaust in a place sheltered from wind gusts.' }, { icon: '🔊', tip: 'Catch the full engine rev sound, not just idle.' }, { icon: '📸', tip: 'When uploading photo, ensure details (badge, exhaust) are not blurred.' }] },
+        instructions: { title: 'How to record correctly for analysis', car: { light: 'Open the hood (turn off radio and AC).', video: 'Record a video (Gives diagnosis additional context from vibrations etc.).', secure: 'Secure the car (handbrake, neutral/P). Watch out for moving engine parts!', steps: 'Do it in 3 steps: Start engine → wait 5 seconds → slightly press gas.' }, bike: { light: 'Take care of light. Take a photo of the cassette/drivetrain in a well-lit place.', video: 'If recording a video, turn the crank manually avoiding wind and record the derailleur straight.', stable: 'Keep stable. Lean the bike or put it on a kickstand. Do not record handheld while riding!' } },
         settings: {
             title: 'Settings',
             logout: 'Log out',
-            tabs: {
-                profile: 'Profile',
-                history: 'Analysis History',
-                preferences: 'Preferences',
-                notifications: 'Notifications',
-                security: 'Security'
-            },
-            preferences: {
-                title: 'Preferences',
-                desc: 'Manage language, appearance and region settings.',
-                langTitle: 'App Language',
-                langDesc: 'Choose the language for the interface.',
-                themeTitle: 'Theme',
-                themeDesc: 'Customize the appearance of the app.',
-                themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' }
-            },
+            tabs: { profile: 'Your Profile', history: 'Analysis History', preferences: 'Preferences', notifications: 'Notifications', security: 'Security' },
+            preferences: { title: 'Preferences', desc: 'Manage language, appearance and region settings.', langTitle: 'App Language', langDesc: 'Choose the language for the interface.', themeTitle: 'Theme', themeDesc: 'Customize the appearance of the app.', themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' } },
             history: {
                 title: 'Analysis History',
-                desc: 'Browse your previous diagnoses and generated reports.'
+                desc: 'Browse your previous diagnoses and generated reports.',
+                unknownVehicle: 'Unknown vehicle',
+                diagnosis: 'Diagnosis',
+                loading: 'Loading history...',
+                empty: 'No analysis history. Perform your first scan!',
+                noData: 'No data',
+                identified: 'Identified',
+                highConfidence: 'High confidence',
+                requiresAttention: 'Requires attention',
+                anomalyDetected: 'Anomaly detected',
             },
-            profile: {
-                title: 'Profile',
-                desc: 'Manage your personal data.',
-                photoTitle: 'Profile Photo',
-                photoDesc: 'Recommended size is 256x256px. Max 2MB.',
-                changePhoto: 'Change photo',
-                name: 'Full Name',
-                email: 'Email address',
-                save: 'Save changes'
-            },
-            comingSoon: {
-                title: 'Coming Soon',
-                desc: 'This settings section is under development and will be available soon.'
-            }
+            profile: { title: 'Your Profile', desc: 'Manage your personal data, wallet and subscription.', photoTitle: 'Profile Photo', photoDesc: 'Recommended size is 256x256px. Max 2MB.', changePhoto: 'Change photo', name: 'Full Name', email: 'Email address', save: 'Save changes', credits: 'Your Credits', noCredits: 'No balance', topupDesc: 'Top up your account to perform unlimited advanced AI analysis.', available: 'Available Scans', buyPro: 'Top up PRO Credits', linkedDesc: 'Profile linked to Google / Clerk account.' },
+            comingSoon: { title: 'Coming Soon', desc: 'This settings section is under development and will be available soon.' }
         },
         chat: {
             title: 'Secure Connection',
@@ -337,20 +399,41 @@ export const translations = {
             listening: 'Listening...',
             scanObd: 'Scan OBD-II code',
             moreInfo: 'More info',
-            lessInfo: 'Hide details'
+            lessInfo: 'Hide details',
+            sorryNoUnderstand: 'Sorry, I did not understand.',
+            aiError: 'AI Assistant Error',
+            noResponse: 'Failed to get a response',
+            tryAgainLater: 'Please try again later.',
+            savedDiagnoses: 'Saved Diagnoses',
+            noHistory: 'No history',
+            chatLocked: 'Chat access locked. Unlock the full report to talk with the assistant.',
+            sessionEnded: 'The consultation session for this report has ended.',
+            back: 'Back',
+            history: 'Chat history',
+            greeting: 'Hello! I have analyzed your report: {title}. I have full knowledge of this fault and general mechanical knowledge. How can I help you today?',
+            defaultMsgs: [
+                { text: 'Good morning. I am your virtual service assistant. How can I help you today? Please describe the problem with your vehicle.', sender: 'ai' },
+                { text: 'When I brake, I hear a strange squeaking from the front of the car. What could it be?', sender: 'user' },
+                { text: 'Squeaking while braking is most often a symptom of worn brake pads. Many of them have acoustic sensors that intentionally emit such a sound when the friction lining ends.\n\nDo you also feel steering wheel vibration while braking?', sender: 'ai', detailedInfo: 'Potential causes:\n• Worn brake pads (most common cause).\n• Contamination (sand, pebbles) between the pad and the disc.\n• Glazing of the pad surface due to overheating.\n• Lack of lubrication on the caliper guides.\n\nRecommended action:\nVerify friction lining thickness, clean the yoke and lubricate the guides.' }
+            ]
         },
         context: {
             title: 'Fault context',
             subtitle: 'Help AI diagnose the problem more accurately',
-            mileageBike: 'Drivetrain / bike mileage (Optional)',
+            mileageBike: 'Bike type (Optional)',
             mileageCar: 'Vehicle mileage (Optional)',
-            mileageBikePh: 'e.g. 2000 km on this chain...',
+            mileageBikePh: 'e.g. MTB, Road, Gravel...',
             mileageCarPh: 'e.g. 150 000 km...',
+            obdTitle: 'OBD-II Error Codes (Optional)',
+            obdPh: 'e.g. P0300, P0171',
+            obdBike: 'Drivetrain model (Optional)',
+            obdBikePh: 'e.g. Shimano Deore, SRAM GX...',
             descTitle: 'Problem description',
             descBikePh: 'E.g. chain skips on hard gears when riding uphill...',
             descCarPh: 'E.g. metallic knocking sound when accelerating...',
+            attachmentTooltip: 'Attach additional photos/videos (e.g. error codes, damage)',
             quickTagsTitle: 'Quick tags (symptoms)',
-            quickTagsBike: ['Skips', 'Squeaks/Rubs', 'Creaks when pedaling', 'Poor shifting', 'Soft lever', 'Wobbles'],
+            quickTagsBike: ['Skipping', 'Creaking/Squeaking', 'Rubbing', 'Loose bearing', 'Spongy brake'],
             quickTagsCar: ['Knocking', 'Squeaking', 'No power', 'Jerking', 'Smoking', 'Uneven run'],
             whenOccurs: 'When does it occur?',
             whenBike: ['Under load (uphill)', 'Dry', 'All the time', 'When braking'],
@@ -388,33 +471,77 @@ export const translations = {
             advanced: 'Advanced',
             obdCodes: 'Related OBD-II codes:',
             toolsNeeded: 'Required Tools',
-            partsCost: 'Parts cost category:'
+            partsCost: 'Parts cost category:',
+            unlockReport: 'Unlock Full Report',
+            unlockSpecs: 'Unlock Technical Data',
+            confidenceScore: 'Confidence',
+            estimatedCost: 'Estimated repair cost',
+            partsCostEst: 'Estimated parts cost',
+            askAiAboutReport: 'Ask AI about this report',
+            confidenceNote: "High match with mechanical failure patterns from database.",
+            repairStages: { diagnosis: 'Diagnosis', teardown: 'Teardown', replacement: 'Replacement', assembly: 'Assembly', cleaning: 'Cleaning', testing: 'Testing' },
+            labels: { recorded: 'Recorded:', characteristics: 'Characteristics:', hoursUnit: 'hrs', minutesUnit: 'min', diyTitle: 'DIY Repair Guide', mechanicTitle: 'Mechanic Guide (Safety First)', partsCostTitle: 'Estimated parts cost', chain: 'Chain', cassette: 'Cassette' },
+            tools: {
+                chainBreaker: 'Chain breaker', cassetteTool: 'Cassette tool', hexKey: 'Hex key 5mm', gloves: 'Work gloves',
+                verify: 'Chain wear verification',
+                verifyDesc: 'To be sure, insert a chain checker into the chain. If the 1.0 indicator fits fully into the link - the diagnosis is 100% correct.',
+                cassetteToolTitle: 'Chain Breaker and Whip',
+                cassetteToolDesc: 'You will need bike tools: a chain breaker to break the old chain and a wrench and so-called "whip" for the cassette.',
+                replacementTitle: 'Component Replacement',
+                replacementDesc: 'Remove the old cassette, put on a new one ensuring speed compatibility. Measure and shorten the new chain by attaching it with a master link (Quick-Link).',
+                adjustmentTitle: 'Derailleur Adjustment',
+                adjustmentDesc: 'After installing new components, gently adjust the tension of the rear derailleur bolt (barrel adjuster) for precise shifting.'
+            }
+        },
+        modals: {
+            login: {
+                title: "Login Required",
+                desc: "Sign in to proceed to analysis and receive free AI-powered diagnostic scans.",
+                btn: "Sign In",
+                cancel: "Cancel"
+            },
+            noCredits: {
+                buyBtn: "Buy 3 PRO scans for $9.99",
+                maybeLater: "Maybe later"
+            },
+            pricing: {
+                title: "Full Report Locked",
+                desc: "Access to hidden sections, including valuations, recommendations, and DIY guide, requires unlocking the report.",
+                unlock: '$4.99',
+                unlockTitle: "Unlock Report",
+                unlockDesc: "Permanent access to this single diagnosis.",
+                bundle: '$9.99',
+                bundleTitle: "3 Reports Bundle",
+                bundleDesc: "This and 2 additional reports with AI chat.",
+                analysis: "Full audio analysis",
+                diy: "DIY repair guide",
+                valuation: "Costs and repair valuation",
+                credits: "Credits saved on account",
+                chat: "AI Chat for every report",
+                priority: "Priority scanning",
+                bestValue: "Best value",
+                loading: "Loading...",
+                buy: "Get Bundle"
+            }
         }
     },
     de: {
-        nav: {
-            auto: 'Auto',
-            rower: 'Fahrrad',
-            shazam: 'Shazam',
-        },
+        nav: { auto: 'Auto', rower: 'Fahrrad', shazam: 'Shazam' },
         cancel: 'Abbrechen',
         demoMode: 'Demo-Modus',
         loading: 'Analyse läuft...',
         loadingAI: 'KI-Analyse läuft...',
         understand: 'Ich verstehe',
         dontShow: 'Nicht mehr anzeigen',
-        disclaimer: {
-            checkbox: 'Ich akzeptiere ',
-            link: 'Bedingungen und KI-Haftungsausschluss',
-            fullText: 'Ich verstehe, dass Sonic ein KI-Assistent ist, kein zertifizierter Mechaniker. Die Ergebnisse dienen nur zu Informationszwecken. Vor Fahrbescheiden sollte eine Werkstatt konsultiert werden. Die Ersteller haften nie für Schäden.',
-            shortNote: 'Die Nutzung der Anwendung bedeutet die Akzeptanz der Tatsache, dass die KI fehlerhafte Informationen generieren kann.'
-        },
+        languages: { pl: 'Polnisch', en: 'Englisch', de: 'Deutsch', es: 'Spanisch' },
+        auth: { login: 'Anmelden', account: 'Konto' },
+        disclaimer: { checkbox: 'Ich akzeptiere ', link: 'Bedingungen und KI-Haftungsausschluss', fullText: 'Ich verstehe, dass Sonic ein KI-Assistent ist, kein zertifizierter Mechaniker. Die Ergebnisse dienen nur zu Informationszwecken. Vor Fahrbescheiden sollte eine Werkstatt konsultiert werden. Die Ersteller haften nie für Schäden.', shortNote: 'Die Nutzung der Anwendung bedeutet die Akzeptanz der Tatsache, dass die KI fehlerhafte Informationen generieren kann.' },
         auto: {
             vehicleData: 'Fahrzeugdaten',
             vehicleDataSub: 'Parameter manuell eingeben, um die Diagnose zu unterstützen',
             makeModelPlaceholder: 'Marke & Modell (z.B. Passat B8)',
             yearEnginePlaceholder: 'Jahr, Motor (z.B. 2017 2.0 TDI)',
-            protips: 'Pro-Tipps für bessere Ergebnisse',
+            protips: 'Pro-Tipps for bessere Ergebnisse',
             visualTitle: 'Foto oder Video aufnehmen',
             visualSub: 'Erkennung basierend auf sichtbaren Schäden',
             audioListening: 'Zuhören...',
@@ -430,160 +557,330 @@ export const translations = {
             uploadContext: 'Kontext hinzufügen',
             status: {
                 init: 'KI wird initialisiert...',
-                iso: 'Hintergrundgeräusche isolieren...',
-                search: 'Fehlerdatenbank wird durchsucht...',
-                dev: 'Diagnose wird entwickelt...'
-            }
+                cloud: 'Mit Cloud verbinden...',
+                uploading: 'Dateien werden hochgeladen...',
+                analyze: 'Jetzt analysieren',
+                audio: 'Audioanalyse...',
+                engine: 'Motor prüfen...',
+                db: 'Datenbank durchsuchen...',
+                error: 'Analysefehler',
+                ready: 'Bereit zur Analyse'
+            },
+            errors: {
+                recordFirst: 'Nehmen Sie zuerst den Fehler-Sound auf!',
+                minDuration: 'Die Aufnahme muss mindestens 1 Sekunde lang sein!',
+                maxVideoDuration: 'Das Video darf nicht länger als 60 Sekunden sein. Bitte kürzen Sie es.',
+                checkoutFailed: 'Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es später noch einmal.',
+                fileTooLarge: 'Datei ist zu groß',
+                maxSize: 'Maximale Größe ist',
+                uploadFailed: 'Fehler beim Hochladen der Datei.',
+                serverError: 'Serverfehler:',
+                noDiagnosis: 'KI hat keine Diagnosedaten zurückgegeben.',
+                unexpectedResponse: 'Unerwartete Antwortstruktur von der KI. Bitte versuchen Sie es erneut.',
+                generalError: 'Ein unerwarteter Fehler ist aufgetreten.',
+                maxVideos: 'Sie können maximal 1 Video hinzufügen.',
+                maxImages: 'Sie können maximal 3 Bilder hinzufügen.',
+                maxAudio: 'Sie können maximal 1 Audio/Video-Datei hinzufügen.',
+                recordFailed: 'Audioaufnahme fehlgeschlagen. Bitte versuchen Sie es erneut.'
+            },
+            noCredits: {
+                title: 'Keine kostenlosen Scans mehr',
+                desc: 'Sie haben Ihr kostenloses Diagnose-Guthaben aufgebraucht. Kaufen Sie das PRO-Paket, um unbegrenzten Zugriff auf unsere fortschrittliche KI zu erhalten.'
+            },
+            labels: {
+                mileage: 'Kilometerstand:',
+                obdCodes: 'OBD-II Codes:',
+                condition: 'Umstände:',
+                tags: 'Tags:',
+                description: 'Beschreibung:',
+                loading: 'Laden...',
+                ready: 'Bereit',
+                addData: 'Fahrzeugdaten und Kontext hinzufügen',
+                analyzeNow: 'Ich verstehe — jetzt analysieren',
+                noContextTitle: 'Kein Kontext',
+                noContextDesc: 'Sie haben eine Datei hochgeladen, aber keine Fahrzeugdaten oder Fehlerkontext angegeben. KI ohne Hinweise (Fahrzeugmarke usw.) kann eine ungenauere Diagnose ausstellen.',
+                fillData: 'Fahrzeugdaten ausfüllen',
+                continueWithoutContext: 'Ohne Kontext fortfahren',
+                closeAndTryAgain: 'Schließen und erneut versuchen'
+            },
+            pendingHints: ["Datei bereit — zum Analysieren drücken", "Sie können Fahrzeugdaten oder eine Beschreibung hinzufügen", "Klicken Sie auf die Schaltfläche, um die KI zu starten", "OBD-II-Codes im Kontext hinzufügen"],
+            readyForAnalysis: "Bereit zur Analyse",
+            loading: "Laden...",
+            loaded: "Geladen",
+            contextReady: "Kontext bereit",
+            files: "Dateien",
+            almostReady: "Fast fertig",
+            recordLive: "Live von Kamera/Mikrofon aufnehmen",
+            addFromLibrary: "Datei aus Bibliothek hinzufügen",
+            aiInstruction: "KI-Anweisung",
+            oneStepToDiagnosis: "Ein Schritt zur Diagnose",
+            step2: "Schritt 2 · Diagnosetest",
+            skipTest: "Ich kann den Test nicht durchführen — überspringen und Diagnose ausstellen",
+            preScanTips: "Tipps vor dem Scan",
+            howToGetDiagnosis: "Wie man eine korrekte Diagnose erhält?",
+            preScanList: [
+                { icon: '⚠️', tip: 'Sicherheit zuerst! Achten Sie beim Aufnehmen auf laufenden Motor, Ventilatoren, heiße Teile und sich bewegende Fahrzeuge.' },
+                { icon: '🎙️', tip: 'Nehmen Sie einen deutlich hörbaren Fehler auf — Leerlauf, Probefahrt, Klopfen. Mindestens 1 Sekunde, Windgeräusche vermeiden.' },
+                { icon: '🚗', tip: 'Geben Sie Marke, Modell und Jahr an — die KI passt die Fehlerdatenbank an Ihren Motor an.' },
+                { icon: '📋', tip: 'Haben Sie OBD-II-Codes oder wissen Sie, wann das Problem auftritt? Fügen Sie es im Kontext hinzu.' }
+            ]
         },
-        bike: {
-            section: 'Fahrrad-Bereich',
-            protips: 'Pro-Tipps: Wie man den Fehler aufnimmt',
-            title: 'Foto der Kassette / des Details machen',
-            subtitle: 'Wir suchen nach verbogenen Zähnen, Rahmenschäden oder Rissen. Machen Sie eine Makroaufnahme.',
-            gallery: 'Foto aus der Galerie',
-            addContext: 'Kontext hinzufügen',
-            targets: [
-                'Antrieb (Dehnung, Überspringen)',
-                'Bremsen (Quietschen, Reiben)',
-                'Tretlager (Knarren beim Treten)',
-                'Schaltwerk (Schaltproblem)',
-                'Stoßdämpfer / Rahmenlager'
-            ],
-            status: {
-                init: 'KI wird initialisiert...',
-                analyze: 'Struktur aus Foto/Video analysieren...',
-                check: 'Kettenblattzustand und Schäden prüfen...',
-                dev: 'Fahrraddiagnose wird entwickelt...'
-            }
-        },
+        bike: { section: 'Fahrrad-Bereich', protips: 'Pro-Tipps: Wie man den Fehler aufnimmt', title: 'Foto der Kassette / des Details machen', subtitle: 'Wir suchen nach verbogenen Zähnen, Rahmenschäden oder Rissen. Machen Sie eine Makroaufnahme.', gallery: 'Foto aus der Galerie', addContext: 'Kontext hinzufügen', targets: ['Antrieb (Dehnung, Überspringen)', 'Bremsen (Quietschen, Reiben)', 'Tretlager (Knarren beim Treten)', 'Schaltwerk (Schaltproblem)', 'Stoßdämpfer / Rahmenlager', 'Andere'], status: { init: 'KI wird initialisiert...', analyze: 'Struktur aus Foto/Video analysieren...', check: 'Mechanische Komponenten analysieren...', dev: 'Fahrraddiagnose wird entwickelt...' }, pendingHints: ["Bereit für Fehlerdiagnose", "Kontext angeben, um Genauigkeit zu erhöhen", "Ton abspielen oder Foto der Kette machen"], selectElement: "Element auswählen", visualScan: "Visueller Scan", visualScanDesc: "Foto von offensichtlichen Schäden machen", protipsTitle: "Biker-Tipps", protipsList: [{ icon: '⚠️', tip: 'Heben Sie das Rad an, drehen Sie das Pedal vor dem Scan, um den Ton sauber zu halten.' }, { icon: '📸', tip: 'Achten Sie beim Hochladen des Rahmenfotos auf starke Beleuchtung von Karbonrissen/Schweißnähten.' }] },
         shazam: {
             title: 'Sonic Shazam',
             desc: 'Nehmen Sie Motorgeräusche auf oder fügen Sie ein Foto hinzu, damit die intelligente Sonic-Datenbank das Auto erkennt.',
             listening: 'Zuhören...',
-            status: {
-                init: 'KI wird initialisiert...',
-                isoAudio: 'Audiospur isolieren...',
-                isoVisual: 'Foto und Formen analysieren...',
-                search: 'Globale Modelldatenbank durchsuchen...',
-                identify: 'Identifizieren...'
-            }
+            status: { init: 'KI wird initialisiert...', isoAudio: 'Audiospur isolieren...', isoVisual: 'Foto und Formen analysieren...', search: 'Globale Modelldatenbank durchsuchen...', identify: 'Identifizieren...' },
+            identificationComplete: 'Identifizierung abgeschlossen',
+            askAiAboutThis: 'KI zu diesem Teil befragen',
+            screenshot: 'Screenshot',
+            specs: { capacity: 'Hubraum', power: 'Geschätzte Leistung', layout: 'Layout', type: 'Typ' },
+            pendingHints: ["Ton bereit — zum Erkennen drücken", "Sie können auch Dateien aus der Bibliothek hinzufügen", "KI-Motor starten"],
+            tapToListen: "Tippen zum Zuhören",
+            protipsTitle: "Shazam-Tipps",
+            protipsList: [{ icon: '🌪️', tip: 'Wind vermeiden — Auspuff an einem windgeschützten Ort aufnehmen.' }, { icon: '🔊', tip: 'Den vollen Motordrehklang einfangen, nicht tylko Leerlauf.' }, { icon: '📸', tip: 'Achten Sie beim Hochladen des Fotos darauf, dass Details (Abzeichen, Auspuff) nicht verschwommen sind.' }]
         },
-        instructions: {
-            title: 'So nehmen Sie für die Analyse richtig auf',
-            car: {
-                light: 'Öffnen Sie die Motorhaube (Radio und Klima aus).',
-                video: 'Nehmen Sie ein Video auf (Gibt der Diagnose mehr Kontext durch Vibrationen etc.).',
-                secure: 'Sichern Sie das Auto (Handbremse, Neutral/P). Vorsicht vor beweglichen Teilen!',
-                steps: '3 Schritte: Motor starten → 5 Sekunden warten → leicht Gas geben.'
-            },
-            bike: {
-                light: 'Sorgen Sie für gutes Licht. Fotografieren Sie die Kassette an einem hellen Ort.',
-                video: 'Wenn Sie ein Video aufnehmen, drehen Sie die Kurbel manuell, vermeiden Sie Wind.',
-                stable: 'Bleiben Sie stabil. Lehnen Sie das Fahrrad an oder nutzen Sie den Ständer. Nicht während der Fahrt filmen!'
-            }
-        },
+        instructions: { title: 'So nehmen Sie für die Analyse richtig auf', car: { light: 'Öffnen Sie die Motorhaube (Radio und Klima aus).', video: 'Nehmen Sie ein Video auf (Gibt der Diagnose mehr Kontext durch Vibrationen etc.).', secure: 'Sichern Sie das Auto (Handbremse, Neutral/P). Vorsicht vor beweglichen Teilen!', steps: '3 Schritte: Motor starten → 5 Sekunden warten → leicht Gas geben.' }, bike: { light: 'Sorgen Sie für gutes Licht. Fotografieren Sie die Kassette an einem hellen Ort.', video: 'Wenn Sie ein Video aufnehmen, drehen Sie die Kurbel manuell, vermeiden Sie Wind.', stable: 'Bleiben Sie stabil. Lehnen Sie das Fahrrad an oder nutzen Sie den Ständer. Nicht während der Fahrt filmen!' } },
         settings: {
-            title: 'Einstellungen',
-            logout: 'Abmelden',
-            tabs: {
-                profile: 'Profil',
-                history: 'Analyse-Verlauf',
-                preferences: 'Präferenzen',
-                notifications: 'Benachrichtigungen',
-                security: 'Sicherheit'
-            },
-            preferences: {
-                title: 'Präferenzen',
-                desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.',
-                langTitle: 'App-Sprache',
-                langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.',
-                themeTitle: 'Design',
-                themeDesc: 'Passen Sie das Erscheinungsbild der App an.',
-                themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' }
-            },
+            title: 'Einstellungen', logout: 'Abmelden', tabs: { profile: 'Dein Profil', history: 'Analyse-Verlauf', preferences: 'Präferenzen', notifications: 'Benachrichtigungen', security: 'Sicherheit' }, preferences: { title: 'Präferenzen', desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.', langTitle: 'App-Sprache', langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.', themeTitle: 'Design', themeDesc: 'Passen Sie das Erscheinungsbild der App an.', themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' } },
             history: {
                 title: 'Analyse-Verlauf',
-                desc: 'Durchsuchen Sie frühere Diagnosen und generierte Berichte.'
+                desc: 'Durchsuchen Sie frühere Diagnosen und generierte Berichte.',
+                loading: 'Verlauf wird geladen...',
+                empty: 'Kein Analyse-Verlauf vorhanden. Führen Sie Ihren ersten Scan durch!',
+                noData: 'Keine Daten',
+                identified: 'Identifiziert',
+                highConfidence: 'Hohes Vertrauen',
+                requiresAttention: 'Erfordert Aufmerksamkeit',
+                anomalyDetected: 'Anomalie erkannt',
+                unknownVehicle: 'Unbekanntes Fahrzeug',
+                diagnosis: 'Diagnose'
             },
-            profile: {
-                title: 'Profil',
-                desc: 'Verwalten Sie Ihre persönlichen Daten.',
-                photoTitle: 'Profilfoto',
-                photoDesc: 'Empfohlene Größe 256x256px. Max 2MB.',
-                changePhoto: 'Foto ändern',
-                name: 'Vollständiger Name',
-                email: 'E-Mail-Adresse',
-                save: 'Änderungen speichern'
-            },
-            comingSoon: {
-                title: 'Demnächst',
-                desc: 'Dieser Einstellungsbereich befindet sich in der Entwicklung und ist bald verfügbar.'
-            }
+            profile: { title: 'Dein Profil', desc: 'Verwalten Sie Ihre persönlichen Daten.', photoTitle: 'Profilfoto', photoDesc: 'Empfohlene Größe 256x256px. Max 2MB.', changePhoto: 'Foto ändern', name: 'Vollständiger Name', email: 'E-Mail-Adresse', save: 'Änderungen speichern', credits: 'Deine Credits', noCredits: 'Kein Guthaben', topupDesc: 'Lade dein Konto für unbegrenzte, fortgeschrittene KI-Analysen auf.', available: 'Verfügbare Scans', buyPro: 'PRO-Credits kaufen', linkedDesc: 'Profil mit Google / Clerk verbunden.' }, comingSoon: { title: 'Demnächst', desc: 'Dieser Einstellungsbereich befindet sich in der Entwicklung und ist bald verfügbar.' }
         },
         chat: {
-            title: 'Sichere Verbindung',
-            newDiagnosis: 'Neue Diagnose',
-            today: 'Heute',
-            yesterday: 'Gestern',
-            last7days: 'Letzte 7 Tage',
-            obdPrompt: 'OBD-II Code eingeben (z.B. P0300)...',
-            msgPrompt: 'Schreiben Sie eine Nachricht...',
-            micNotSupported: 'Ihr Browser unterstützt keine Spracherkennung.',
-            listening: 'Zuhören...',
-            scanObd: 'OBD-II scannen',
-            moreInfo: 'Mehr Info',
-            lessInfo: 'Details ausblenden'
+            title: 'Sichere Verbindung', newDiagnosis: 'Neue Diagnose', today: 'Heute', yesterday: 'Gestern', last7days: 'Letzte 7 Tage', obdPrompt: 'OBD-II Code eingeben (z.B. P0300)...', msgPrompt: 'Schreiben Sie eine Nachricht...', micNotSupported: 'Ihr Browser unterstützt keine Spracherkennung.', listening: 'Zuhören...', scanObd: 'OBD-II scannen', moreInfo: 'Mehr Info', lessInfo: 'Details ausblenden', sorryNoUnderstand: 'Entschuldigung, das habe ich nicht verstanden.', aiError: 'KI-Assistent-Fehler', noResponse: 'Keine Antwort erhalten', tryAgainLater: 'Bitte versuchen Sie es später noch einmal.', savedDiagnoses: 'Gespeicherte Diagnosen', noHistory: 'Kein Verlauf', chatLocked: 'Chat-Zugang gesperrt. Schalten Sie den vollständigen Bericht frei, um mit dem Assistenten zu sprechen.', sessionEnded: 'Die Beratungssitzung für diesen Bericht wurde beendet.',
+            back: 'Zurück',
+            history: 'Chat-Verlauf',
+            greeting: 'Hallo! Ich habe Ihren Bericht analysiert: {title}. Ich verfüge über umfassende Kenntnisse zu diesem Fehler sowie über allgemeine mechanische Kenntnisse. Wie kann ich Ihnen heute helfen?',
+            defaultMsgs: [
+                { text: 'Guten Tag. Ich bin Ihr virtueller Service-Assistent. Wie kann ich Ihnen heute helfen? Bitte beschreiben Sie das Problem mit Ihrem Fahrzeug.', sender: 'ai' },
+                { text: 'Wenn ich bremse, höre ich ein seltsames Quietschen von der Vorderseite des Autos. Was könnte das sein?', sender: 'user' },
+                { text: 'Quietschen beim Bremsen ist meist ein Symptom für abgenutzte Bremsbeläge. Viele von ihnen haben akustische Sensoren, die absichtlich ein solches Geräusch abgeben, wenn der Reibbelag am Ende ist.\n\nSpüren Sie auch Vibrationen am Lenkrad beim Bremsen?', sender: 'ai', detailedInfo: 'Mögliche Ursachen:\n• Abgenutzte Bremsbeläge (häufigste Ursache).\n• Verschmutzung (Sand, Kieselsteine) zwischen Belag und Scheibe.\n• Verglasung der Belagoberfläche durch Überhitzung.\n• Fehlende Schmierung an den Bremssattelführungen.\n\nEmpfohlene Maßnahme:\nReibbelagstärke prüfen, Joch reinigen und Führungen schmieren.' }
+            ]
         },
-        context: {
-            title: 'Fehlerkontext',
-            subtitle: 'Helfen Sie der KI, das Problem genauer zu diagnostizieren',
-            mileageBike: 'Antriebs- / Fahrradlaufleistung (Optional)',
-            mileageCar: 'Fahrzeuglaufleistung (Optional)',
-            mileageBikePh: 'z.B. 2000 km auf dieser Kette...',
-            mileageCarPh: 'z.B. 150 000 km...',
-            descTitle: 'Problembeschreibung',
-            descBikePh: 'Z.B. Kette springt bei schweren Gängen bergauf über...',
-            descCarPh: 'Z.B. metallisches Klopfen beim Gasgeben...',
-            quickTagsTitle: 'Schnell-Tags (Symptome)',
-            quickTagsBike: ['Springt', 'Quietscht/Reibt', 'Knarrt beim Treten', 'Schlechte Schaltung', 'Weicher Hebel', 'Wackelt'],
-            quickTagsCar: ['Klopfen', 'Quietschen', 'Keine Leistung', 'Ruckeln', 'Raucht', 'Unrunder Lauf'],
-            whenOccurs: 'Wann tritt es auf?',
-            whenBike: ['Unter Last (bergauf)', 'Trocken', 'Die ganze Zeit', 'Beim Bremsen'],
-            whenCar: ['Die ganze Zeit', 'Kalter Motor', 'Warmer Motor', 'Beim Beschleunigen'],
-            visuals: 'Visuelle Anhänge',
-            addPhoto: 'Foto hinzufügen',
-            optional: 'Optional',
-            cancel: 'Abbrechen',
-            save: 'Kontext speichern'
+        context: { title: 'Fehlerkontext', subtitle: 'Helfen Sie der KI, das Problem genauer zu diagnostizieren', mileageBike: 'Fahrradtyp (Optional)', mileageCar: 'Fahrzeuglaufleistung (Optional)', mileageBikePh: 'z.B. MTB, Rennrad, Gravel...', mileageCarPh: 'z.B. 150 000 km...', obdTitle: 'OBD-II Fehlercodes (Optional)', obdPh: 'z.B. P0300, P0171', obdBike: 'Antriebsmodell (Optional)', obdBikePh: 'z.B. Shimano Deore, SRAM GX...', descTitle: 'Problembeschreibung', descBikePh: 'Z.B. Kette springt bei schweren Gängen bergauf über...', descCarPh: 'Z.B. metallisches Klopfen beim Gasgeben...', attachmentTooltip: 'Zusätzliche Fotos/Videos anhängen (z.B. Fehlercodes, Schäden)', quickTagsTitle: 'Schnell-Tags (Symptome)', quickTagsBike: ['Überspringen', 'Knarren/Quietschen', 'Reiben', 'Loses Lager', 'Schwammige Bremse'], quickTagsCar: ['Klopfen', 'Quietschen', 'Keine Leistung', 'Ruckeln', 'Raucht', 'Unrunder Lauf'], whenOccurs: 'Wann tritt es auf?', whenBike: ['Unter Last (bergauf)', 'Trocken', 'Die ganze Zeit', 'Beim Bremsen'], whenCar: ['Die ganze Zeit', 'Kalter Motor', 'Warmer Motor', 'Beim Beschleunigen'], visuals: 'Visuelle Anhänge', addPhoto: 'Foto hinzufügen', optional: 'Optional', cancel: 'Abbrechen', save: 'Kontext speichern' },
+        report: { title: 'Diagnosebericht', close: 'Bericht schließen', diagnosis: 'Diagnose', causes: 'Mögliche Ursachen', solutions: 'Empfohlene Lösungen', mechanic: 'Tipps für den Mechaniker', urgent: 'Problem erkannt', normal: 'Normal', confidence: 'KI-Sicherheit', newScan: 'Neuer Scan', audioAnalysis: 'Audioanalyse', inputAnalysis: 'Eingabeanalyse', aiReasoning: 'KI-Gedankengang', aiAlgorithm: 'KI-Erkennungsalgorithmus', recommendedActions: 'Empfohlene Maßnahmen', bikeWorkshop: 'Fahrradwerkstatt: Schritt für Schritt', analysisParams: 'Analyseparameter', repairData: 'Reparaturdaten', estimatedTime: 'Geschätzte Reparaturzeit', estimatedTimeWorkshop: 'Geschätzte Werkstattzeit', failureRisk: 'Ausfallrisiko', complexity: 'Komplexität', critical: 'Kritisch', advanced: 'Erweitert', obdCodes: 'Zugehörige OBD-II-Codes:', toolsNeeded: 'Benötigte Werkzeuge', partsCost: 'Teilekostenkategorie:', unlockReport: 'Vollständigen Bericht freischalten', unlockSpecs: 'Technische Daten freischalten', confidenceScore: 'Vertrauen', estimatedCost: 'Geschätzte Reparaturkosten', partsCostEst: 'Geschätzte Teilekosten', askAiAboutReport: 'KI zu diesem Bericht befragen', confidenceNote: "Hohe Übereinstimmung mit mechanischen Fehlermustern aus der Datenbank.", repairStages: { diagnosis: 'Diagnose', teardown: 'Demontage', replacement: 'Austausch', assembly: 'Montage', cleaning: 'Reinigung', testing: 'Testen' }, labels: { recorded: 'Aufgezeichnet:', characteristics: 'Eigenschaften:', hoursUnit: 'Std.', minutesUnit: 'Min.', diyTitle: 'DIY-Reparaturanleitung', mechanicTitle: 'Mechaniker-Leitfaden (Sicherheit zuerst)', partsCostTitle: 'Geschätzte Teilekosten', chain: 'Kette', cassette: 'Kassette' }, tools: { chainBreaker: 'Kettennieter', cassetteTool: 'Kassettenabzieher', hexKey: 'Inbusschlüssel 5mm', gloves: 'Arbeitshandschuhe', verify: 'Kettenverschleiß prüfen', verifyDesc: 'Um sicher zu sein, eine Kettenlehre in die Kette einführen. Fällt die 1,0-Markierung komplett in das Glied, stimmt die Diagnose zu 100 %.', cassetteToolTitle: 'Kettennieter und Peitsche', cassetteToolDesc: 'Sie benötigen Fahrradwerkzeuge: Einen Kettennieter zum Öffnen der alten Kette sowie einen Schraubenschlüssel und eine sogenannte "Kettenpeitsche" für die Kassette.', replacementTitle: 'Komponententausch', replacementDesc: 'Die alte Kassette abziehen, eine neue unter Beachtung der Gang-Kompatibilität aufstecken. Die neue Kette abmessen, kürzen und mit einem Kettenschloss (Quick-Link) befestigen.', adjustmentTitle: 'Schaltungseinstellung', adjustmentDesc: 'Nach der Montage der neuen Komponenten die Spannung der Schaltzugschraube (Zugspannungseinsteller) am Schaltwerk leicht anpassen, für präzises Schalten.' } },
+
+        modals: {
+            login: {
+                title: "Anmeldung erforderlich",
+                desc: "Melden Sie sich an, um mit der Analyse fortzufahren und kostenlose KI-gestützte Diagnosescans zu erhalten.",
+                btn: "Anmelden",
+                cancel: "Abbrechen"
+            },
+            noCredits: {
+                buyBtn: "3 PRO-Scans für 9,99 € kaufen",
+                maybeLater: "Vielleicht später"
+            },
+            pricing: {
+                title: "Vollständiger Bericht gesperrt",
+                desc: "Der Zugriff auf versteckte Abschnitte, einschließlich Bewertungen, Empfehlungen und DIY-Anleitungen, erfordert das Freischalten des Berichts.",
+                unlock: '4,99 €',
+                unlockTitle: "Bericht freischalten",
+                unlockDesc: "Dauerhafter Zugriff auf diese einzelne Diagnose.",
+                bundle: '9,99 €',
+                bundleTitle: "3-Berichte-Paket",
+                bundleDesc: "Dieser und 2 zusätzliche Berichte mit KI-Chat.",
+                analysis: "Vollständige Audioanalyse",
+                diy: "DIY-Reparaturanleitung",
+                valuation: "Kosten und Reparaturbewertung",
+                credits: "Guthaben auf dem Konto gespeichert",
+                chat: "KI-Chat für jeden Bericht",
+                priority: "Vorrangiges Scannen",
+                bestValue: "Beste Wahl",
+                loading: "Laden...",
+                buy: "Paket kaufen"
+            }
+        }
+    },
+    es: {
+        nav: { auto: 'Auto', rower: 'Bici', shazam: 'Shazam' },
+        cancel: 'Cancelar',
+        demoMode: 'Modo Demo',
+        loading: 'Analizando...',
+        loadingAI: 'Análisis de IA en curso...',
+        understand: 'Entiendo',
+        dontShow: 'No volver a mostrar',
+        languages: { pl: 'Polaco', en: 'Inglés', de: 'Alemán', es: 'Español' },
+        auth: { login: 'Iniciar sesión', account: 'Cuenta' },
+        disclaimer: { checkbox: 'Acepto ', link: 'Términos y Exenciones de IA', fullText: 'Entiendo que Sonic es un asistente de IA, no un mecánico certificado. Los resultados son solo para fines informativos y se debe consultar a un taller antes de conducir. Los creadores no son responsables de daños.', shortNote: 'El uso de la aplicación implica aceptar el hecho de que la IA puede generar información incorrecta.' },
+        auto: {
+            vehicleData: 'Datos del Vehículo',
+            vehicleDataSub: 'Ingresa los parámetros manualmente',
+            makeModelPlaceholder: 'Marca y Modelo (ej. Passat B8)',
+            yearEnginePlaceholder: 'Año, Motor (ej. 2017 2.0 TDI)',
+            protips: 'Consejos Pro',
+            visualTitle: 'Tomar foto o grabar',
+            visualSub: 'Reconocimiento visual',
+            audioListening: 'Escuchando...',
+            audioTap: 'Toca para diagnosticar',
+            audioOpening: 'Abriendo...',
+            audioSubReq: 'Se requiere micrófono',
+            audioSubDemo: 'Modo Demo de sonido',
+            audioSubSrc: 'Acerca el móvil',
+            noMic: 'Sin micrófono. Modo demo.',
+            uploadAudio: 'Subir audio',
+            uploadVideo: 'Subir video',
+            uploadFiles: 'Subir archivos',
+            uploadContext: 'Añadir contexto',
+            status: {
+                init: 'Iniciando IA...',
+                cloud: 'Conectando con la nube...',
+                uploading: 'Subiendo archivos...',
+                analyze: 'Analizar ahora',
+                audio: 'Análisis de audio...',
+                engine: 'Comprobando motor...',
+                db: 'Buscando en la base de datos...',
+                error: 'Error de análisis',
+                ready: 'Listo para el análisis'
+            },
+            errors: {
+                recordFirst: '¡Graba primero el sonido de la falla!',
+                minDuration: '¡La grabación debe durar al menos 1 segundo!',
+                maxVideoDuration: 'El video no puede durar más de 60 segundos. Por favor, acórtalo.',
+                checkoutFailed: 'No se pudo iniciar el pago. Por favor, inténtalo de nuevo más tarde.',
+                fileTooLarge: 'El archivo es demasiado grande',
+                maxSize: 'El tamaño máximo es',
+                uploadFailed: 'Error al subir el archivo.',
+                serverError: 'Error del servidor:',
+                noDiagnosis: 'La IA no devolvió datos de diagnóstico.',
+                unexpectedResponse: 'Estructura de respuesta inesperada de la IA. Inténtalo de nuevo.',
+                generalError: 'Ocurrió un error inesperado.',
+                maxVideos: 'Puedes añadir como máximo 1 vídeo.',
+                maxImages: 'Puedes añadir como máximo 3 imágenes.',
+                maxAudio: 'Puedes añadir como máximo 1 archivo de audio/vídeo.',
+                recordFailed: 'Error al grabar audio. Inténtalo de nuevo.'
+            },
+            noCredits: {
+                title: 'No quedan escaneos gratuitos',
+                desc: 'Has agotado tu crédito de diagnóstico gratuito. Compra el paquete PRO para obtener acceso ilimitado a nuestra IA avanzada.'
+            },
+            labels: {
+                mileage: 'Kilometraje:',
+                obdCodes: 'Códigos OBD-II:',
+                condition: 'Circunstancias:',
+                tags: 'Etiquetas:',
+                description: 'Descripción:',
+                loading: 'Cargando...',
+                ready: 'Listo',
+                addData: 'Añadir datos del vehículo y contexto',
+                analyzeNow: 'Entiendo — analizar ahora',
+                noContextTitle: 'Sin contexto',
+                noContextDesc: 'Ha subido un archivo pero no ha proporcionado datos del vehículo o contexto de falla. La IA sin pistas (marca del vehículo, etc.) puede emitir un diagnóstico menos preciso.',
+                fillData: 'Completar datos del vehículo',
+                continueWithoutContext: 'Continuar sin contexto',
+                closeAndTryAgain: 'Cerrar y volver a intentarlo'
+            },
+            pendingHints: ["Archivo listo — presiona para analizar", "Puedes añadir datos del vehículo o descripción", "Haz clic en el botón para iniciar la IA", "Añadir códigos OBD-II en el contexto"],
+            readyForAnalysis: "Listo para el análisis",
+            loading: "Cargando...",
+            loaded: "Cargado",
+            contextReady: "Contexto listo",
+            files: "archivos",
+            almostReady: "Casi listo",
+            recordLive: "Grabar en vivo desde cámara/mic",
+            addFromLibrary: "Añadir archivo de la biblioteca",
+            aiInstruction: "Instrucción de la IA",
+            oneStepToDiagnosis: "Un paso para el diagnóstico",
+            step2: "Etapa 2 · Prueba de Diagnóstico",
+            skipTest: "No puedo realizar la prueba — omitir y dar diagnóstico",
+            preScanTips: "Consejos antes del escaneo",
+            howToGetDiagnosis: "¿Cómo obtener un diagnóstico correcto?",
+            preScanList: [
+                { icon: '⚠️', tip: '¡Seguridad ante todo! Ten cuidado con el motor encendido, ventiladores, elementos calientes y vehículos en movimiento.' },
+                { icon: '🎙️', tip: 'Graba una falla claramente audible: ralentí, prueba de manejo, golpeteo. Mínimo 1 segundo, evita el ruido del viento.' },
+                { icon: '🚗', tip: 'Indica marca, modelo y año: la IA ajustará la base de datos a tu motor específico.' },
+                { icon: '📋', tip: '¿Tienes códigos OBD-II o sabes cuándo ocurre el problema? Añádelo en el Contexto.' }
+            ]
         },
-        report: {
-            title: 'Diagnosebericht',
-            close: 'Bericht schließen',
-            diagnosis: 'Diagnose',
-            causes: 'Mögliche Ursachen',
-            solutions: 'Empfohlene Lösungen',
-            mechanic: 'Tipps für den Mechaniker',
-            urgent: 'Problem erkannt',
-            normal: 'Normal',
-            confidence: 'KI-Sicherheit',
-            newScan: 'Neuer Scan',
-            audioAnalysis: 'Audioanalyse',
-            inputAnalysis: 'Eingabeanalyse',
-            aiReasoning: 'KI-Gedankengang',
-            aiAlgorithm: 'KI-Erkennungsalgorithmus',
-            recommendedActions: 'Empfohlene Maßnahmen',
-            bikeWorkshop: 'Fahrradwerkstatt: Schritt für Schritt',
-            analysisParams: 'Analyseparameter',
-            repairData: 'Reparaturdaten',
-            estimatedTime: 'Geschätzte Reparaturzeit',
-            estimatedTimeWorkshop: 'Geschätzte Werkstattzeit',
-            failureRisk: 'Ausfallrisiko',
-            complexity: 'Komplexität',
-            critical: 'Kritisch',
-            advanced: 'Erweitert',
-            obdCodes: 'Zugehörige OBD-II-Codes:',
-            toolsNeeded: 'Benötigte Werkzeuge',
-            partsCost: 'Teilekostenkategorie:'
+        bike: { section: 'Bici', protips: 'Consejos', title: 'Toma foto de casete/detalle', subtitle: 'Buscamos dientes doblados o daños.', gallery: 'Galería', addContext: 'Contexto', targets: ['Transmisión', 'Frenos', 'Pedalier', 'Desviador', 'Amortiguador', 'Otro'], status: { init: 'Iniciando IA...', analyze: 'Analizando estructura...', check: 'Analizando componentes mecánicos...', dev: 'Desarrollando diagnóstico...' }, pendingHints: ["Listo para diagnóstico", "Indica el contexto para mayor precisión", "Graba sonido o foto de la cadena"], selectElement: "Seleccionar elemento", visualScan: "Escaneo Visual", visualScanDesc: "Toma foto de daños evident", protipsTitle: "Consejos para Ciclistas", protipsList: [{ icon: '⚠️', tip: 'Levanta la rueda, gira el pedal antes del escaneo para que el sonido sea limpio.' }, { icon: '📸', tip: 'Al subir la foto del cuadro, asegúrate de tener una iluminación fuerte en las grietas del carbono/soldadura.' }] },
+        shazam: {
+            title: 'Sonic Shazam',
+            desc: 'Graba el sonido o añade foto para reconocer.',
+            listening: 'Escuchando...',
+            status: { init: 'Iniciando IA...', isoAudio: 'Aislando audio...', isoVisual: 'Analizando foto...', search: 'Buscando modelo...', identify: 'Identificando...' },
+            identificationComplete: 'Identificación Completada',
+            askAiAboutThis: 'Preguntar a la IA sobre esta pieza',
+            screenshot: 'Zrzut de pantalla',
+            specs: { capacity: 'Cilindrada', power: 'Potencia Estimada', layout: 'Diseño', type: 'Tipo' },
+            pendingHints: ["Sonido listo — presiona para reconocer", "También puedes añadir archivos de la biblioteca", "Arrancar motor de IA"],
+            tapToListen: "Toca para escuchar",
+            protipsTitle: "Consejos Shazam",
+            protipsList: [{ icon: '🌪️', tip: 'Evita el viento — graba el escape en un lugar protegido de las ráfagas de viento.' }, { icon: '🔊', tip: 'Captura el sonido completo de las revoluciones del motor, no solo el ralentí.' }, { icon: '📸', tip: 'Al subir la foto, asegúrate de que los detalles (insignia, escape) no estén borrosos.' }]
+        },
+        instructions: { title: 'Instrucciones', car: { light: 'Abre el capó.', video: 'Graba vídeo para contexto.', secure: 'Asegura el coche.', steps: '3 pasos: Arranca → 5s → acelera levemente.' }, bike: { light: 'Buena iluminación.', video: 'Gira el pedal manualmente.', stable: 'Mantén la bici estable.' } },
+        settings: {
+            title: 'Ajustes', logout: 'Cerrar sesión', tabs: { profile: 'Tu Perfil', history: 'Historial', preferences: 'Preferencias', notifications: 'Notificaciones', security: 'Seguridad' }, preferences: { title: 'Preferencias', desc: 'Configura idioma y apariencia.', langTitle: 'Idioma', langDesc: 'Elige tu idioma.', themeTitle: 'Tema', themeDesc: 'Elige el tema.', themes: { system: 'Sistema', light: 'Claro', dark: 'Oscuro', pink: 'Rosa' } },
+            history: {
+                title: 'Historial',
+                desc: 'Tus diagnósticos previos.',
+                loading: 'Cargando historial...',
+                empty: 'Sin historial de análisis. ¡Realiza tu primer escaneo!',
+                noData: 'Sin datos',
+                identified: 'Identificado',
+                highConfidence: 'Alta confianza',
+                requiresAttention: 'Requiere atención',
+                anomalyDetected: 'Anomalía detectada',
+                unknownVehicle: 'Vehículo desconocido',
+                diagnosis: 'Diagnóstico'
+            },
+            profile: { title: 'Tu Perfil', desc: 'Gestiona tu perfil.', photoTitle: 'Foto de perfil', photoDesc: 'Max 2MB.', changePhoto: 'Cambiar foto', name: 'Nombre completo', email: 'Email', save: 'Guardar', credits: 'Tus Créditos', noCredits: 'Sin créditos', topupDesc: 'Recarga tu cuenta para análisis IA avanzado ilimitado.', available: 'Escaneos Disponibles', buyPro: 'Comprar Créditos PRO', linkedDesc: 'Perfil vinculado a tu cuenta Google / Clerk.' }, comingSoon: { title: 'Próximamente', desc: 'Pronto disponible.' }
+        },
+        chat: {
+            title: 'Conexión Segura', newDiagnosis: 'Nuevo diag.', today: 'Hoy', yesterday: 'Ayer', last7days: 'Últimos 7 días', obdPrompt: 'Código OBD-II...', msgPrompt: 'Escribe...', micNotSupported: 'Mic no soportado.', listening: 'Escuchando...', scanObd: 'Escanear OBD', moreInfo: 'Más info', lessInfo: 'Menos info', sorryNoUnderstand: 'Lo siento, no he entendido.', aiError: 'Error del asistente de IA', noResponse: 'No se ha podido obtener una respuesta', tryAgainLater: 'Por favor, inténtelo de nuevo más tarde.', savedDiagnoses: 'Diagnósticos Guardados', noHistory: 'Sin historial', chatLocked: 'Acceso al chat bloqueado. Desbloquee el informe completo para hablar con el asistente.', sessionEnded: 'La sesión de consulta para este informe ha finalizado.',
+            back: 'Volver',
+            history: 'Historial de chat',
+            greeting: '¡Hola! He analizado tu informe: {title}. Tengo pleno conocimiento de esta falla y conocimientos mecánicos generales. ¿En qué puedo ayudarte hoy?',
+            defaultMsgs: [
+                { text: 'Buenos días. Soy su asistente de servicio virtual. ¿Cómo puedo ayudarle hoy? Por favor, describa el problema con su vehículo.', sender: 'ai' },
+                { text: 'Cuando freno, oigo un chirrido extraño en la parte delantera del coche. ¿Qué podría ser?', sender: 'user' },
+                { text: 'El chirrido al frenar suele ser un síntoma de pastillas de freno desgastadas. Muchas de ellas tienen sensores acústicos que emiten intencionadamente ese sonido cuando se acaba el forro de fricción.\n\n¿Siente también vibraciones en el volante al frenar?', sender: 'ai', detailedInfo: 'Causas potenciales:\n• Pastillas de freno desgastadas (causa más común).\n• Suciedad (arena, piedras) entre la pastilla y el disco.\n• Vitrificación de la superficie de la pastilla por sobrecalentamiento.\n• Falta de lubricación en las guías de la pinza.\n\nAcción recomendada:\nVerificar el espesor del forro de fricción, limpiar el yugo y lubricar las guías.' }
+            ]
+        },
+        context: { title: 'Contexto', subtitle: 'Ayuda a la IA', mileageBike: 'Tipo de bicicleta (Opcional)', mileageCar: 'Kilometraje coche', mileageBikePh: 'ej. MTB, Carretera, Gravel...', mileageCarPh: 'ej. 150 000 km...', obdTitle: 'Códigos de error OBD-II (Opcional)', obdPh: 'ej. P0300, P0171', obdBike: 'Modelo de transmisión (Opcional)', obdBikePh: 'ej. Shimano Deore, SRAM GX...', descTitle: 'Descripción', descBikePh: 'ej. la cadena salta...', descCarPh: 'ej. ruido metálico...', attachmentTooltip: 'Adjuntar fotos/vídeos adicionales (ej. códigos de error, daños)', quickTagsTitle: 'Etiquetas', quickTagsBike: ['Salta', 'Cruje/Rechina', 'Roza', 'Cojinete suelto', 'Freno esponjoso'], quickTagsCar: ['Golpeteo', 'Chirrido', 'Sin fuerza', 'Tirones', 'Humo', 'Inestable'], whenOccurs: '¿Cuándo?', whenBike: ['Cuesta', 'Seco', 'Siempre', 'Frenando'], whenCar: ['Siempre', 'Frío', 'Caliente', 'Acelerando'], visuals: 'Visuales', addPhoto: 'Añadir', optional: 'Opcional', cancel: 'Cancelar', save: 'Guardar' },
+        report: { title: 'Informe', close: 'Cerrar', diagnosis: 'Diagnóstico', causes: 'Causas Posibles', solutions: 'Soluciones', mechanic: 'Para el mecánico', urgent: 'Problema', normal: 'Normal', confidence: 'Confianza IA', newScan: 'Nuevo escaneo', audioAnalysis: 'Análisis de audio', inputAnalysis: 'Análisis de entrada', aiReasoning: 'Razonamiento de IA', aiAlgorithm: 'Algoritmo de identificación de IA', recommendedActions: 'Acciones recomendadas', bikeWorkshop: 'Taller de bicicletas: Paso a paso', analysisParams: 'Parámetros de análisis', repairData: 'Datos de reparación', estimatedTime: 'Tiempo estimado de reparación', estimatedTimeWorkshop: 'Tiempo estimado de taller', failureRisk: 'Riesgo de fallo', complexity: 'Complejidad', critical: 'Crítico', advanced: 'Avanzado', obdCodes: 'Códigos OBD-II relacionados:', toolsNeeded: 'Herramientas requeridas', partsCost: 'Categoría de costo de piezas:', unlockReport: 'Desbloquear informe completo', unlockSpecs: 'Desbloquear Datos Técnicos', confidenceScore: 'Confianza', estimatedCost: 'Costo estimado de reparación', partsCostEst: 'Costo estimado de piezas', askAiAboutReport: 'Preguntar a la IA sobre este informe', confidenceNote: "Alta coincidencia con patrones de fallas mecánicas de la base de datos.", repairStages: { diagnosis: 'Diagnóstico', teardown: 'Desmontaje', replacement: 'Reemplazo', assembly: 'Montaje', cleaning: 'Limpieza', testing: 'Pruebas' }, labels: { recorded: 'Registrado:', characteristics: 'Características:', hoursUnit: 'h', minutesUnit: 'min', diyTitle: 'Guía de Reparación DIY', mechanicTitle: 'Guía para Mecánico (Seguridad Primero)', partsCostTitle: 'Costo estimado de piezas', chain: 'Cadena', cassette: 'Casete' }, tools: { chainBreaker: 'Tronchacadenas', cassetteTool: 'Extractor de casete', hexKey: 'Llave Allen 5mm', gloves: 'Guantes de trabajo', verify: 'Verificación del desgaste de la cadena', verifyDesc: 'Para estar seguro, inserte un medidor de cadena en la cadena. Si el indicador de 1.0 entra completamente en el eslabón, el diagnóstico es 100% correcto.', cassetteToolTitle: 'Tronchacadenas y Llave de cadena', cassetteToolDesc: 'Necesitarás herramientas de bicicleta: un tronchacadenas para abrir la cadena vieja y una llave inglesa y una llamada "llave de cadena" (látigo) para el casete.', replacementTitle: 'Reemplazo de componentes', replacementDesc: 'Retira el casete viejo, coloca uno nuevo asegurando la compatibilidad de velocidades. Mide y acorta la nueva cadena sujetándola con un eslabón maestro (Quick-Link).', adjustmentTitle: 'Ajuste del desviador', adjustmentDesc: 'Después de instalar nuevos componentes, ajusta suavemente la tensión del tornillo del desviador trasero (tensor de barril) para un cambio preciso.' } },
+
+        modals: {
+            login: {
+                title: "Inicio de sesión requerido",
+                desc: "Inicia sesión para proceder al análisis y recibir escaneos diagnósticos gratuitos potenciados por IA.",
+                btn: "Iniciar sesión",
+                cancel: "Cancelar"
+            },
+            noCredits: {
+                buyBtn: "Comprar 3 escaneos PRO por 9,99 €",
+                maybeLater: "Tal vez más tarde"
+            },
+            pricing: {
+                title: "Informe completo bloqueado",
+                desc: "El acceso a las secciones ocultas, incluyendo valoraciones, recomendaciones y guía de bricolaje, requiere desbloquear el informe.",
+                unlock: '4,99 €',
+                unlockTitle: "Desbloquear informe",
+                unlockDesc: "Acceso permanente a este único diagnóstico.",
+                bundle: '9,99 €',
+                bundleTitle: "Paquete de 3 informes",
+                bundleDesc: "Este y 2 informes adicionales con chat de IA.",
+                analysis: "Análisis de audio completo",
+                diy: "Guía de reparación DIY",
+                valuation: "Costes y valoración de la reparación",
+                credits: "Créditos guardados en la cuenta",
+                chat: "Chat de IA para cada informe",
+                priority: "Escaneo prioritario",
+                bestValue: "Mejor opción",
+                loading: "Cargando...",
+                buy: "Comprar paquete"
+            }
         }
     }
 };

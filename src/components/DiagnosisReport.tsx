@@ -67,10 +67,17 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
 
   const complexity = parseComplexity(!isLocked ? (data.parameters as any).complexity : '5/5');
   const riskPercent = parsePercent(!isLocked ? (data.parameters as any).risk_level : '100%');
-  const repairTimeData = buildRepairTimeData(!isLocked ? (data.parameters as any).estimated_time_hours : 10);
+
+  // Localized repair stages
+  const repairTimeData = [
+    { stage: t.report.repairStages?.diagnosis || 'Diagnoza', hours: Math.round((!isLocked ? (Number((data.parameters as any).estimated_time_hours) || 10) : 10) * 0.08) || 1, color: '#3b82f6' },
+    { stage: t.report.repairStages?.teardown || 'Demontaż', hours: Math.round((!isLocked ? (Number((data.parameters as any).estimated_time_hours) || 10) : 10) * 0.25) || 1, color: '#8b5cf6' },
+    { stage: t.report.repairStages?.replacement || 'Wymiana', hours: Math.round((!isLocked ? (Number((data.parameters as any).estimated_time_hours) || 10) : 10) * 0.50) || 1, color: '#ef4444' },
+    { stage: t.report.repairStages?.assembly || 'Montaż', hours: Math.round((!isLocked ? (Number((data.parameters as any).estimated_time_hours) || 10) : 10) * 0.17) || 1, color: '#10b981' },
+  ];
 
   // Determine criticality color
-  const isCritical = data.criticality.toLowerCase().includes('krytyczn');
+  const isCritical = data.criticality.toLowerCase().includes('krytyczn') || data.criticality.toLowerCase().includes('critical');
   const critColor = isCritical ? 'red' : 'yellow';
 
   const [showPricing, setShowPricing] = React.useState(isLocked);
@@ -130,7 +137,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
             <div className="flex flex-col md:items-center flex-1">
               <h2 className="text-[10px] md:text-xs font-bold text-muted/80 uppercase tracking-widest mb-2 md:mb-6 md:text-center">{t.report.confidence}</h2>
               <p className="hidden md:block text-xs text-muted mt-6 text-center font-medium">
-                Wysoka zgodność z wzorcami uszkodzeń mechanicznych z bazy danych.
+                {t.report.confidenceNote}
               </p>
               <button onClick={onClose} className="mt-2 md:mt-6 flex w-fit items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-primary/10 hover:bg-primary/20 text-primary ring-1 ring-inset ring-blue-500/20 rounded-lg md:rounded-xl transition-all text-xs md:text-sm font-semibold z-10 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                 <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
@@ -199,10 +206,10 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Zarejestrowano:</strong> {!isLocked ? (data.audio_analysis as any).recorded : '********************'}
+                <strong className="text-foreground font-semibold">{t.report.labels.recorded}</strong> {!isLocked ? (data.audio_analysis as any).recorded : '********************'}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Charakterystyka:</strong> {!isLocked ? (data.audio_analysis as any).characteristics : '********************'}
+                <strong className="text-foreground font-semibold">{t.report.labels.characteristics}</strong> {!isLocked ? (data.audio_analysis as any).characteristics : '********************'}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
@@ -249,7 +256,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                 <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
               </div>
               <h2 className="text-sm md:text-lg font-semibold text-foreground">
-                {data.is_diy_feasible ? 'Przewodnik Naprawy DIY' : 'Przewodnik dla Mechanika (Zabezpiecz się)'}
+                {data.is_diy_feasible ? t.report.labels.diyTitle : t.report.labels.mechanicTitle}
               </h2>
             </div>
             <div className="prose prose-sm md:prose-base prose-invert max-w-none text-muted">
@@ -268,7 +275,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
               <button onClick={() => setShowPricing(true)} className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-primary/30">
                 <Lock className="w-5 h-5" />
-                Odblokuj Pełny Raport
+                {t.report.unlockReport}
               </button>
             </div>
           )}
@@ -312,7 +319,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                     <Clock className="w-4 h-4" />
                     <span className="text-xs md:text-sm font-medium">{t.report.estimatedTime}</span>
                   </div>
-                  <span className="text-xs md:text-sm font-bold text-foreground">{!isLocked ? (data.parameters as any).estimated_time_hours : 'X'} rbh</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{!isLocked ? (data.parameters as any).estimated_time_hours : 'X'} {t.report.labels.hoursUnit}</span>
                 </div>
                 <div className="h-32 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -328,7 +335,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                                 <p className="text-[10px] text-muted font-medium uppercase tracking-wider mb-1">{payload[0].payload.stage}</p>
                                 <p className="text-sm text-foreground font-bold flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].payload.color }}></span>
-                                  {payload[0].value} rbh
+                                  {payload[0].value} {t.report.labels.hoursUnit}
                                 </p>
                               </div>
                             );
@@ -415,7 +422,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
                       <span className="text-lg">💰</span>
                     </div>
                     <div>
-                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">Szacunkowy koszt naprawy</p>
+                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">{t.report.estimatedCost}</p>
                       <p className="text-base md:text-lg font-bold text-emerald-400">{(data.parameters as any).estimated_cost_pln}</p>
                     </div>
                   </div>
@@ -440,7 +447,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: Diag
               shadow-[0_0_30px_rgba(59,130,246,0.3)]"
           >
             <span className="text-xl">💬</span>
-            <span>Zapytaj AI o ten raport</span>
+            <span>{t.report.askAiAboutReport}</span>
           </button>
         </div>
       </main>

@@ -10,7 +10,10 @@ interface NoCreditsModalProps {
   onClose: () => void;
 }
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
 export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
+  const { t, language } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckout = async () => {
@@ -18,6 +21,11 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
       setIsLoading(true);
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          packageType: 'bundle_3',
+          locale: language
+        })
       });
       const data = await response.json();
       if (data.url) {
@@ -27,7 +35,7 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
       }
     } catch (error) {
       console.error('Error starting checkout:', error);
-      alert('Nie udało się rozpocząć płatności. Spróbuj ponownie później.');
+      alert(t.auto.errors.checkoutFailed);
       setIsLoading(false);
     }
   };
@@ -77,11 +85,11 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
                 </div>
 
                 <h2 className="text-2xl font-bold text-white mb-3">
-                  Koniec darmowych skanów
+                  {t.auto.noCredits.title}
                 </h2>
 
                 <p className="text-sm text-foreground/70 mb-8 leading-relaxed">
-                  Wykorzystałeś już swój darmowy kredyt diagnostyczny. Wykup pakiet PRO, aby zyskać nielimitowany dostęp do naszej zaawansowanej AI.
+                  {t.auto.noCredits.desc}
                 </p>
 
                 {/* PRO Plan Button */}
@@ -96,7 +104,7 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
                   ) : (
                     <>
                       <Zap className="w-5 h-5 text-black" fill="currentColor" />
-                      <span>Kup 3 skany PRO za 29 PLN</span>
+                      <span>{t.modals.noCredits.buyBtn}</span>
                     </>
                   )}
                 </button>
@@ -105,7 +113,7 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
                   onClick={onClose}
                   className="mt-4 text-sm font-medium text-foreground/50 hover:text-foreground/80 transition-colors"
                 >
-                  Może później
+                  {t.modals.noCredits.maybeLater}
                 </button>
               </div>
             </motion.div>

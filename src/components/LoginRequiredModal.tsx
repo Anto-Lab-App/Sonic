@@ -9,8 +9,11 @@ interface LoginRequiredModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export function LoginRequiredModal({ isOpen, onClose }: LoginRequiredModalProps) {
+  const { t } = useLanguage();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -42,7 +45,7 @@ export function LoginRequiredModal({ isOpen, onClose }: LoginRequiredModalProps)
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-                aria-label="Zamknij"
+                aria-label={t.cancel}
               >
                 <X className="w-5 h-5 text-white/70" />
               </button>
@@ -56,11 +59,11 @@ export function LoginRequiredModal({ isOpen, onClose }: LoginRequiredModalProps)
                 </div>
 
                 <h2 className="text-2xl font-bold text-white mb-3">
-                  Wymagane logowanie
+                  {t.modals.login.title}
                 </h2>
 
                 <p className="text-sm text-foreground/70 mb-8 leading-relaxed">
-                  Zaloguj się, aby przejść do analizy i otrzymać darmowe skany diagnostyczne wspierane przez AI.
+                  {t.modals.login.desc}
                 </p>
 
                 {/* Login Button via Clerk */}
@@ -71,7 +74,7 @@ export function LoginRequiredModal({ isOpen, onClose }: LoginRequiredModalProps)
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-[#00D1FF] via-[#0055FF] to-[#00D1FF] opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
                     <LogIn className="w-5 h-5 text-black" />
-                    <span>Zaloguj się</span>
+                    <span>{t.modals.login.btn}</span>
                   </button>
                 </SignInButton>
 
@@ -79,7 +82,7 @@ export function LoginRequiredModal({ isOpen, onClose }: LoginRequiredModalProps)
                   onClick={onClose}
                   className="mt-4 text-sm font-medium text-foreground/50 hover:text-foreground/80 transition-colors"
                 >
-                  Anuluj
+                  {t.modals.login.cancel}
                 </button>
               </div>
             </motion.div>

@@ -25,16 +25,16 @@ export function HistoryTabContent({ onOpenReport }: { onOpenReport?: (record: an
     }, []);
 
     const getRiskDetails = (aiReport: any) => {
-        if (!aiReport) return { label: 'Brak danych', colorClass: 'bg-gray-500/10 text-gray-400 border-gray-500/20' };
+        if (!aiReport) return { label: t.settings.history.noData, colorClass: 'bg-gray-500/10 text-gray-400 border-gray-500/20' };
 
         if (aiReport.confidence !== undefined) {
-            return { label: 'Rozpoznano', colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
+            return { label: t.settings.history.identified, colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
         }
 
         const confidence = aiReport.final_diagnosis?.confidence_score || 0;
-        if (confidence > 80) return { label: 'Wysoka pewność', colorClass: 'bg-green-500/10 text-green-400 border-green-500/20' };
-        if (confidence > 50) return { label: 'Wymaga uwagi', colorClass: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' };
-        return { label: 'Wykryto anomalię', colorClass: 'bg-red-500/10 text-red-400 border-red-500/20' };
+        if (confidence > 80) return { label: t.settings.history.highConfidence, colorClass: 'bg-green-500/10 text-green-400 border-green-500/20' };
+        if (confidence > 50) return { label: t.settings.history.requiresAttention, colorClass: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' };
+        return { label: t.settings.history.anomalyDetected, colorClass: 'bg-red-500/10 text-red-400 border-red-500/20' };
     };
 
     const getTitle = (item: any) => {
@@ -42,9 +42,9 @@ export function HistoryTabContent({ onOpenReport }: { onOpenReport?: (record: an
         if (item.aiReport?.name) return item.aiReport.name;
         try {
             const parsed = JSON.parse(item.vehicleData);
-            return parsed.make || 'Nieznany pojazd';
+            return parsed.make || t.settings.history.unknownVehicle;
         } catch {
-            return 'Diagnoza';
+            return t.settings.history.diagnosis;
         }
     };
 
@@ -62,9 +62,9 @@ export function HistoryTabContent({ onOpenReport }: { onOpenReport?: (record: an
 
             <div className="space-y-4">
                 {loading ? (
-                    <div className="text-center py-10 text-muted">Ładowanie historii...</div>
+                    <div className="text-center py-10 text-muted">{t.settings.history.loading}</div>
                 ) : diagnoses.length === 0 ? (
-                    <div className="text-center py-10 text-muted">Brak historii analiz. Wykonaj swój pierwszy skan!</div>
+                    <div className="text-center py-10 text-muted">{t.settings.history.empty}</div>
                 ) : (
                     diagnoses.map((item) => {
                         const risk = getRiskDetails(item.aiReport);

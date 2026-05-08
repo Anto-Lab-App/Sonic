@@ -17,25 +17,47 @@ export async function POST(req: Request) {
 
         let currency = 'pln';
         if (locale === 'en') currency = 'usd';
-        if (locale === 'es') currency = 'eur';
+        else if (locale === 'es' || locale === 'de') currency = 'eur';
 
         let name = '';
         let description = '';
         let unit_amount = 0;
 
         if (packageType === 'unlock_1') {
-            name = 'Odblokuj Raport';
-            description = 'Pełny dostęp do jednego szczegółowego raportu diagnostycznego.';
+            if (locale === 'en') {
+                name = 'Unlock Report';
+                description = 'Full access to one detailed diagnostic report.';
+            } else if (locale === 'es') {
+                name = 'Desbloquear Informe';
+                description = 'Acceso completo a un informe diagnóstico detallado.';
+            } else if (locale === 'de') {
+                name = 'Bericht entsperren';
+                description = 'Vollständiger Zugriff auf einen detaillierten Diagnosebericht.';
+            } else {
+                name = 'Odblokuj Raport';
+                description = 'Pełny dostęp do jednego szczegółowego raportu diagnostycznego.';
+            }
             if (currency === 'pln') unit_amount = 1999;
             else if (currency === 'usd') unit_amount = 499;
-            else unit_amount = 499;
+            else unit_amount = 499; // EUR
         } else {
             // bundle_3
-            name = 'Pakiet 3 Raportów';
-            description = 'Nielimitowany dostęp do 3 pełnych diagnoz.';
+            if (locale === 'en') {
+                name = '3 Reports Bundle';
+                description = 'Unlimited access to 3 full diagnoses.';
+            } else if (locale === 'es') {
+                name = 'Paquete de 3 Informes';
+                description = 'Acceso ilimitado a 3 diagnósticos completos.';
+            } else if (locale === 'de') {
+                name = '3 Berichte Paket';
+                description = 'Unbegrenzter Zugang zu 3 vollständigen Diagnosen.';
+            } else {
+                name = 'Pakiet 3 Raportów';
+                description = 'Nielimitowany dostęp do 3 pełnych diagnoz.';
+            }
             if (currency === 'pln') unit_amount = 3999;
             else if (currency === 'usd') unit_amount = 999;
-            else unit_amount = 999;
+            else unit_amount = 999; // EUR
         }
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -59,7 +81,7 @@ export async function POST(req: Request) {
                 },
             ],
             mode: 'payment',
-            success_url: `${appUrl}/?success=true`,
+            success_url: diagnosisId ? `${appUrl}/?success=true&diagnosisId=${diagnosisId}` : `${appUrl}/?success=true`,
             cancel_url: `${appUrl}/?canceled=true`,
             metadata: {
                 userId,

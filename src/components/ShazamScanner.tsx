@@ -29,7 +29,7 @@ interface ShazamScannerProps {
 }
 
 export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isSignedIn } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -66,7 +66,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const ringsRef = useRef<(HTMLDivElement | null)[]>([]);
   const currentScales = useRef<number[]>([1, 1, 1, 1, 1]);
 
-  const PENDING_HINTS = [
+  const PENDING_HINTS = t.shazam.pendingHints || [
     "Dźwięk gotowy — naciśnij aby rozpoznać",
     "Możesz też dodać pliki z biblioteki",
     "Uruchom silnik AI",
@@ -75,7 +75,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
   const cleanup = () => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    if (audioContextRef.current) audioContextRef.current.close();
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') audioContextRef.current.close();
 
     for (let i = 0; i < 5; i++) {
       currentScales.current[i] = 1;
@@ -242,7 +242,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         setAnalyzingText(prev => prev === t.shazam.status.isoAudio || prev === t.shazam.status.isoVisual ? t.shazam.status.search : t.shazam.status.identify);
       }, 2500);
 
-      setAnalyzingText("Łączenie z chmurą...");
+      setAnalyzingText(t.auto.status.cloud);
       const uploadUrlResponse = await fetch("/api/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -251,17 +251,17 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         })
       });
 
-      if (!uploadUrlResponse.ok) throw new Error(`Błąd dostępu do chmury: ${uploadUrlResponse.status}`);
+      if (!uploadUrlResponse.ok) throw new Error(`${t.auto.status.cloud} Error: ${uploadUrlResponse.status}`);
       const uploadUrlText = await uploadUrlResponse.text();
       let urls;
       try {
         const parsed = JSON.parse(uploadUrlText);
         urls = parsed.urls;
       } catch (e) {
-        throw new Error(`Błąd chmury: niepoprawny format odpowiedzi (zaczyna się od: ${uploadUrlText.substring(0, 50)})`);
+        throw new Error(`${t.auto.status.cloud} Error: ${uploadUrlText.substring(0, 50)}`);
       }
 
-      setAnalyzingText("Wgrywanie plików na GCS...");
+      setAnalyzingText(t.auto.status.uploading);
       const urlInfo = urls[0];
       const putRes = await fetch(urlInfo.signedUrl, {
         method: "PUT",
@@ -269,13 +269,14 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         body: file
       });
 
-      if (!putRes.ok) throw new Error("Błąd bezpośredniego wgrywania pliku.");
+      if (!putRes.ok) throw new Error(t.auto.errors.uploadFailed);
 
       const uploadedFileParts = [{
         fileData: { fileUri: urlInfo.gcsUri, mimeType: urlInfo.mimeType }
       }];
 
       const formData = new FormData();
+      formData.append("locale", language);
       formData.append("vehicleType", "audio");
       formData.append("vehicleMake", "Audio");
       formData.append("fileParts", JSON.stringify(uploadedFileParts));
@@ -291,7 +292,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         json = JSON.parse(responseText);
       } catch (e) {
         console.error("Non-JSON response from /api/identify:", responseText);
-        throw new Error(`Serwer zwrócił błąd: ${res.status} ${res.statusText} - ${responseText.substring(0, 100)}`);
+        throw new Error(`${t.auto.errors.serverError} ${res.status} ${res.statusText} - ${responseText.substring(0, 100)}`);
       }
 
       if (!res.ok) {
@@ -299,7 +300,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
           setShowNoCreditsModal(true);
           return;
         }
-        throw new Error(json?.message || `Zwrócono błąd serwera. Status: ${res.status}`);
+        throw new Error(`${t.auto.errors.serverError} Status: ${res.status}`);
       }
 
       if (json.status === 'success' && json.data) {
@@ -316,11 +317,11 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         setIsReportOpen(true);
         if (onScanComplete) onScanComplete();
       } else {
-        throw new Error("Wystąpił nieznany problem ze zwróceniem danych.");
+        throw new Error(t.auto.errors.noDiagnosis);
       }
 
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Zawiodła identyfikacja elementu.";
+      const msg = err instanceof Error ? err.message : t.auto.errors.generalError;
       setStickyError(msg);
     } finally {
       clearInterval(interval);
@@ -366,15 +367,15 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
       const sizeMB = file.size / (1024 * 1024);
 
       if (file.type.startsWith('video/') && sizeMB > MAX_VIDEO_SIZE_MB) {
-        alert(`Wideo jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_VIDEO_SIZE_MB}MB.`);
+        alert(`${t.auto.errors.fileTooLarge} (${sizeMB.toFixed(1)}MB). ${t.auto.errors.maxSize} ${MAX_VIDEO_SIZE_MB}MB.`);
         return;
       }
       if (file.type.startsWith('image/') && sizeMB > MAX_IMAGE_SIZE_MB) {
-        alert(`Zdjęcie jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_IMAGE_SIZE_MB}MB.`);
+        alert(`${t.auto.errors.fileTooLarge} (${sizeMB.toFixed(1)}MB). ${t.auto.errors.maxSize} ${MAX_IMAGE_SIZE_MB}MB.`);
         return;
       }
       if (file.type.startsWith('audio/') && sizeMB > MAX_AUDIO_SIZE_MB) {
-        alert(`Audio jest za duże (${sizeMB.toFixed(1)}MB). Maksymalny rozmiar to ${MAX_AUDIO_SIZE_MB}MB.`);
+        alert(`${t.auto.errors.fileTooLarge} (${sizeMB.toFixed(1)}MB). ${t.auto.errors.maxSize} ${MAX_AUDIO_SIZE_MB}MB.`);
         return;
       }
 
@@ -477,7 +478,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                   className="flex flex-col items-center text-center px-2"
                 >
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">Gotowy do analizy</h2>
+                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.auto.status.ready}</h2>
                   <p className="text-sm text-primary/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
                 </motion.div>
               ) : (
@@ -489,7 +490,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   className="flex flex-col items-center text-center px-2"
                 >
                   <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
-                    {isRecording ? t.shazam.listening : "Dotknij, aby nasłuchiwać"}
+                    {isRecording ? t.shazam.listening : t.shazam.tapToListen}
                   </h2>
                   {isDemoMode && isRecording && <span className="text-[10px] text-muted">{t.demoMode}</span>}
                 </motion.div>
@@ -572,7 +573,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                       <AlertCircle className="w-5 h-5 text-red-500" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-red-500 font-bold text-sm tracking-wide mb-1 uppercase">Błąd Identyfikacji</h3>
+                      <h3 className="text-red-500 font-bold text-sm tracking-wide mb-1 uppercase">{t.auto.status.error}</h3>
                       <p className="text-foreground/80 text-sm leading-relaxed">{stickyError}</p>
                     </div>
                     <button onClick={() => setStickyError(null)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
@@ -583,7 +584,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                     onClick={() => setStickyError(null)}
                     className="w-full mt-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-sm transition-colors uppercase tracking-widest"
                   >
-                    Spróbuj ponownie
+                    {t.auto.labels.closeAndTryAgain}
                   </button>
                 </div>
               </motion.div>
@@ -604,7 +605,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
               {isLoadingFile ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : pendingFile ? <span className="text-primary text-base">✓</span> : <ImageIcon className="w-4 h-4 text-foreground/60" />}
             </div>
             <span className={`text-[10px] font-semibold uppercase tracking-widest ${isLoadingFile ? 'text-primary/60' : pendingFile ? 'text-primary/80' : 'text-foreground/50'}`}>
-              {isLoadingFile ? 'Wczytuję...' : pendingFile ? `Gotowo: ${pendingFile.name.substring(0, 15)}...` : 'Wyślij plik z biblioteki'}
+              {isLoadingFile ? (t.auto.loading || 'Wczytuję...') : pendingFile ? `${t.auto.loaded || 'Gotowo'}: ${pendingFile.name.substring(0, 15)}...` : t.auto.addFromLibrary || 'Wyślij plik z biblioteki'}
             </span>
           </button>
         </motion.div>
@@ -623,17 +624,13 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
             className="absolute inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col p-6 overflow-y-auto"
           >
             <div className="flex items-center justify-between mt-6 mb-8">
-              <h2 className="text-2xl font-bold tracking-tight">Wskazówki Shazam</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{t.shazam.protipsTitle}</h2>
               <button onClick={() => setShowPreScan(false)} className="w-10 h-10 rounded-full bg-surface border border-foreground/10 flex items-center justify-center">
                 <X className="w-5 h-5 text-foreground/70" />
               </button>
             </div>
             <div className="flex-1 flex flex-col justify-center gap-4 max-w-sm mx-auto">
-              {[
-                { icon: '🌪️', tip: 'Unikaj wiatru — rejestruj wydech w miejscu osłoniętym od porywów wiatru.' },
-                { icon: '🔊', tip: 'Złap pełny dźwięk wkręcania silnika na wyższe obroty, nie tylko bieg jałowy.' },
-                { icon: '📸', tip: 'Wgrywając zdjęcie, upewnij się że detale (badge, zbieg wydechów) nie są zamazane.' },
-              ].map(({ icon, tip }) => (
+              {t.shazam.protipsList.map(({ icon, tip }) => (
                 <div key={tip} className="flex items-start gap-4 bg-surface/50 border border-border-subtle rounded-2xl p-4">
                   <span className="text-2xl pt-1">{icon}</span>
                   <p className="text-sm font-medium text-foreground/80 leading-relaxed">{tip}</p>
@@ -649,7 +646,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                 }}
                 className="w-full py-4 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold uppercase tracking-widest text-sm"
               >
-                Zrozumiano, Analizuj
+                {t.understand}
               </button>
             </div>
           </motion.div>

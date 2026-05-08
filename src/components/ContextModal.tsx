@@ -11,10 +11,11 @@ export interface DiagnosticContextData {
   condition: string | null;
   obdCodes: string;
   contextFiles: File[];
+  yearEngine?: string;
 }
 
-export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: { 
-  onClose: () => void; 
+export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: {
+  onClose: () => void;
   onSave: (data: DiagnosticContextData) => void;
   initialData?: DiagnosticContextData;
   variant?: 'car' | 'bike';
@@ -25,8 +26,9 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
   const [selectedCondition, setSelectedCondition] = useState<string | null>(initialData?.condition || null);
   const [mileage, setMileage] = useState(initialData?.mileage || '');
   const [obdCodes, setObdCodes] = useState(initialData?.obdCodes || '');
+  const [yearEngine, setYearEngine] = useState(initialData?.yearEngine || '');
   const [contextFiles, setContextFiles] = useState<File[]>(initialData?.contextFiles || []);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +70,24 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
         {/* Scrollable Content */}
         <div className="p-8 overflow-y-auto custom-scrollbar flex flex-col gap-8">
 
+          {/* Rok i silnik dla aut */}
+          {variant === 'car' && (
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+                {t.auto.yearEnginePlaceholder}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={yearEngine}
+                  onChange={(e) => setYearEngine(e.target.value)}
+                  placeholder={t.auto.yearEnginePlaceholder}
+                  className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Przebieg */}
           <div className="space-y-4">
             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
@@ -84,23 +104,21 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
             </div>
           </div>
 
-          {/* Kody OBD-II (Tylko dla aut) */}
-          {variant === 'car' && (
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-                Kody błędów OBD-II (Opcjonalnie)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={obdCodes}
-                  onChange={(e) => setObdCodes(e.target.value)}
-                  placeholder="np. P0300, P0171"
-                  className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium uppercase"
-                />
-              </div>
+          {/* Kody OBD-II lub Model osprzętu */}
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+              {variant === 'bike' ? t.context.obdBike : t.context.obdTitle}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={obdCodes}
+                onChange={(e) => setObdCodes(e.target.value)}
+                placeholder={variant === 'bike' ? t.context.obdBikePh : t.context.obdPh}
+                className={`w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium ${variant === 'car' ? 'uppercase' : ''}`}
+              />
             </div>
-          )}
+          </div>
 
           {/* Opis problemu */}
           <div className="space-y-4">
@@ -113,10 +131,10 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
                 className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all resize-none h-32"
               />
               <input type="file" multiple accept="image/*,video/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="absolute bottom-4 right-4 px-4 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center gap-2 text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
-                title="Dołącz dodatkowe zdjęcia/wideo (np. kody błędów, uszkodzenia)"
+                title={t.context.attachmentTooltip}
               >
                 <Paperclip className="w-4 h-4" />
                 {contextFiles.length > 0 && <span className="text-xs font-bold">{contextFiles.length}</span>}
@@ -146,8 +164,8 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
                   key={tag}
                   onClick={() => toggleTag(tag)}
                   className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all border ${selectedTags.includes(tag)
-                      ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                      : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
+                    ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                    : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
                     }`}
                 >
                   {tag}
@@ -165,8 +183,8 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
                   key={cond}
                   onClick={() => setSelectedCondition(cond === selectedCondition ? null : cond)}
                   className={`px-5 py-4 rounded-2xl text-sm font-medium text-center transition-all border ${selectedCondition === cond
-                      ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                      : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
+                    ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                    : 'bg-[#131823] border-foreground/[0.03] text-muted hover:border-foreground/[0.06] hover:text-foreground/90'
                     }`}
                 >
                   {cond}
@@ -196,7 +214,7 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
           <button onClick={onClose} className="flex-1 py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-muted bg-[#131823] border border-foreground/[0.03] hover:bg-surface-hover hover:text-foreground/90 transition-colors">
             {t.cancel}
           </button>
-          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes, contextFiles })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes, contextFiles, yearEngine })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
             {t.context.save}
           </button>
         </div>

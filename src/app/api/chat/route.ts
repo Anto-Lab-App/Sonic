@@ -12,7 +12,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { diagnosisId, messages } = await req.json();
+        const body = await req.json();
+        const { diagnosisId, messages, locale = 'pl' } = body;
 
         const user = await prisma.user.findUnique({ where: { clerkUserId: userId } });
         if (!user) {
@@ -57,6 +58,8 @@ Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej, którą powinieneś 
 
         const lastMessage = messages[messages.length - 1];
 
+        const systemPromptWithLocale = systemInstruction + '\n\n' + `KRYTYCZNE: Wszystkie odpowiedzi na czacie MUSZĄ być napisane w języku oznaczonym kodem:${locale} (pl = Polski, en = Angielski, es = Hiszpański).`;
+
         const fallbackModels = [
             "gemini-3.1-flash-preview", // primary per user request
             "gemini-3.0-pro",
@@ -82,7 +85,7 @@ Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej, którą powinieneś 
                         }
                     ],
                     config: {
-                        systemInstruction: systemInstruction,
+                        systemInstruction: systemPromptWithLocale,
                         responseMimeType: "application/json",
                         temperature: 0.3,
                     },

@@ -7,26 +7,26 @@ import { Type as SchemaType } from "@google/genai";
 
 export const runtime = "nodejs";
 
-const SYSTEM_INSTRUCTION = `Jesteś SONIC — Ekspertem od identyfikacji pojazdów i maszyn (jak aplikacja Shazam dla aut).
-Twoim zadaniem jest rozpoznać markę, model i rodzaj silnika na podstawie materiału audio lub wideo/zdjęcia.
-Skupiasz się na detekcji wizualnej (karoseria, detale wnętrza) i akustycznej (tonacja wydechu, świst turbiny, charakterystyczny bas V8).
-Musisz zwrócić odpowiedź w języku POLSKIM w restrykcyjnym formacie JSON.
-Pamiętaj, że otrzymujesz tablicę 'specs' z technicznymi detalami. Zwróć tylko surowe stringi dla ikon: "Gauge", "Wind", "Hash", "Car".
+const SYSTEM_INSTRUCTION = `You are SONIC — A vehicle and machine identification expert (like Shazam for cars).
+Your task is to recognize the make, model, and engine type based on audio or video/photo material.
+You focus on visual detection (bodywork, interior details) and acoustic detection (exhaust tone, turbo whistle, characteristic V8 bass).
+You must return the response in the language specified by the user in strict JSON format.
+Remember that you return a 'specs' array with technical details. Return only raw strings for icons: "Gauge", "Wind", "Hash", "Car".
 
-Przykład ikonek dla specs:
-- Pojemność -> "Gauge"
-- Moc -> "Wind"
-- Układ silnika -> "Hash"
-- Inne -> "Car"
+Example icons for specs:
+- Engine Capacity -> "Gauge"
+- Power -> "Wind"
+- Engine Layout -> "Hash"
+- Other -> "Car"
 `;
 
 const identificationSchema = {
   type: SchemaType.OBJECT,
   properties: {
-    name: { type: SchemaType.STRING, description: "Marka i model, np. 'Ford Mustang GT'" },
-    engine: { type: SchemaType.STRING, description: "Oznaczenie silnika, np. '5.0L Coyote V8'" },
-    confidence: { type: SchemaType.INTEGER, description: "Pewność identyfikacji w % (0-100)" },
-    description: { type: SchemaType.STRING, description: "Krótki opis uzasadniający rozpoznanie." },
+    name: { type: SchemaType.STRING, description: "Make and model, e.g. 'Ford Mustang GT'" },
+    engine: { type: SchemaType.STRING, description: "Engine designation, e.g. '5.0L Coyote V8'" },
+    confidence: { type: SchemaType.INTEGER, description: "Identification confidence in % (0-100)" },
+    description: { type: SchemaType.STRING, description: "Short description justifying the recognition." },
     specs: {
       type: SchemaType.ARRAY,
       items: {
@@ -34,7 +34,7 @@ const identificationSchema = {
         properties: {
           label: { type: SchemaType.STRING },
           value: { type: SchemaType.STRING },
-          icon: { type: SchemaType.STRING, description: "Jedna z wartości: 'Gauge', 'Wind', 'Hash', 'Car'" },
+          icon: { type: SchemaType.STRING, description: "One of the values: 'Gauge', 'Wind', 'Hash', 'Car'" },
         },
         required: ["label", "value", "icon"],
       },
@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const filePartsString = formData.get("fileParts") as string;
     const context = (formData.get("context") as string) || "";
+    const locale = (formData.get("locale") as string) || "pl";
 
     let fileParts: any[] = [];
     if (filePartsString) {
@@ -135,9 +136,9 @@ export async function POST(request: NextRequest) {
 
     const ai = getGenAI();
 
-    let contextText = "Identyfikacja pojazdu/silnika (Shazam).";
+    let contextText = "Vehicle/engine identification (Shazam).";
     if (context) {
-      contextText += ` Kontekst dodatkowy od użytkownika: ${context}`;
+      contextText += ` Additional context from user: ${context}`;
     }
 
     const fallbackModels = [
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
             },
           ],
           config: {
-            systemInstruction: SYSTEM_INSTRUCTION,
+            systemInstruction: SYSTEM_INSTRUCTION + '\n\n' + `CRITICAL: All descriptive text fields in the generated response MUST be written in the language specified by the following code: ${locale} (pl = Polish, en = English, de = German, es = Spanish).`,
             responseMimeType: "application/json",
             responseSchema: identificationSchema,
             temperature: 0.3,
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
     const result = JSON.parse(rawText);
 
     const hasCredits = user.credits > 0;
-    
+
     // Transaction: Decrement credits on successful identification
     if (hasCredits) {
       await prisma.user.update({
@@ -197,12 +198,25 @@ export async function POST(request: NextRequest) {
 
     let finalData = result;
     if (!hasCredits) {
-      const hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+      let hiddenMsg = "[UKRYTE DLA WERSJI DARMOWEJ]";
+      let hiddenDesc = "Rozpoznano model pojazdu, ale szczegółowe dane są dostępne po odblokowaniu raportu.";
+
+      if (locale === 'en') {
+        hiddenMsg = "[HIDDEN IN FREE VERSION]";
+        hiddenDesc = "Vehicle model recognized, but detailed data is available after unlocking the report.";
+      } else if (locale === 'de') {
+        hiddenMsg = "[IN DER KOSTENLOSEN VERSION VERBORGEN]";
+        hiddenDesc = "Fahrzeugmodell erkannt, aber detaillierte Daten są erst nach Freischaltung des Berichts verfügbar.";
+      } else if (locale === 'es') {
+        hiddenMsg = "[OCULTO EN VERSIÓN GRATUITA]";
+        hiddenDesc = "Modelo de vehículo reconocido, pero los datos detallados están disponibles tras desbloquear el informe.";
+      }
+
       finalData = {
         ...result,
         name: hiddenMsg,
         engine: hiddenMsg,
-        description: "Rozpoznano model pojazdu, ale szczegółowe dane są dostępne po odblokowaniu raportu.",
+        description: hiddenDesc,
         specs: result.specs.map((s: any) => ({ ...s, value: "***" }))
       };
     }

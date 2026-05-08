@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 
 export function SettingsButton({ onClick }: { onClick?: () => void }) {
   return (
-    <motion.button 
+    <motion.button
       onClick={onClick}
-      className="fixed top-6 right-6 md:top-8 md:right-8 z-50 flex items-center justify-center w-12 h-12 backdrop-blur-2xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden"
+      className="fixed top-4 right-4 md:top-8 md:right-8 z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 backdrop-blur-2xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden"
       aria-label="Ustawienia"
       whileHover="hover"
       whileTap="tap"
@@ -19,7 +19,7 @@ export function SettingsButton({ onClick }: { onClick?: () => void }) {
       }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <motion.div 
+      <motion.div
         className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent"
         variants={{
           rest: { opacity: 0 },
@@ -36,9 +36,9 @@ export function SettingsButton({ onClick }: { onClick?: () => void }) {
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
         className="relative z-10 flex items-center justify-center"
       >
-        <Settings 
-          className="w-[22px] h-[22px]" 
-          strokeWidth={2.5} 
+        <Settings
+          className="w-[18px] h-[18px] md:w-[22px] md:h-[22px]"
+          strokeWidth={2.5}
         />
       </motion.div>
     </motion.button>

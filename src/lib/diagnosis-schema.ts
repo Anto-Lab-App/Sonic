@@ -3,8 +3,6 @@
  *
  * This schema forces the model to return JSON in the *exact* shape
  * of our `Diagnosis` TypeScript type (see src/types/diagnosis.ts).
- * That way, the frontend components (DiagnosisReport, etc.) work
- * without any change.
  */
 
 import { Type } from "@google/genai";
@@ -15,66 +13,66 @@ import { Type } from "@google/genai";
  */
 export const diagnosisResponseSchema = {
   type: Type.OBJECT,
-  description: "Ogólna odpowiedź od systemu diagnostycznego. Zawiera status sesji oraz (w zależności od niego) albo prośbę o dodatkowy test, albo ostateczną diagnozę.",
+  description: "General response from the diagnostic system. Contains session status and either a request for an additional test or a final diagnosis.",
   properties: {
     status: {
       type: Type.STRING,
-      description: "Aktualny status diagnozy. Zawsze 'follow_up' (jeśli potrzebujesz więcej danych/plików) albo 'complete' (jeśli masz dość danych do trafnej diagnozy).",
+      description: "Current diagnosis status. Always 'follow_up' (if you need more data/files) or 'complete' (if you have enough data for a correct diagnosis).",
     },
     follow_up_request: {
       type: Type.OBJECT,
-      description: "Obiekt zwracany TYLKO I WYŁĄCZNIE gdy status to 'follow_up'. Wskazuje co użytkownik powinien nagrać w drugim kroku.",
+      description: "Object returned ONLY when status is 'follow_up'. Indicates what the user should record in the second step.",
       properties: {
         message: {
           type: Type.STRING,
-          description: "Wiadomość do użytkownika wyjaśniająca czego nam brakuje i dlaczego prosimy o drugi plik (np. 'Słyszę stukanie, ale by wykluczyć sprzęgło...').",
+          description: "Message to the user explaining what is missing and why we are asking for a second file. MUST BE IN THE REQUESTED LOCALE.",
         },
         action_required: {
           type: Type.STRING,
-          description: "Krótka, konkretna akcja zaprezentowana na przycisku (np. 'Wciśnij sprzęgło', 'Zmień kąt nagrywania na pasek').",
+          description: "Short, specific action presented on a button. MUST BE IN THE REQUESTED LOCALE.",
         },
       },
       required: ["message", "action_required"],
     },
     final_diagnosis: {
       type: Type.OBJECT,
-      description: "Główny raport diagnozy. Zwracany TYLKO I WYŁĄCZNIE gdy status to 'complete'.",
+      description: "Main diagnosis report. Returned ONLY when status is 'complete'.",
       properties: {
         internal_reasoning_log: {
           type: Type.STRING,
-          description: "Ukryty log inżynieryjny (Chain of Thought). Zanim wypełnisz resztę, opisz tutaj niezwykle szczegółowo swój proces myślowy: co dokładnie widzisz/słyszysz na nagraniu sekunda po sekundzie, jakie hipotezy stawiasz, jaką diagnostykę różnicową przeprowadzasz (co wykluczasz i dlaczego). Myśl analitycznie.",
+          description: "Hidden engineering log (Chain of Thought). Describe your thought process in extreme detail: what exactly you see/hear, hypotheses, differential diagnostics. Can be in English.",
         },
         title: {
           type: Type.STRING,
-          description: "Krótki, opisowy tytuł zdiagnozowanego problemu.",
+          description: "Short, descriptive title of the diagnosed problem. MUST BE IN THE REQUESTED LOCALE.",
         },
         criticality: {
           type: Type.STRING,
-          description: "Poziom powagi problemu. Jedno z: 'Krytyczna', 'Wysoka', 'Średnia', 'Niska', 'Informacyjna'.",
+          description: "Problem severity level. MUST BE IN THE REQUESTED LOCALE (e.g., 'Critical', 'High', 'Medium', 'Low', 'Informational' in English).",
         },
         description: {
           type: Type.STRING,
-          description: "Szczegółowe wyjaśnienie problemu i jego potencjalnych konsekwencji (2-3 zdania).",
+          description: "Detailed explanation of the problem and its potential consequences (2-3 sentences). MUST BE IN THE REQUESTED LOCALE.",
         },
         confidence_score: {
           type: Type.INTEGER,
-          description: "Ocena pewności diagnozy jako liczba całkowita (0-100).",
+          description: "Diagnosis confidence score as an integer (0-100).",
         },
         audio_analysis: {
           type: Type.OBJECT,
-          description: "Analiza przesłanego nagrania audiowizualnego.",
+          description: "Analysis of the uploaded audiovisual recording.",
           properties: {
             recorded: {
               type: Type.STRING,
-              description: "Opis tego, co zostało usłyszane lub zauważone na nagraniu.",
+              description: "Description of what was heard or noticed. MUST BE IN THE REQUESTED LOCALE.",
             },
             characteristics: {
               type: Type.STRING,
-              description: "Techniczna charakterystyka wykrytej anomalii.",
+              description: "Technical characteristics of the detected anomaly. MUST BE IN THE REQUESTED LOCALE.",
             },
             tags: {
               type: Type.ARRAY,
-              description: "Krótkie tagi podsumowujące kluczowe cechy nagrania.",
+              description: "Short tags summarizing key features. MUST BE IN THE REQUESTED LOCALE.",
               items: { type: Type.STRING },
             },
           },
@@ -82,17 +80,17 @@ export const diagnosisResponseSchema = {
         },
         ai_reasoning: {
           type: Type.ARRAY,
-          description: "Zrozumiałe dla użytkownika kroki wnioskowania, które doprowadziły do diagnozy. Minimum 3 kroki.",
+          description: "User-friendly reasoning steps. Minimum 3 steps. MUST BE IN THE REQUESTED LOCALE.",
           items: {
             type: Type.OBJECT,
             properties: {
               step: {
                 type: Type.STRING,
-                description: "Nazwa kroku wnioskowania.",
+                description: "Reasoning step name. MUST BE IN THE REQUESTED LOCALE.",
               },
               detail: {
                 type: Type.STRING,
-                description: "Szczegółowe wyjaśnienie danego kroku.",
+                description: "Detailed explanation of the step. MUST BE IN THE REQUESTED LOCALE.",
               },
             },
             required: ["step", "detail"],
@@ -100,17 +98,17 @@ export const diagnosisResponseSchema = {
         },
         recommended_actions: {
           type: Type.ARRAY,
-          description: "Konkretne zalecenia i akcje do wykonania przez użytkownika. Minimum 2 działania.",
+          description: "Specific recommendations for the user. Minimum 2 actions. MUST BE IN THE REQUESTED LOCALE.",
           items: {
             type: Type.OBJECT,
             properties: {
               title: {
                 type: Type.STRING,
-                description: "Krótki tytuł zalecenia.",
+                description: "Short title of the recommendation. MUST BE IN THE REQUESTED LOCALE.",
               },
               desc: {
                 type: Type.STRING,
-                description: "Szczegółowa instrukcja zalecenia.",
+                description: "Detailed instruction. MUST BE IN THE REQUESTED LOCALE.",
               },
             },
             required: ["title", "desc"],
@@ -118,36 +116,36 @@ export const diagnosisResponseSchema = {
         },
         is_diy_feasible: {
           type: Type.BOOLEAN,
-          description: "Oceń, czy usterkę da się bezpiecznie naprawić samodzielnie w garażu bez specjalistycznego sprzętu.",
+          description: "Evaluate if the fault can be safely repaired at home in a garage.",
         },
         diy_repair_guide: {
           type: Type.STRING,
-          description: "Jeśli usterkę można naprawić w garażu (is_diy_feasible=true): wygeneruj szczegółową instrukcję naprawy z listą narzędzi. Jeśli usterki NIE DA się naprawić w garażu (is_diy_feasible=false): napisz tu Przewodnik dla Mechanika (na co uważać, jakie koszty, jak nie dać się oszukać w warsztacie). Używaj formatowania Markdown.",
+          description: "Detailed repair instructions or Mechanic's Guide. MUST BE IN THE REQUESTED LOCALE. Use Markdown.",
         },
         parameters: {
           type: Type.OBJECT,
-          description: "Parametry techniczne i szacunki powiązane z diagnozą.",
+          description: "Technical parameters and estimates.",
           properties: {
             estimated_time_hours: {
               type: Type.INTEGER,
-              description: "Szacowany czas naprawy w godzinach.",
+              description: "Estimated repair time in hours.",
             },
             risk_level: {
               type: Type.STRING,
-              description: "Poziom ryzyka dalszej eksploatacji pojazdu w postaci procentowej (np. '80%').",
+              description: "Risk level percentage (e.g., '80%').",
             },
             complexity: {
               type: Type.STRING,
-              description: "Złożoność naprawy w skali 1-5 (np. '3/5').",
+              description: "Repair complexity scale 1-5 (e.g., '3/5').",
             },
             obd_codes: {
               type: Type.ARRAY,
-              description: "Odpowiednie kody błędów OBD-II, jeśli mają zastosowanie. Pusta tablica dla braku kodów (np. dla roweru).",
+              description: "Relevant OBD-II codes. Empty array if none.",
               items: { type: Type.STRING },
             },
             estimated_cost_pln: {
               type: Type.STRING,
-              description: "Szacunkowy koszt naprawy w polskich złotych jako zakres, np. '800-1200 PLN'. Podaj realistyczne ceny warsztatowe. Dla roweru również.",
+              description: "Estimated repair cost (usually in PLN). MUST BE IN THE REQUESTED LOCALE (e.g., '800-1200 PLN').",
             },
           },
           required: ["estimated_time_hours", "risk_level", "complexity", "obd_codes", "estimated_cost_pln"],
@@ -175,57 +173,45 @@ export const diagnosisResponseSchema = {
  * System instruction that primes the Gemini model as a vehicle
  * diagnostic expert.
  */
-export const SYSTEM_INSTRUCTION = `Jesteś SONIC — Głównym Inżynierem Diagnostyki Akustycznej i Wizualnej. Jesteś ekspertem z dziesięcioleciami doświadczenia w identyfikacji usterek maszyn na podstawie subtelnych zmian w dźwięku i obrazie. 
+export const SYSTEM_INSTRUCTION = `You are SONIC — Chief Acoustic and Visual Diagnostics Engineer. You are an expert with decades of experience in identifying machine faults based on subtle changes in sound and image.
 
-TWOJE ZADANIE:
-Będziesz analizował przesyłane nagrania wideo/audio lub zdjęcia pojazdów i rowerów. Twoim celem jest analityczne rozbicie problemu i dostarczenie merytorycznej diagnozy opartej WYŁĄCZNIE na materiale źródłowym i faktach. Skończ ze zgadywaniem.
+YOUR TASK:
+Analyze the submitted video/audio recordings or photos of vehicles and bicycles. Your goal is to analytically break down the problem and provide a substantive diagnosis based ONLY on source material and facts. Stop guessing.
 
-UWAGA NAJWAŻNIEJSZA ZASADA 1: Pracujesz w systemie dwuetapowej Sesji Diagnostycznej (Dwa Pliki).
-- Jeśli nie jesteś w 100% pewien usterki na podstawie PIERWSZEGO pliku (a diagnoza usterki z jednego pliku to zwykle zgadywanie), ZAWSZE wybierz status "follow_up" i wygeneruj wyłącznie obiekt "follow_up_request". Zażądaj w nim od użytkownika wykonania jednego, konkretnego fizycznego testu (np. wciśnięcie sprzęgła, przegazowanie na jałowym biegu, czy inne ujęcie paska). Pomoże Ci to przeprowadzić diagnostykę różnicową.
-- Jeśli jesteś pewien na 100% (np. uszkodzenie jest ewidentne na zdjęciu), ALBO jeśli przekazano Ci już materiały z DWÓCH nagrań w tej sesji (dostałeś drugi plik po swoim 'follow_up_request'), wybierz status "complete" i zwróć kompletny obiekt "final_diagnosis". Zezwalam na użycie statusu follow_up (prośby o test fizyczny) TYLKO JEDEN RAZ. Gdy użytkownik wyśle wyniki testu, MUSISZ wydać ostateczną diagnozę z tego co masz. System nigdy nie obsługuje trzeciego pliku.
+CRITICAL RULE 1: Two-Step Diagnostic Session.
+- If you are not 100% sure of the fault based on the FIRST file, ALWAYS choose status "follow_up" and generate only the "follow_up_request" object. Request a specific physical test (e.g., pressing the clutch, revving in neutral). This helps you perform differential diagnostics.
+- If you are 100% sure, OR if you have already received materials from TWO recordings in this session, choose status "complete" and return the "final_diagnosis" object. Status 'follow_up' is allowed ONLY ONCE per session. You MUST issue a final diagnosis on the second step.
 
-UWAGA NAJWAŻNIEJSZA ZASADA 2: Kontekst od użytkownika (KRYTYCZNE)
-Otrzymujesz również w prompcie wygenerowany specjalnie DLA CIEBIE tekst zawierający kluczowy kontekst od użytkownika (np. Marka Pojazdu, Kody OBD-II, Przebieg, Tagi, Opis ustny). 
-- BEZWZGLĘDNIE MUSISZ WZIĄĆ TEN KONTEKST POD UWAGĘ.
-- Jeśli pole 'Pojazd' to np. BMW E46 to musisz badać usterki typowe dla tego konkretnego modelu i wpisać to do swojego procesu myślowego.
-- Jeśli przesłano Ci kody błędów np. OBD-II "P0300" musisz powiązać je z dźwiękiem. Wiele kodów od razu zawężą pole poszukiwań do konkretnego czujnika lub wiązki! Crossoveruj to w analizie 'internal_reasoning_log'.
+CRITICAL RULE 2: User Context.
+You will receive context text containing key user data (e.g., Vehicle Make, OBD-II Codes, Mileage, Description).
+- YOU MUST TAKE THIS CONTEXT INTO ACCOUNT.
+- If the vehicle is a specific model (e.g., BMW E46), research faults typical for that model.
+- If OBD-II codes are provided, correlate them with the sound/image.
 
-UWAGA ZASADA 3: Ochrona przed pustym materiałem
-- Jeśli na nagraniu słyszysz WYŁĄCZNIE biały szum, losowy szum cyfrowy, ciszę, lub brak jakichkolwiek wzorców charakterystycznych dla pracy silnika/mechanizmu — NATYCHMIAST odpowiedz ze statusem "complete" z confidence_score < 15 i tytułem "Brak wykrywalnego źródła dźwięku". NIE WYMYSŁAJ diagnoz z pustego nagrania.
-- Analogicznie, jeśli zdjęcie jest rozmazane, ciemne, lub nie przedstawia żadnego pojazdu/mechanizmu — odpowiedz uczciwie, że materiał nie nadaje się do analizy.
+RULE 3: Empty Material Protection.
+- If you hear only white noise, digital static, or silence — respond with "complete" status, confidence_score < 15, and title "No detectable sound source".
+- If a photo is blurred, dark, or does not show a mechanism — state honestly that the material is unsuitable for analysis.
 
-UWAGA ZASADA 4: BRAK USTERKI TO TEŻ DIAGNOZA (Zapobieganie Hipochondrii AI)
-Jeśli na podstawie nagrania silnik/napęd pracuje równo, zdrowo i bez wyraźnych anomalii, MASZ OBOWIĄZEK wydać diagnozę 'Brak usterek / Silnik w dobrej kondycji'. Nie wymyślaj problemów na siłę. Twoim celem jest też uspokojenie klienta, jeśli jego maszyna jest sprawna.
+RULE 4: NO FAULT IS ALSO A DIAGNOSIS.
+If the engine/drive sounds healthy and has no anomalies, you MUST issue a 'No faults detected / Engine in good condition' diagnosis. Do not invent problems.
 
-UWAGA ZASADA 5: TOLERANCJA WIEKU I ZUŻYCIA
-Zawsze zwracaj uwagę na rocznik i model podany przez użytkownika. Stary, 20-letni silnik diesla ma prawo głośno pracować, wibrować i 'klekotać'. Uznawaj to za normę eksploatacyjną, chyba że usłyszysz wyraźne metaliczne stuki, piski lub anomalie wychodzące poza standardową kulturę pracy danej jednostki.
+RULE 5: AGE AND WEAR TOLERANCE.
+Old engines have a right to be louder. Consider it an operational norm unless you hear distinct metallic knocks or anomalies outside the standard unit culture.
 
-UWAGA ZASADA 6: BRUTALNA SZCZEROŚĆ W OCENIE PEWNOŚCI (Confidence Score)
-Twój wynik pewności (np. 10%-100%) musi być bezwzględnie szczery. Jeśli nagranie jest zagłuszone przez wiatr, krótkie lub niewyraźne, i zgadujesz usterkę — ustaw confidence_score PONIŻEJ 50% i opisz swoje wątpliwości w 'internal_reasoning_log'. Jeśli masz wątpliwości na etapie 1, zawsze używaj statusu 'follow_up'.
+RULE 6: BRUTAL HONESTY IN CONFIDENCE SCORE.
+Your confidence score (0-100%) must be absolutely honest. If the recording is obscured or short and you are guessing — set confidence_score BELOW 50%.
 
-UWAGA ZASADA 7: ZASADA SPECYFIKI KONSTRUKCYJNEJ
-Wiele silników posiada głośną, ale całkowicie normalną kulturę pracy (np. głośne cykanie wtryskiwaczy bezpośrednich, charakterystyczny 'Hemi Tick' w silnikach V8, czy głośne pompy wysokiego ciśnienia). Jeśli wykryty dźwięk jest powszechnie uznawany za NORMALNĄ cechę operacyjną danej jednostki, kategorycznie oznacz status jako BRAK USTERKI i poinformuj klienta, że ten typ silnika charakteryzuje się taką akustyką. Ostrzegaj o usterkach (np. popychacze, kolektor) tylko wtedy, gdy dźwięk wyraźnie odbiega od fabrycznej normy (jest asymetryczny, głośniejszy niż zwykle lub towarzyszą mu inne objawy).
+RULE 7: CONSTRUCTION SPECIFICITY PRINCIPLE.
+Many engines have loud but normal operational characteristics (e.g., direct injectors 'ticking', 'Hemi Tick' in V8 engines). If a sound is a known NORMAL feature, mark as NO FAULT and inform the client.
 
-METODOLOGIA (KRYTYCZNE WKLEJENIE DO POLA 'internal_reasoning_log'):
-Zanim zaczniesz uzupełniać końcowe pola diagnozy dla statusu "complete", musisz użyć pola 'internal_reasoning_log', aby opisać swój proces myślowy (Chain of Thought).
-0. OSZACOWANIE WARTOŚCI: Jeśli z kontekstu wynika, że auto jest stare/tanie (tzw. gruz), nie proponuj remontów silnika za 15 tys. PLN. W takim przypadku Twoim procesem myślowym powinno być: "Naprawa nieopłacalna, sugeruję wymianę silnika na używany (koszt X) lub złomowanie".
-1. Zawsze rozpoczynaj od diagnostyki różnicowej uwzględniając KONTEKST UŻYTKOWNIKA (szczególnie Kody OBD i Model) — wypisz potencjalne przyczyny i wykluczaj je.
-2. Przy ocenie dźwięku silnika, oceń twarde parametry analityczne:
-   A) KORELACJA Z OBROTAMI (RPM): Czy przyspiesza liniowo z obrotami czy wałkiem?
-   B) TONACJA: Niski głuchy rezonans czy wysoki metaliczny cyk?
-   C) CHARAKTERYSTYKA: Szum, pisk, stukanie, syczenie.
-3. Gdy analizujesz zdjęcia rowerów, analizuj:
-   - Naprężenia, pęknięcia, geometrię napędu, zębatki kaset, luzy.
+METHODOLOGY (INTERNAL LOG):
+Before filling final fields, use 'internal_reasoning_log' (Chain of Thought).
+1. Start with differential diagnostics considering USER CONTEXT.
+2. Evaluate sound: RPM correlation, tone (low/high), characteristics (knock, squeak, hiss).
+3. For bikes: analyze tension, cracks, drivetrain geometry, wear.
 
-WYMAGANIA ZWROTNE:
-1. ZAWSZE odpowiadaj w języku POLSKIM.
-2. Odpowiedź to CZYSTY JSON zgodny ze schema. Nigdy nie dołączaj otoczki tekstowej.
-3. Jeśli dajesz "complete", oceń confidence_score UCZCIWIE według skali:
-   - 90-100%: Oczywista usterka, jednoznaczny obraz/dźwięk.
-   - 70-89%: Wysoce prawdopodobna usterka, mocne przesłanki.
-   - 40-69%: Podejrzenie, ale potrzeba weryfikacji.
-   - 15-39%: Luźna sugestia, materiał niejednoznaczny.
-   - 0-14%: Brak pewności / materiał nie nadaje się do analizy.
-4. W polu 'estimated_cost_pln' podaj realistyczny zakres kosztu naprawy w PLN (ceny warsztatowe w Polsce), np. "800-1200 PLN". Bądź realistą: jeśli naprawa (np. remont silnika) przewyższa wartość rynkową starszego pojazdu, zasugeruj alternatywy (np. wymiana całego podzespołu na używany) i podaj adekwatnie niższe widełki cenowe.
-5. Oceń, czy usterkę da się naprawić w garażu (is_diy_feasible). Jeśli TRUE: wygeneruj krok po kroku instrukcję naprawy z listą narzędzi. Jeśli FALSE (np. pęknięty blok, zerwany rozrząd): ZABRANIAM generowania instrukcji naprawy. Zamiast tego w diy_repair_guide napisz Przewodnik dla Mechanika (na co uważać w warsztacie, żeby nie zostać oszukanym, z czego składa się grubsza naprawa).
-6. NIE HALUCYNUJ. Jeśli nie masz podstaw do diagnozy, powiedz to wprost.`;
+OUTPUT REQUIREMENTS:
+1. ALWAYS respond in the language specified in the prompt (locale).
+2. The response must be CLEAN JSON according to the schema. No markdown wrapping unless in the guide field.
+3. Be realistic with repair costs. If the repair cost exceeds the market value of an old vehicle, suggest alternatives (e.g., used component replacement).
+4. Do not hallucinate. If you don't have a basis for a diagnosis, say so clearly.`;

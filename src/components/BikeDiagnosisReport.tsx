@@ -20,14 +20,6 @@ import {
 import type { Diagnosis } from '@/types/diagnosis';
 import { PricingModal } from './PricingModal';
 
-const repairTimeData = [
-  { stage: 'Diagnoza', minutes: 10, color: '#3b82f6' },
-  { stage: 'Demontaż', minutes: 15, color: '#8b5cf6' },
-  { stage: 'Czyszczenie', minutes: 10, color: '#eab308' },
-  { stage: 'Wymiana/Reg.', minutes: 25, color: '#ef4444' },
-  { stage: 'Testy', minutes: 5, color: '#10b981' },
-];
-
 interface BikeDiagnosisReportProps {
   onClose: () => void;
   data?: Diagnosis;
@@ -36,7 +28,7 @@ interface BikeDiagnosisReportProps {
 }
 
 export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: BikeDiagnosisReportProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Use AI data when available, fall back to hardcoded defaults
   const title = data?.title ?? 'Krytyczne rozciągnięcie łańcucha (>1%) oraz uszkodzenie zębów koronki.';
@@ -48,6 +40,16 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
   const recommendedActions = data?.recommended_actions;
 
   const isLocked = typeof audioAnalysis === 'string';
+
+  // Localized repair stages for bike
+  const repairTimeData = [
+    { stage: t.report.repairStages?.diagnosis || 'Diagnoza', minutes: 10, color: '#3b82f6' },
+    { stage: t.report.repairStages?.teardown || 'Demontaż', minutes: 15, color: '#8b5cf6' },
+    { stage: t.report.repairStages?.cleaning || 'Czyszczenie', minutes: 10, color: '#eab308' },
+    { stage: t.report.repairStages?.replacement || 'Wymiana/Reg.', minutes: 25, color: '#ef4444' },
+    { stage: t.report.repairStages?.testing || 'Testy', minutes: 5, color: '#10b981' },
+  ];
+
   const [showPricing, setShowPricing] = React.useState(isLocked);
 
   return (
@@ -158,10 +160,10 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
 
             <div className="space-y-3 md:space-y-5">
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Nagrane:</strong> {!isLocked ? (audioAnalysis as any)?.recorded ?? 'Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.' : '********************'}
+                <strong className="text-foreground font-semibold">{t.report.labels.recorded}</strong> {!isLocked ? (audioAnalysis as any)?.recorded ?? 'Zaobserwowano mocne "zaostrzenie" zębów na bocznych tarczach kasety, często określane potocznie mianem zębów rekina. Zęby są cieńsze.' : '********************'}
               </p>
               <p className="text-muted text-xs md:text-sm leading-relaxed">
-                <strong className="text-foreground font-semibold">Cechy:</strong> {!isLocked ? (audioAnalysis as any)?.characteristics ?? 'Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha w dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.' : '********************'}
+                <strong className="text-foreground font-semibold">{t.report.labels.characteristics}</strong> {!isLocked ? (audioAnalysis as any)?.characteristics ?? 'Obraz optyczny wskazuje na asymetryczne wcięcie łańcucha v dolnej prowadnicy tylnej przerzutki, co objawia się trzeszczeniem przy napinaniu.' : '********************'}
               </p>
 
               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
@@ -214,7 +216,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                 <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
               </div>
               <h2 className="text-sm md:text-lg font-semibold text-foreground">
-                {data.is_diy_feasible ? 'Przewodnik Naprawy DIY' : 'Przewodnik dla Mechanika (Zabezpiecz się)'}
+                {data?.is_diy_feasible ? t.report.labels.diyTitle : t.report.labels.mechanicTitle}
               </h2>
             </div>
             <div className="prose prose-sm md:prose-base prose-invert max-w-none text-muted">
@@ -230,9 +232,9 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
 
           {isLocked && (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
-              <button onClick={() => setShowPricing(true)} className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-primary/30">
+              <button onClick={() => setShowPricing(true)} className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition-all shadow-xl shadow-primary/30 hover:scale-105 active:scale-95">
                 <Lock className="w-5 h-5" />
-                Odblokuj Pełny Raport
+                {t.report.unlockReport}
               </button>
             </div>
           )}
@@ -248,10 +250,10 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
               {(!isLocked ? (recommendedActions as any[] ?? [
-                { title: 'Weryfikacja przymiarem', desc: 'Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.' },
-                { title: 'Skuwacz i Bacik', desc: 'Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego łańcucha oraz klucza francuskiego i tzw. "bacika" na kasetę.' },
-                { title: 'Wymiana komponentów', desc: 'Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).' },
-                { title: 'Regulacja przerzutki', desc: 'Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.' },
+                { title: t.report.tools.verify || 'Weryfikacja przymiarem', desc: t.report.tools.verifyDesc || 'Dla pewności wsuń przymiar do łańcucha. Jeśli przymiar o wskaźniku 1.0 wpada w pełni w ogniwo – diagnoza w 100% się zgadza.' },
+                { title: t.report.tools.cassetteToolTitle || 'Skuwacz i Bacik', desc: t.report.tools.cassetteToolDesc || 'Będziesz potrzebował narzędzi rowerowych: Skuwacza do przerwania starego huku oraz klucza francuskiego i tzw. "bacika" na kasetę.' },
+                { title: t.report.tools.replacementTitle || 'Wymiana komponentów', desc: t.report.tools.replacementDesc || 'Ściągnij starą kasetę, nałóż nową stosując kompatybilność rzędowości. Zmierz i skróć nowy łańcuch przypinając go na spinkę (Quick-Link).' },
+                { title: t.report.tools.adjustmentTitle || 'Regulacja przerzutki', desc: t.report.tools.adjustmentDesc || 'Po założeniu nowych rzędów wyreguluj delikatnie naprężenie śruby tylnej przerzutki (śruba baryłkowa), aby wrzucała precyzyjniej.' },
               ]) : []).map((action: any, i: number) => (
                 <div key={i} className="p-3 md:p-5 bg-background border border-border-subtle rounded-xl md:rounded-2xl transition-colors">
                   <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-3">
@@ -281,7 +283,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                     <Wrench className="w-4 h-4" />
                     <span className="text-xs md:text-sm font-medium">{t.report.estimatedTimeWorkshop}</span>
                   </div>
-                  <span className="text-xs md:text-sm font-bold text-foreground">~65 min</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">~65 {t.report.labels.minutesUnit}</span>
                 </div>
                 <div className="h-32 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -297,7 +299,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                                 <p className="text-[10px] text-muted font-medium uppercase tracking-wider mb-1">{payload[0].payload.stage}</p>
                                 <p className="text-sm text-foreground font-bold flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].payload.color }}></span>
-                                  {payload[0].value} min
+                                  {payload[0].value} {t.report.labels.minutesUnit}
                                 </p>
                               </div>
                             );
@@ -325,10 +327,10 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Skuwacz łańcucha</span>
-                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Klucz do kaset (Bacik)</span>
-                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Imbus 5mm</span>
-                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">Rękawiczki smarne</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">{t.report.tools.chainBreaker}</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">{t.report.tools.cassetteTool}</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">{t.report.tools.hexKey}</span>
+                    <span className="bg-surface-hover px-2 py-1 rounded text-foreground/80">{t.report.tools.gloves}</span>
                   </div>
                 </div>
               )}
@@ -341,7 +343,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                       <span className="text-lg">💰</span>
                     </div>
                     <div>
-                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">Szacunkowy koszt części</p>
+                      <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-0.5">{t.report.partsCostEst}</p>
                       <p className="text-base md:text-lg font-bold text-emerald-400">{(data?.parameters as any)?.estimated_cost_pln}</p>
                     </div>
                   </div>
@@ -350,8 +352,8 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
                 <div className="pt-4 border-t border-border-subtle">
                   <p className="text-[10px] md:text-xs font-semibold text-muted/80 uppercase tracking-wider mb-2 md:mb-3">{t.report.partsCost}</p>
                   <div className="flex flex-wrap gap-1.5 md:gap-2">
-                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Łańcuch (100 - 250 PLN)</span>
-                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">Kaseta (150 - 600 PLN)</span>
+                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">{t.report.labels.chain} (100 - 250 PLN)</span>
+                    <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface-hover text-primary rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold ring-1 ring-inset ring-primary/20 shadow-sm cursor-pointer">{t.report.labels.cassette} (150 - 600 PLN)</span>
                   </div>
                 </div>
               )}
@@ -374,8 +376,8 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
               hover:from-emerald-500 hover:to-teal-500 transition-all
               shadow-[0_0_30px_rgba(16,185,129,0.3)]"
           >
-            <span className="text-xl">💬</span>
-            <span>Zapytaj AI o ten raport</span>
+            <span className="textxl">💬</span>
+            <span>{t.report.askAiAboutReport}</span>
           </button>
         </div>
       </main>

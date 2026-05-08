@@ -27,6 +27,26 @@ export default function Home() {
   useEffect(() => {
     const handleOpenPricingModal = () => setShowPricingModal(true);
     window.addEventListener('open-pricing-modal', handleOpenPricingModal);
+
+    // Check if returning from Stripe checkout
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const success = urlParams.get('success');
+      const diagnosisId = urlParams.get('diagnosisId');
+
+      if (success === 'true' && diagnosisId) {
+        import('@/app/actions/history').then(({ getDiagnosisById }) => {
+          getDiagnosisById(diagnosisId).then((record) => {
+            if (record) {
+              setSelectedRecord(record);
+              // Clean up the URL
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+          });
+        });
+      }
+    }
+
     return () => window.removeEventListener('open-pricing-modal', handleOpenPricingModal);
   }, []);
 
