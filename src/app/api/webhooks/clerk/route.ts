@@ -75,6 +75,26 @@ export async function POST(req: Request) {
         status: 500,
       })
     }
+  } else if (eventType === 'user.deleted') {
+    const { id } = evt.data;
+
+    if (!id) {
+      return new Response('Error occured -- missing ID', {
+        status: 400,
+      })
+    }
+
+    try {
+      // Delete user and their diagnoses (Prisma handles relations if set up)
+      await prisma.user.delete({
+        where: { clerkUserId: id }
+      });
+      console.log(`[Webhook] User deleted: ${id}`);
+    } catch (error) {
+      console.error('[Webhook] Failed to delete user from database:', error);
+      // We don't return 500 here to avoid Clerk retrying infinitely if user is already gone
+      return new Response('', { status: 200 });
+    }
   }
 
   return new Response('', { status: 200 })

@@ -11,7 +11,7 @@ export const translations = {
         dontShow: 'Nie pokazuj tego więcej',
         languages: { pl: 'Polski', en: 'Angielski', de: 'Niemiecki', es: 'Hiszpański' },
         auth: { login: 'Zaloguj się', account: 'Konto' },
-        disclaimer: { checkbox: 'Akceptuję ', link: 'Regulamin i Zastrzeżenia AI', fullText: 'Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.', shortNote: 'Korzystanie z aplikacji oznacza akceptację faktu, że AI może generować błędne informacje.' },
+        disclaimer: { checkbox: 'Akceptuję ', terms: 'Regulamin', and: ' oraz ', privacy: 'Politykę prywatności', link: 'Regulamin i Zastrzeżenia AI', fullText: 'Rozumiem, że Sonic jest asystentem AI, a nie certyfikowanym mechanikiem. Wyniki mają charakter poglądowy i przed podjęciem decyzji o jeździe należy skonsultować się z warsztatem. Twórcy nie ponoszą odpowiedzialności za szkody.', shortNote: 'Korzystanie z aplikacji oznacza akceptację faktu, że AI może generować błędne informacje.' },
         auto: {
             vehicleData: 'Dane pojazdu',
             vehicleDataSub: 'Wpisz ręcznie parametry, by pomóc diagnozie',
@@ -273,7 +273,7 @@ export const translations = {
         dontShow: 'Do not show again',
         languages: { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish' },
         auth: { login: 'Sign In', account: 'Account' },
-        disclaimer: { checkbox: 'I accept ', link: 'Terms and AI Disclaimers', fullText: 'I understand that Sonic is an AI assistant, not a certified mechanic. Results are for informational purposes only, and a workshop should be consulted before making driving decisions. The creators are not responsible for damages.', shortNote: 'Using the application means accepting the fact that AI can generate incorrect information.' },
+        disclaimer: { checkbox: 'I accept the ', terms: 'Terms of Service', and: ' and ', privacy: 'Privacy Policy', link: 'Terms and AI Disclaimers', fullText: 'I understand that Sonic is an AI assistant, not a certified mechanic. Results are for informational purposes only, and a workshop should be consulted before making driving decisions. The creators are not responsible for damages.', shortNote: 'Using the application means accepting the fact that AI can generate incorrect information.' },
         auto: {
             vehicleData: 'Vehicle Data',
             vehicleDataSub: 'Enter parameters manually to help diagnosis',
@@ -535,7 +535,7 @@ export const translations = {
         dontShow: 'Nicht mehr anzeigen',
         languages: { pl: 'Polnisch', en: 'Englisch', de: 'Deutsch', es: 'Spanisch' },
         auth: { login: 'Anmelden', account: 'Konto' },
-        disclaimer: { checkbox: 'Ich akzeptiere ', link: 'Bedingungen und KI-Haftungsausschluss', fullText: 'Ich verstehe, dass Sonic ein KI-Assistent ist, kein zertifizierter Mechaniker. Die Ergebnisse dienen nur zu Informationszwecken. Vor Fahrbescheiden sollte eine Werkstatt konsultiert werden. Die Ersteller haften nie für Schäden.', shortNote: 'Die Nutzung der Anwendung bedeutet die Akzeptanz der Tatsache, dass die KI fehlerhafte Informationen generieren kann.' },
+        disclaimer: { checkbox: 'Ich akzeptiere die ', terms: 'Nutzungsbedingungen', and: ' und ', privacy: 'Datenschutzerklärung', link: 'Bedingungen und KI-Haftungsausschluss', fullText: 'Ich verstehe, dass Sonic ein KI-Assistent ist, kein zertifizierter Mechaniker. Die Ergebnisse dienen nur zu Informationszwecken. Vor Fahrbescheiden sollte eine Werkstatt konsultiert werden. Die Ersteller haften nie für Schäden.', shortNote: 'Die Nutzung der Anwendung bedeutet die Akzeptanz der Tatsache, dass die KI fehlerhafte Informationen generieren kann.' },
         auto: {
             vehicleData: 'Fahrzeugdaten',
             vehicleDataSub: 'Parameter manuell eingeben, um die Diagnose zu unterstützen',
@@ -714,7 +714,7 @@ export const translations = {
         dontShow: 'No volver a mostrar',
         languages: { pl: 'Polaco', en: 'Inglés', de: 'Alemán', es: 'Español' },
         auth: { login: 'Iniciar sesión', account: 'Cuenta' },
-        disclaimer: { checkbox: 'Acepto ', link: 'Términos y Exenciones de IA', fullText: 'Entiendo que Sonic es un asistente de IA, no un mecánico certificado. Los resultados son solo para fines informativos y se debe consultar a un taller antes de conducir. Los creadores no son responsables de daños.', shortNote: 'El uso de la aplicación implica aceptar el hecho de que la IA puede generar información incorrecta.' },
+        disclaimer: { checkbox: 'Acepto los ', terms: 'Términos de Servicio', and: ' y la ', privacy: 'Política de Privacidad', link: 'Términos y Exenciones de IA', fullText: 'Entiendo que Sonic es un asistente de IA, no un mecánico certificado. Los resultados son solo para fines informativos y se debe consultar a un taller antes de conducir. Los creadores no son responsables de daños.', shortNote: 'El uso de la aplicación implica aceptar el hecho de que la IA puede generar información incorrecta.' },
         auto: {
             vehicleData: 'Datos del Vehículo',
             vehicleDataSub: 'Ingresa los parámetros manualmente',

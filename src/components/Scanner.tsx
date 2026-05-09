@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles } from 'lucide-react';
 
 import { ContextModal } from './ContextModal';
@@ -684,17 +685,21 @@ export function Scanner({
               </div>
               <div className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors select-none">
                 {t.disclaimer.checkbox}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsDisclaimerModalOpen(true);
-                  }}
+                <Link
+                  href="/regulamin"
+                  target="_blank"
                   className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
                 >
-                  {t.disclaimer.link}
-                </button>
+                  {t.disclaimer.terms}
+                </Link>
+                {t.disclaimer.and}
+                <Link
+                  href="/polityka-prywatnosci"
+                  target="_blank"
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
+                >
+                  {t.disclaimer.privacy}
+                </Link>
               </div>
             </label>
           </div>
