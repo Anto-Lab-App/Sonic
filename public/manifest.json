@@ -1,0 +1,21 @@
+{
+  "name": "Sonic AI - Zaawansowana Diagnostyka Pojazdów",
+  "short_name": "Sonic AI",
+  "description": "Błyskawiczna diagnoza usterek pojazdów i maszyn z wykorzystaniem sztucznej inteligencji.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

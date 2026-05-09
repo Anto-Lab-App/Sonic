@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,16 +24,37 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Sonic Diagnostic",
-  description: "Zaawansowana diagnostyka pojazdów i otoczenia",
+  title: "Sonic AI - Zaawansowana Diagnostyka Pojazdów",
+  description: "Błyskawiczna diagnoza usterek pojazdów i maszyn dzięki sztucznej inteligencji. Nagraj dźwięk, zrób zdjęcie i naprawiaj jak profesjonalista.",
+  manifest: "/manifest.json",
   appleWebApp: {
-    title: "Sonic",
+    title: "Sonic AI",
     statusBarStyle: "black-translucent",
     capable: true,
   },
+  openGraph: {
+    title: "Sonic AI - Mechanik w Twojej kieszeni",
+    description: "Wykorzystaj moc AI do diagnozowania awarii samochodu lub roweru w kilka sekund.",
+    url: "https://sonic-diagnostic.vercel.app",
+    siteName: "Sonic AI",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Sonic AI Diagnostic Preview",
+      },
+    ],
+    locale: "pl_PL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sonic AI - Diagnostyka Pojazdów",
+    description: "Błyskawiczna analiza usterek z Gemini AI.",
+    images: ["/og-image.png"],
+  },
 };
-
-import { ClerkProvider } from "@clerk/nextjs";
 
 export default function RootLayout({
   children,
