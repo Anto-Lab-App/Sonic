@@ -86,13 +86,16 @@ const MessageItem = ({ msg }: { msg: Message, key?: React.Key }) => {
   );
 };
 
-const getDefaultMessages = (t: any) => t.chat.defaultMsgs.map((m: any, i: number) => ({
-  id: i + 1,
-  sender: m.sender,
-  text: m.text,
-  time: '11:00',
-  detailedInfo: m.detailedInfo
-}));
+const getDefaultMessages = (t: any) => {
+  const firstMsg = t.chat.defaultMsgs[0];
+  return [{
+    id: 1,
+    sender: firstMsg.sender,
+    text: firstMsg.text,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    detailedInfo: firstMsg.detailedInfo
+  }];
+};
 
 export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const { t, language } = useLanguage();

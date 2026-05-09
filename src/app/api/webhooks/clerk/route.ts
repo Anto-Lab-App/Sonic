@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         data: {
           clerkUserId: id,
           email: email,
-          credits: 1, // 1 free credit on start
+          credits: 0, // 0 free credits on start, free scans are blurred
         },
       })
       console.log(`[Webhook] User created: ${id}`)
