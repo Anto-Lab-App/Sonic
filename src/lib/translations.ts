@@ -57,7 +57,8 @@ export const translations = {
                 maxVideos: 'Możesz dodać maksymalnie 1 wideo.',
                 maxImages: 'Możesz dodać maksymalnie 3 zdjęcia.',
                 maxAudio: 'Możesz dodać maksymalnie 1 plik audio/wideo.',
-                recordFailed: 'Nie udało się nagrać audio. Spróbuj ponownie.'
+                recordFailed: 'Nie udało się nagrać audio. Spróbuj ponownie.',
+                rateLimit: 'Osiągnięto dzienny limit (5) darmowych skanów. Wróć jutro lub odblokuj istniejące raporty.'
             },
             labels: {
                 mileage: 'Przebieg:',
@@ -319,7 +320,8 @@ export const translations = {
                 maxVideos: 'You can add maximum 1 video.',
                 maxImages: 'You can add maximum 3 images.',
                 maxAudio: 'You can add maximum 1 audio/video file.',
-                recordFailed: 'Failed to record audio. Try again.'
+                recordFailed: 'Failed to record audio. Try again.',
+                rateLimit: 'Daily limit (5) of free scans reached. Come back tomorrow or unlock existing reports.'
             },
             labels: {
                 mileage: 'Mileage:',
@@ -581,7 +583,8 @@ export const translations = {
                 maxVideos: 'Sie können maximal 1 Video hinzufügen.',
                 maxImages: 'Sie können maximal 3 Bilder hinzufügen.',
                 maxAudio: 'Sie können maximal 1 Audio/Video-Datei hinzufügen.',
-                recordFailed: 'Audioaufnahme fehlgeschlagen. Bitte versuchen Sie es erneut.'
+                recordFailed: 'Audioaufnahme fehlgeschlagen. Bitte versuchen Sie es erneut.',
+                rateLimit: 'Tageslimit (5) an kostenlosen Scans erreicht. Kommen Sie morgen wieder oder schalten Sie bestehende Berichte frei.'
             },
             noCredits: {
                 title: 'Keine kostenlosen Scans mehr',
@@ -760,7 +763,8 @@ export const translations = {
                 maxVideos: 'Puedes añadir como máximo 1 vídeo.',
                 maxImages: 'Puedes añadir como máximo 3 imágenes.',
                 maxAudio: 'Puedes añadir como máximo 1 archivo de audio/vídeo.',
-                recordFailed: 'Error al grabar audio. Inténtalo de nuevo.'
+                recordFailed: 'Error al grabar audio. Inténtalo de nuevo.',
+                rateLimit: 'Se ha alcanzado el límite diario (5) de escaneos gratuitos. Vuelve mañana o desbloquea los informes existentes.'
             },
             noCredits: {
                 title: 'No quedan escaneos gratuitos',

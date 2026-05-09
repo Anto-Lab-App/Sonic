@@ -8,12 +8,14 @@ datasource db {
 }
 
 model User {
-  id          String      @id @default(cuid())
-  clerkUserId String      @unique
-  email       String
-  credits     Int         @default(0)
-  createdAt   DateTime    @default(now())
-  diagnoses   Diagnosis[]
+  id              String      @id @default(cuid())
+  clerkUserId     String      @unique
+  email           String
+  credits         Int         @default(0)
+  dailyFreeScans  Int         @default(0)
+  lastScanDate    DateTime?   @default(now())
+  createdAt       DateTime    @default(now())
+  diagnoses       Diagnosis[]
 }
 
 model Diagnosis {

@@ -478,6 +478,9 @@ export function Scanner({
           setShowNoCreditsModal(true);
           return;
         }
+        if (response.status === 429) {
+          throw new Error(t.auto.errors.rateLimit);
+        }
         throw new Error(data.message || t.auto.status.error);
       }
 

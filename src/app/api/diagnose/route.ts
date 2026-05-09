@@ -73,6 +73,25 @@ export async function POST(
           { status: 401 }
         );
       }
+    // ------------------------------------------------------------------
+    // Rate Limiting Check
+    // ------------------------------------------------------------------
+    const now = new Date();
+    const lastScan = user.lastScanDate ? new Date(user.lastScanDate) : null;
+    
+    // Check if it's a new day (UTC)
+    const isNewDay = !lastScan || 
+      lastScan.getUTCDate() !== now.getUTCDate() || 
+      lastScan.getUTCMonth() !== now.getUTCMonth() || 
+      lastScan.getUTCFullYear() !== now.getUTCFullYear();
+
+    let currentDailyScans = isNewDay ? 0 : user.dailyFreeScans;
+
+    if (currentDailyScans >= 5) {
+      return NextResponse.json(
+        { status: "error", message: "Osiągnięto dzienny limit (5) darmowych skanów. Wróć jutro lub odblokuj istniejące raporty." },
+        { status: 429 }
+      );
     }
 
     // ------------------------------------------------------------------
@@ -222,14 +241,21 @@ export async function POST(
         })
       );
 
+      const userUpdateData: any = {
+        dailyFreeScans: currentDailyScans + 1,
+        lastScanDate: now
+      };
+
       if (hasCredits) {
-        transactions.push(
-          prisma.user.update({
-            where: { id: user.id },
-            data: { credits: { decrement: 1 } }
-          })
-        );
+        userUpdateData.credits = { decrement: 1 };
       }
+
+      transactions.push(
+        prisma.user.update({
+          where: { id: user.id },
+          data: userUpdateData
+        })
+      );
 
       const results = await prisma.$transaction(transactions);
       const diagnosisRecord = results[0];
