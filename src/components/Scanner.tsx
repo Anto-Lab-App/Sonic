@@ -628,23 +628,6 @@ export function Scanner({
       {/* Mobile-perfect container */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
 
-        {/* Cancel button during recording or when pendingFiles.length > 0 exists — top left */}
-        <AnimatePresence>
-          {(isRecording || pendingFiles.length > 0) && !isAnalyzing && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-              onClick={cancelRecording}
-              className="fixed top-6 left-6 z-50 w-11 h-11 rounded-full bg-foreground/5 backdrop-blur-2xl border border-foreground/10 flex items-center justify-center hover:bg-foreground/10 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
-              aria-label="Anuluj"
-            >
-              <X className="w-5 h-5 text-foreground/70" strokeWidth={2} />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
         {/* Top Inputs */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}

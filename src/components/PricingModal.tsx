@@ -53,8 +53,12 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+                className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-md overflow-y-auto"
             >
+                {/* Tap-outside overlay */}
+                <div className="absolute inset-0" onClick={onClose} />
+
+                <div className="relative flex items-start justify-center min-h-full p-4 py-8">
                 <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -151,6 +155,7 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                         </div>
                     </div>
                 </motion.div>
+                </div>
             </motion.div>
         </AnimatePresence>
     );

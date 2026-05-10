@@ -25,9 +25,10 @@ interface BikeDiagnosisReportProps {
   data?: Diagnosis;
   diagnosisId?: string;
   onOpenChat?: (id: string) => void;
+  isUnlocked?: boolean;
 }
 
-export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: BikeDiagnosisReportProps) {
+export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat, isUnlocked }: BikeDiagnosisReportProps) {
   const { t, language } = useLanguage();
 
   // Use AI data when available, fall back to hardcoded defaults
@@ -39,7 +40,8 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: 
   const aiReasoning = data?.ai_reasoning;
   const recommendedActions = data?.recommended_actions;
 
-  const isLocked = typeof audioAnalysis === 'string';
+  const isLockedByData = typeof audioAnalysis === 'string';
+  const isLocked = isUnlocked === false ? true : isLockedByData;
 
   // Localized repair stages for bike
   const repairTimeData = [

@@ -151,6 +151,7 @@ export default function Home() {
                 <BikeDiagnosisReport
                   data={selectedRecord.aiReport.final_diagnosis}
                   diagnosisId={selectedRecord.id}
+                  isUnlocked={selectedRecord.isUnlocked}
                   onClose={() => setSelectedRecord(null)}
                   onOpenChat={(id) => {
                     setSelectedDiagnosisId(id);
@@ -162,6 +163,7 @@ export default function Home() {
                 <DiagnosisReport
                   data={selectedRecord.aiReport.final_diagnosis}
                   diagnosisId={selectedRecord.id}
+                  isUnlocked={selectedRecord.isUnlocked}
                   onClose={() => setSelectedRecord(null)}
                   onOpenChat={(id) => {
                     setSelectedDiagnosisId(id);
@@ -174,6 +176,7 @@ export default function Home() {
               <IdentificationReport
                 identifiedCar={selectedRecord.aiReport}
                 diagnosisId={selectedRecord.id}
+                isUnlocked={selectedRecord.isUnlocked}
                 onClose={() => setSelectedRecord(null)}
                 onOpenChat={(id) => {
                   setSelectedDiagnosisId(id);
@@ -185,6 +188,7 @@ export default function Home() {
               <DiagnosisReport
                 data={selectedRecord.aiReport}
                 diagnosisId={selectedRecord.id}
+                isUnlocked={selectedRecord.isUnlocked}
                 onClose={() => setSelectedRecord(null)}
                 onOpenChat={(id) => {
                   setSelectedDiagnosisId(id);

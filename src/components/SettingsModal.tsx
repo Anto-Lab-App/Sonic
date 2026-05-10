@@ -57,7 +57,7 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 overflow-y-auto">
+    <div className="fixed inset-0 z-[110] h-[100dvh] bg-background text-foreground font-sans selection:bg-primary/30 overflow-y-auto">
       {/* Header */}
       <header className="border-b border-border-subtle bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -70,7 +70,7 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-6 pt-6 pb-32">
         <div className="flex flex-col md:flex-row gap-10">
           {/* Sidebar */}
           <aside className="w-full md:w-64 shrink-0">

@@ -246,20 +246,6 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
 
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
 
-        <AnimatePresence>
-          {pendingFile && !isAnalyzing && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={clearPendingFile}
-              className="fixed top-6 left-6 z-50 w-11 h-11 rounded-full bg-foreground/5 backdrop-blur-2xl border border-foreground/10 flex items-center justify-center hover:bg-foreground/10 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
-            >
-              <X className="w-5 h-5 text-foreground/70" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
         <motion.div
           animate={{ opacity: isAnalyzing ? 0 : 1, y: isAnalyzing ? -20 : 0 }}
           className="w-full px-6 flex flex-col items-center pt-16 md:pt-24 pb-1 relative z-20 gap-2 md:gap-3 shrink-0"

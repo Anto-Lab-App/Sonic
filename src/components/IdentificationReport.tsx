@@ -16,13 +16,15 @@ interface IdentificationReportProps {
   };
   diagnosisId?: string;
   onOpenChat?: (id: string) => void;
+  isUnlocked?: boolean;
 }
 
 export function IdentificationReport({
   onClose,
   diagnosisId,
   onOpenChat,
-  identifiedCar: providedCar
+  identifiedCar: providedCar,
+  isUnlocked
 }: IdentificationReportProps) {
   const { t } = useLanguage();
 
@@ -38,7 +40,8 @@ export function IdentificationReport({
       { label: t.shazam.specs.type, value: "Wolnossący", icon: Car },
     ]
   };
-  const isLocked = typeof identifiedCar.name === "string" && identifiedCar.name.includes("UKRYTE") || identifiedCar.name.includes("HIDDEN") || identifiedCar.name.includes("OCULTO") || identifiedCar.name.includes("VERBORGEN");
+  const isLockedByData = typeof identifiedCar.name === "string" && identifiedCar.name.includes("UKRYTE") || identifiedCar.name.includes("HIDDEN") || identifiedCar.name.includes("OCULTO") || identifiedCar.name.includes("VERBORGEN");
+  const isLocked = isUnlocked === false ? true : isLockedByData;
   const [showPricing, setShowPricing] = React.useState(isLocked);
 
   return (

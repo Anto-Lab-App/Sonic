@@ -58,12 +58,16 @@ interface DiagnosisReportProps {
   data: Diagnosis;
   diagnosisId?: string;
   onOpenChat?: (id: string) => void;
+  isUnlocked?: boolean;
 }
 
-export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat }: DiagnosisReportProps) {
+export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat, isUnlocked }: DiagnosisReportProps) {
   const { t } = useLanguage();
 
-  const isLocked = typeof data.audio_analysis === 'string';
+  // A report is locked if the audio_analysis field is a string (locked placeholder)
+  // OR if the database explicitly marks it as not unlocked (history view)
+  const isLockedByData = typeof data.audio_analysis === 'string';
+  const isLocked = isUnlocked === false ? true : isLockedByData;
 
   const complexity = parseComplexity(!isLocked ? (data.parameters as any).complexity : '5/5');
   const riskPercent = parsePercent(!isLocked ? (data.parameters as any).risk_level : '100%');
