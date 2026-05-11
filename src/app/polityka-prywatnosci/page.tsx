@@ -14,12 +14,12 @@ export default function PrivacyPolicyPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-12 prose prose-invert prose-blue">
         <h1 className="text-3xl font-bold mb-8">Polityka Prywatności</h1>
-        <p className="text-sm text-muted mb-8">Ostatnia aktualizacja: [DATA]</p>
+        <p className="text-sm text-muted mb-8">Ostatnia aktualizacja: 11 maja 2026</p>
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">1. Informacje ogólne</h2>
           <p>
-            Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez użytkowników w związku z korzystaniem z aplikacji Sonic ("Aplikacja"), której właścicielem jest <strong>[NAZWA FIRMY]</strong> z siedzibą w <strong>[ADRES FIRMY]</strong>, NIP: <strong>[NIP]</strong> ("Administrator").
+            Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez użytkowników w związku z korzystaniem z aplikacji Sonic ("Aplikacja"), której właścicielem jest <strong>Antoni Ziółek</strong>, zamieszkały w <strong>Warszawie</strong> ("Administrator").
           </p>
         </section>
 
@@ -70,7 +70,7 @@ export default function PrivacyPolicyPage() {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">6. Kontakt</h2>
-          <p>W sprawach związanych z danymi osobowymi możesz skontaktować się z nami pod adresem e-mail: <strong>[EMAIL KONTAKTOWY]</strong>.</p>
+          <p>W sprawach związanych z danymi osobowymi możesz skontaktować się z nami pod adresem e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.</p>
         </section>
       </main>
     </div>

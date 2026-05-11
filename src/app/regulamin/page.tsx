@@ -14,12 +14,12 @@ export default function TermsOfServicePage() {
 
       <main className="max-w-4xl mx-auto px-6 py-12 prose prose-invert prose-blue">
         <h1 className="text-3xl font-bold mb-8">Regulamin Świadczenia Usług</h1>
-        <p className="text-sm text-muted mb-8">Ostatnia aktualizacja: [DATA]</p>
+        <p className="text-sm text-muted mb-8">Ostatnia aktualizacja: 11 maja 2026</p>
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">1. Postanowienia ogólne</h2>
           <p>
-            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>[NAZWA FIRMY]</strong> z siedzibą w <strong>[ADRES FIRMY]</strong>, NIP: <strong>[NIP]</strong> ("Usługodawca").<br/>
+            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>Antoniego Ziółka</strong>, zamieszkałego w <strong>Warszawie</strong> ("Usługodawca").<br/>
             2. Aplikacja wykorzystuje technologie sztucznej inteligencji (AI) do analizy danych wejściowych (wideo, audio, zdjęcia, tekst) i generowania raportów sugerujących potencjalne usterki pojazdów oraz maszyn.<br/>
             3. Korzystanie z Aplikacji wymaga zaakceptowania niniejszego Regulaminu oraz Polityki Prywatności.
           </p>
@@ -49,7 +49,7 @@ export default function TermsOfServicePage() {
           <h2 className="text-xl font-semibold mb-4">4. Odstąpienie od umowy i reklamacje</h2>
           <p>
             1. Użytkownik będący konsumentem ma prawo odstąpić od umowy bez podania przyczyny w terminie 14 dni, <strong>jednakże</strong> rozpoczęcie świadczenia usługi cyfrowej (odblokowanie raportu za pomocą kredytu) przed upływem tego terminu, za wyraźną zgodą konsumenta, powoduje utratę prawa do odstąpienia od umowy w zakresie zużytego kredytu.<br/>
-            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>[EMAIL KONTAKTOWY]</strong>.<br/>
+            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.<br/>
             3. Reklamacje będą rozpatrywane w terminie 14 dni roboczych.
           </p>
         </section>
