@@ -22,6 +22,7 @@ import {
 
 import { HistoryTabContent } from './HistoryTabContent';
 import { getUserProfile } from '@/app/actions/user';
+import { InstallPWA } from './InstallPWA';
 
 const getTabs = (t: any) => [
   { id: 'profile', label: t.settings.tabs.profile, icon: User },
@@ -234,6 +235,8 @@ export function SettingsModal({ onClose, onOpenReport }: SettingsModalProps) {
                     </div>
                   </div>
                 </section>
+
+                <InstallPWA />
 
                 <section className={`bg-surface rounded-[2rem] border p-8 space-y-6 transition-colors duration-300 ${!loadingProfile && profile?.credits === 0 ? 'border-red-500/30 bg-red-500/5' : 'border-border-subtle'}`}>
                   <div className="flex items-center justify-between">

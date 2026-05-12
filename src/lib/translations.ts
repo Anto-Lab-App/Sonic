@@ -109,7 +109,7 @@ export const translations = {
             title: 'Ustawienia',
             logout: 'Wyloguj się',
             tabs: { profile: 'Twój Profil', history: 'Historia analiz', preferences: 'Preferencje', notifications: 'Powiadomienia', security: 'Bezpieczeństwo' },
-            preferences: { title: 'Preferencje', desc: 'Zarządzaj ustawieniami języka, wyglądu i regionu.', langTitle: 'Język aplikacji', langDesc: 'Wybierz język, w którym chcesz korzystać z interfejsu.', themeTitle: 'Motyw', themeDesc: 'Dostosuj wygląd aplikacji do swoich preferencji.', themes: { system: 'Systemowy', light: 'Jasny', dark: 'Ciemny', pink: 'Różowy' } },
+            preferences: { title: 'Preferencje', desc: 'Zarządzaj ustawieniami języka, wyglądu i regionu.', langTitle: 'Język aplikacji', langDesc: 'Wybierz język, w którym chcesz korzystać z interfejsu.', themeTitle: 'Motyw', themeDesc: 'Dostosuj wygląd aplikacji do swoich preferencji.', themes: { system: 'Systemowy', light: 'Jasny', dark: 'Ciemny', pink: 'Różowy' }, installApp: 'Zainstaluj aplikację', installDesc: 'Zainstaluj Sonic AI na swoim telefonie, aby uzyskać szybszy dostęp.', iosInstallInst: "Aby zainstalować, kliknij ikonę udostępniania na pasku przeglądarki i wybierz 'Dodaj do ekranu głównego'." },
             history: {
                 title: 'Historia analiz',
                 desc: 'Przeglądaj swoje poprzednie diagnozy i wygenerowane raporty.',
@@ -373,7 +373,7 @@ export const translations = {
             title: 'Settings',
             logout: 'Log out',
             tabs: { profile: 'Your Profile', history: 'Analysis History', preferences: 'Preferences', notifications: 'Notifications', security: 'Security' },
-            preferences: { title: 'Preferences', desc: 'Manage language, appearance and region settings.', langTitle: 'App Language', langDesc: 'Choose the language for the interface.', themeTitle: 'Theme', themeDesc: 'Customize the appearance of the app.', themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' } },
+            preferences: { title: 'Preferences', desc: 'Manage language, appearance and region settings.', langTitle: 'App Language', langDesc: 'Choose the language for the interface.', themeTitle: 'Theme', themeDesc: 'Customize the appearance of the app.', themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' }, installApp: 'Install App', installDesc: 'Install Sonic AI on your phone for faster access.', iosInstallInst: "To install, tap the share icon at the bottom and select 'Add to Home Screen'." },
             history: {
                 title: 'Analysis History',
                 desc: 'Browse your previous diagnoses and generated reports.',
@@ -647,7 +647,7 @@ export const translations = {
         },
         instructions: { title: 'So nehmen Sie für die Analyse richtig auf', car: { light: 'Öffnen Sie die Motorhaube (Radio und Klima aus).', video: 'Nehmen Sie ein Video auf (Gibt der Diagnose mehr Kontext durch Vibrationen etc.).', secure: 'Sichern Sie das Auto (Handbremse, Neutral/P). Vorsicht vor beweglichen Teilen!', steps: '3 Schritte: Motor starten → 5 Sekunden warten → leicht Gas geben.' }, bike: { light: 'Sorgen Sie für gutes Licht. Fotografieren Sie die Kassette an einem hellen Ort.', video: 'Wenn Sie ein Video aufnehmen, drehen Sie die Kurbel manuell, vermeiden Sie Wind.', stable: 'Bleiben Sie stabil. Lehnen Sie das Fahrrad an oder nutzen Sie den Ständer. Nicht während der Fahrt filmen!' } },
         settings: {
-            title: 'Einstellungen', logout: 'Abmelden', tabs: { profile: 'Dein Profil', history: 'Analyse-Verlauf', preferences: 'Präferenzen', notifications: 'Benachrichtigungen', security: 'Sicherheit' }, preferences: { title: 'Präferenzen', desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.', langTitle: 'App-Sprache', langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.', themeTitle: 'Design', themeDesc: 'Passen Sie das Erscheinungsbild der App an.', themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' } },
+            title: 'Einstellungen', logout: 'Abmelden', tabs: { profile: 'Dein Profil', history: 'Analyse-Verlauf', preferences: 'Präferenzen', notifications: 'Benachrichtigungen', security: 'Sicherheit' }, preferences: { title: 'Präferenzen', desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.', langTitle: 'App-Sprache', langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.', themeTitle: 'Design', themeDesc: 'Passen Sie das Erscheinungsbild der App an.', themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' }, installApp: 'App installieren', installDesc: 'Installieren Sie Sonic AI auf Ihrem Telefon für schnelleren Zugriff.', iosInstallInst: "Tippen Sie auf das Teilen-Symbol unten und wählen Sie 'Zum Startbildschirm hinzufügen'." },
             history: {
                 title: 'Analyse-Verlauf',
                 desc: 'Durchsuchen Sie frühere Diagnosen und generierte Berichte.',
@@ -828,7 +828,7 @@ export const translations = {
         },
         instructions: { title: 'Instrucciones', car: { light: 'Abre el capó.', video: 'Graba vídeo para contexto.', secure: 'Asegura el coche.', steps: '3 pasos: Arranca → 5s → acelera levemente.' }, bike: { light: 'Buena iluminación.', video: 'Gira el pedal manualmente.', stable: 'Mantén la bici estable.' } },
         settings: {
-            title: 'Ajustes', logout: 'Cerrar sesión', tabs: { profile: 'Tu Perfil', history: 'Historial', preferences: 'Preferencias', notifications: 'Notificaciones', security: 'Seguridad' }, preferences: { title: 'Preferencias', desc: 'Configura idioma y apariencia.', langTitle: 'Idioma', langDesc: 'Elige tu idioma.', themeTitle: 'Tema', themeDesc: 'Elige el tema.', themes: { system: 'Sistema', light: 'Claro', dark: 'Oscuro', pink: 'Rosa' } },
+            title: 'Ajustes', logout: 'Cerrar sesión', tabs: { profile: 'Tu Perfil', history: 'Historial', preferences: 'Preferencias', notifications: 'Notificaciones', security: 'Seguridad' }, preferences: { title: 'Preferencias', desc: 'Configura idioma y apariencia.', langTitle: 'Idioma', langDesc: 'Elige tu idioma.', themeTitle: 'Tema', themeDesc: 'Elige el tema.', themes: { system: 'Sistema', light: 'Claro', dark: 'Oscuro', pink: 'Rosa' }, installApp: 'Instalar App', installDesc: 'Instala Sonic AI en tu teléfono para un acceso más rápido.', iosInstallInst: "Toca el icono de compartir en la parte inferior y selecciona 'Añadir a la pantalla de inicio'." },
             history: {
                 title: 'Historial',
                 desc: 'Tus diagnósticos previos.',
