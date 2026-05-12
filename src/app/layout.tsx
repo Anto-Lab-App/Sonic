@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   title: "Sonic AI - Zaawansowana Diagnostyka Pojazdów",
   description: "Błyskawiczna diagnoza usterek pojazdów i maszyn dzięki sztucznej inteligencji. Nagraj dźwięk, zrób zdjęcie i naprawiaj jak profesjonalista.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   appleWebApp: {
     title: "Sonic AI",
     statusBarStyle: "black-translucent",
@@ -66,18 +70,18 @@ export default function RootLayout({
       <html lang="pl" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground selection:bg-primary/30`}>
           <LanguageProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            themes={['light', 'dark', 'pink']}
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </LanguageProvider>
-      </body>
-    </html>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              themes={['light', 'dark', 'pink']}
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </LanguageProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
