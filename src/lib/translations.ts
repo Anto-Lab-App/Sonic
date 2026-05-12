@@ -240,7 +240,8 @@ export const translations = {
                 cancel: "Anuluj"
             },
             noCredits: {
-                buyBtn: "Kup 3 skany PRO za 29 PLN",
+                buyBtn1: "Kup 1 skan za 19.99 PLN",
+                buyBtn3: "Kup 3 skany za 39.99 PLN",
                 maybeLater: "Może później"
             },
             pricing: {
@@ -503,7 +504,8 @@ export const translations = {
                 cancel: "Cancel"
             },
             noCredits: {
-                buyBtn: "Buy 3 PRO scans for $9.99",
+                buyBtn1: "Buy 1 scan for $4.99",
+                buyBtn3: "Buy 3 scans for $9.99",
                 maybeLater: "Maybe later"
             },
             pricing: {
@@ -683,7 +685,8 @@ export const translations = {
                 cancel: "Abbrechen"
             },
             noCredits: {
-                buyBtn: "3 PRO-Scans für 9,99 € kaufen",
+                buyBtn1: "1 Scan kaufen für 4,99 €",
+                buyBtn3: "3 Scans kaufen für 9,99 €",
                 maybeLater: "Vielleicht später"
             },
             pricing: {
@@ -863,7 +866,8 @@ export const translations = {
                 cancel: "Cancelar"
             },
             noCredits: {
-                buyBtn: "Comprar 3 escaneos PRO por 9,99 €",
+                buyBtn1: "Comprar 1 escaneo por 4,99 €",
+                buyBtn3: "Comprar 3 escaneos por 9,99 €",
                 maybeLater: "Tal vez más tarde"
             },
             pricing: {

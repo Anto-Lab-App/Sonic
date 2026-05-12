@@ -4,6 +4,8 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Zap, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { LoginRequiredModal } from "./LoginRequiredModal";
 
 interface NoCreditsModalProps {
   isOpen: boolean;
@@ -14,19 +16,35 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
   const { t, language } = useLanguage();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isSignedIn } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isLoading, setIsLoading] = useState<'unlock_1' | 'bundle_3' | null>(null);
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (packageType: 'unlock_1' | 'bundle_3') => {
+    if (!isSignedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     try {
-      setIsLoading(true);
+      setIsLoading(packageType);
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          packageType: 'bundle_3',
+          packageType,
           locale: language
         })
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setShowLoginModal(true);
+          return;
+        }
+        throw new Error('Checkout failed');
+      }
+
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
@@ -36,7 +54,8 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
     } catch (error) {
       console.error('Error starting checkout:', error);
       alert(t.auto.errors.checkoutFailed);
-      setIsLoading(false);
+    } finally {
+      setIsLoading(null);
     }
   };
 
@@ -92,26 +111,44 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
                   {t.auto.noCredits.desc}
                 </p>
 
-                {/* PRO Plan Button */}
-                <button
-                  onClick={handleCheckout}
-                  disabled={isLoading}
-                  className="w-full relative group overflow-hidden rounded-2xl bg-white text-black font-bold text-[15px] tracking-wide h-14 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#00D1FF] via-[#0055FF] to-[#00D1FF] opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 text-black animate-spin" />
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5 text-black" fill="currentColor" />
-                      <span>{t.modals.noCredits.buyBtn}</span>
-                    </>
-                  )}
-                </button>
+                <div className="w-full flex flex-col gap-3">
+                  {/* Single Scan Button */}
+                  <button
+                    onClick={() => handleCheckout('unlock_1')}
+                    disabled={isLoading !== null}
+                    className="w-full relative group overflow-hidden rounded-2xl bg-surface border border-white/10 text-white font-semibold text-[14px] tracking-wide h-12 transition-all hover:bg-white/5 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading === 'unlock_1' ? (
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-[#00D1FF]" />
+                        <span>{t.modals.noCredits.buyBtn1}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* PRO Plan Button (Bundle) */}
+                  <button
+                    onClick={() => handleCheckout('bundle_3')}
+                    disabled={isLoading !== null}
+                    className="w-full relative group overflow-hidden rounded-2xl bg-white text-black font-bold text-[15px] tracking-wide h-14 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#00D1FF] via-[#0055FF] to-[#00D1FF] opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+                    {isLoading === 'bundle_3' ? (
+                      <Loader2 className="w-5 h-5 text-black animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-5 h-5 text-black" fill="currentColor" />
+                        <span>{t.modals.noCredits.buyBtn3}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
                 <button
                   onClick={onClose}
-                  className="mt-4 text-sm font-medium text-foreground/50 hover:text-foreground/80 transition-colors"
+                  className="mt-5 text-sm font-medium text-foreground/50 hover:text-foreground/80 transition-colors"
                 >
                   {t.modals.noCredits.maybeLater}
                 </button>
@@ -120,6 +157,10 @@ export function NoCreditsModal({ isOpen, onClose }: NoCreditsModalProps) {
           </div>
         </>
       )}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </AnimatePresence>
   );
 }
