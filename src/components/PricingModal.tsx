@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { Check, X, ShieldAlert, Zap, Lock } from 'lucide-react';
+import { LoginRequiredModal } from './LoginRequiredModal';
+import { useAuth } from '@clerk/nextjs';
 
 interface PricingModalProps {
     isOpen: boolean;
@@ -13,11 +15,17 @@ interface PricingModalProps {
 
 export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps) {
     const { t, language } = useLanguage();
+    const { isSignedIn } = useAuth();
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [isLoading, setIsLoading] = useState<'unlock_1' | 'bundle_3' | null>(null);
 
     if (!isOpen) return null;
 
     const handleCheckout = async (packageType: 'unlock_1' | 'bundle_3') => {
+        if (!isSignedIn) {
+            setShowLoginModal(true);
+            return;
+        }
         setIsLoading(packageType);
         try {
             const res = await fetch('/api/stripe/checkout', {
@@ -32,7 +40,13 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                 }),
             });
 
-            if (!res.ok) throw new Error('Checkout failed');
+            if (!res.ok) {
+                if (res.status === 401) {
+                    setShowLoginModal(true);
+                    return;
+                }
+                throw new Error('Checkout failed');
+            }
 
             const { url } = await res.json();
             if (url) {
@@ -157,6 +171,11 @@ export function PricingModal({ isOpen, onClose, diagnosisId }: PricingModalProps
                 </motion.div>
                 </div>
             </motion.div>
+
+            <LoginRequiredModal 
+                isOpen={showLoginModal} 
+                onClose={() => setShowLoginModal(false)} 
+            />
         </AnimatePresence>
     );
 }

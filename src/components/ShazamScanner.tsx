@@ -296,6 +296,10 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
       }
 
       if (!res.ok) {
+        if (res.status === 401) {
+          setShowLoginModal(true);
+          return;
+        }
         if (res.status === 403) {
           setShowNoCreditsModal(true);
           return;

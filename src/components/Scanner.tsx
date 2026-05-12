@@ -474,6 +474,10 @@ export function Scanner({
       console.log('[Sonic Frontend] Response:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setShowLoginModal(true);
+          return;
+        }
         if (response.status === 403) {
           setShowNoCreditsModal(true);
           return;

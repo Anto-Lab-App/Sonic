@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Wrench, ChevronLeft, Mic, Image as ImageIcon, Info, ChevronDown, ChevronUp, Cpu, Menu, Plus, Clock, Hash } from 'lucide-react';
+import { Send, Wrench, ChevronLeft, Mic, Image as ImageIcon, Info, ChevronDown, ChevronUp, Cpu, Menu, Plus, Clock, Hash, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@clerk/nextjs';
 import { getUserDiagnoses, getDiagnosisById } from '@/app/actions/history';
+import { LoginRequiredModal } from './LoginRequiredModal';
 
 interface Message {
   id: number;
@@ -99,6 +101,8 @@ const getDefaultMessages = (t: any) => {
 
 export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const { t, language } = useLanguage();
+  const { isSignedIn } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const MAX_USER_MESSAGES = 5;
   const [messages, setMessages] = useState<Message[]>(() => {
     const defaultMsgs = getDefaultMessages(t);
@@ -237,6 +241,11 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
   const handleSend = async () => {
     if (!inputValue.trim() || isLocked) return;
 
+    if (!isSignedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const userMessagesCount = messages.filter(m => m.sender === 'user').length;
     if (userMessagesCount >= MAX_USER_MESSAGES || serverMessageCount >= MAX_USER_MESSAGES) return;
 
@@ -272,7 +281,14 @@ export function Chat({ onBack, diagnosisId, onSelectDiagnosis }: ChatProps) {
         })
       });
 
-      if (!response.ok) throw new Error('API Error');
+      if (!response.ok) {
+        if (response.status === 401) {
+          setShowLoginModal(true);
+          setIsTyping(false);
+          return;
+        }
+        throw new Error('API Error');
+      }
 
       const result = await response.json();
 
