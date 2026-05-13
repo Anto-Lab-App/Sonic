@@ -67,39 +67,47 @@ export function PWABanner() {
     }
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-[120] animate-in slide-in-from-top-full duration-500">
-            <div className="bg-primary/95 backdrop-blur-md text-primary-foreground p-4 pb-4 md:pb-4 shadow-xl">
-                {showIOSPrompt ? (
-                    <div className="flex items-start justify-between gap-4 max-w-5xl mx-auto">
-                        <div className="text-sm font-medium leading-relaxed">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="w-full max-w-sm bg-surface border border-border-subtle rounded-[2rem] shadow-2xl overflow-hidden relative slide-in-from-bottom-8 animate-in duration-500">
+                <button
+                    onClick={handleDismiss}
+                    className="absolute top-4 right-4 p-2 text-muted hover:text-foreground bg-surface-hover/50 hover:bg-surface-hover rounded-full transition-colors z-10"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                <div className="p-8 pb-6 flex flex-col items-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#00D1FF]/20 to-[#0055FF]/20 flex items-center justify-center mb-2 shadow-[0_0_30px_rgba(0,209,255,0.2)]">
+                        <Download className="w-8 h-8 text-[#00D1FF]" />
+                    </div>
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{t.settings.preferences.installApp}</h3>
+                    <p className="text-muted text-sm max-w-[260px]">
+                        {t.settings.preferences.installDesc}
+                    </p>
+                </div>
+
+                <div className="p-6 pt-0 space-y-3">
+                    {showIOSPrompt ? (
+                        <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl text-sm text-primary text-center font-medium animate-in fade-in slide-in-from-top-2">
                             {t.settings.preferences.iosInstallInst}
                         </div>
-                        <button onClick={handleDismiss} className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors shrink-0">
-                            <X className="w-4 h-4" />
+                    ) : (
+                        <button
+                            onClick={handleInstallClick}
+                            className="w-full py-4 bg-gradient-to-r from-[#00D1FF] to-[#0055FF] text-white font-bold rounded-2xl shadow-[0_4px_14px_rgba(0,209,255,0.4)] hover:shadow-[0_6px_20px_rgba(0,209,255,0.6)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Download className="w-5 h-5" />
+                            {t.settings.preferences.installAction}
                         </button>
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-between gap-4 max-w-5xl mx-auto">
-                        <div className="flex flex-col">
-                            <span className="font-bold text-sm">{t.settings.preferences.installApp}</span>
-                            <span className="text-xs opacity-90">{t.settings.preferences.installDesc}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={handleInstallClick}
-                                className="bg-white text-primary px-3 py-1.5 rounded-xl text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all"
-                            >
-                                <div className="flex items-center gap-1.5">
-                                    <Download className="w-4 h-4" />
-                                    <span>Instaluj</span>
-                                </div>
-                            </button>
-                            <button onClick={handleDismiss} className="p-1.5 rounded-full hover:bg-white/20 transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-                )}
+                    )}
+
+                    <button
+                        onClick={handleDismiss}
+                        className="w-full py-3 text-muted hover:text-foreground text-sm font-medium transition-colors"
+                    >
+                        {t.settings.preferences.maybeLater}
+                    </button>
+                </div>
             </div>
         </div>
     );

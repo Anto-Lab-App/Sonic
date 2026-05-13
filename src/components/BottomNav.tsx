@@ -24,8 +24,8 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 150, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3 z-50 w-max"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="fixed left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3 z-50 w-max"
+      style={{ bottom: 'calc(max(env(safe-area-inset-bottom, 8px), 8px) + 8px)' }}
     >
       {/* Main Navigation Pill - Glassmorphism */}
       <div className="relative flex items-center bg-foreground/5 backdrop-blur-2xl rounded-[2rem] md:rounded-[2.5rem] p-1 md:p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-foreground/10">
