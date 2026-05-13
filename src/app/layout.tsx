@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { ClerkProvider } from "@clerk/nextjs";
+import { PWABanner } from "@/components/PWABanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,6 +79,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <PWABanner />
             </ThemeProvider>
           </LanguageProvider>
         </body>
