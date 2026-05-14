@@ -385,7 +385,6 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
 
       setIsLoadingFile(true);
       setMode(e.target.accept.includes('video') || e.target.accept.includes('image') ? 'visual' : 'audio');
-      await new Promise(r => setTimeout(r, 400));
       setPendingFile(file);
       setIsLoadingFile(false);
       e.target.value = '';
@@ -510,7 +509,12 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   onClick={handleAnalyzeClick}
                   className={`relative w-28 h-28 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center overflow-hidden bg-primary/20 hover:bg-primary/30 border border-primary/40 shadow-[0_0_50px_rgba(var(--color-primary),0.3)] transition-all group z-20`}
                 >
-                  <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),1)]" />
+                  <div className="flex flex-col items-center gap-1">
+                    <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),1)]" />
+                    <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-primary/90">
+                      {language === 'pl' ? 'ANALIZUJ' : 'ANALYZE'}
+                    </span>
+                  </div>
                 </motion.button>
               ) : (
                 <motion.button

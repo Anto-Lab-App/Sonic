@@ -311,6 +311,11 @@ export function Scanner({
       return;
     }
 
+    // Set UI to analyzing immediately
+    setIsAnalyzing(true);
+    setAnalyzingText(t.auto.status.init);
+    setError(null);
+
     for (const file of files) {
       if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
         const url = URL.createObjectURL(file);
@@ -336,21 +341,18 @@ export function Scanner({
           const msg = t.auto.errors.minDuration;
           alert(msg);
           setError(msg);
+          setIsAnalyzing(false);
           return;
         }
         if (duration > 60 && file.type.startsWith('video/')) {
           const msg = t.auto.errors.maxVideoDuration;
           alert(msg);
           setError(msg);
+          setIsAnalyzing(false);
           return;
         }
       }
     }
-
-    // Set UI to analyzing
-    setIsAnalyzing(true);
-    setAnalyzingText(t.auto.status.init);
-    setError(null);
 
     // Zbierz wszystkie pliki
     const allFilesToUpload: File[] = [];
@@ -577,7 +579,6 @@ export function Scanner({
         }
       }
 
-      await new Promise(r => setTimeout(r, 400));
       setPendingFiles(prev => [...prev, ...acceptedFiles]);
       setIsLoadingFile(false);
       e.target.value = '';
@@ -860,7 +861,12 @@ export function Scanner({
                   {isAnalyzing ? (
                     <Loader2 className="w-12 h-12 stroke-[1.5] text-purple-400 animate-spin" />
                   ) : pendingFiles.length > 0 ? (
-                    <Sparkles className="w-12 h-12 stroke-[1.5] text-[#00D1FF]/60" />
+                    <div className="flex flex-col items-center gap-1">
+                      <Sparkles className="w-8 h-8 md:w-10 md:h-10 stroke-[1.5] text-[#00D1FF]/80" />
+                      <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-[#00D1FF]/90">
+                        {language === 'pl' ? 'ANALIZUJ' : 'ANALYZE'}
+                      </span>
+                    </div>
                   ) : activeMode === 'audio' ? (
                     <Mic className={`w-12 h-12 stroke-[1.5] transition-colors duration-500 ${isRecording ? 'text-primary' : 'text-foreground/80'}`} />
                   ) : (

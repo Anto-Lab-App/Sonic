@@ -1,67 +1,272 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
+const translations = {
+  pl: {
+    headerTitle: "Regulamin Świadczenia Usług",
+    title: "Regulamin Świadczenia Usług",
+    lastUpdate: "Ostatnia aktualizacja: 11 maja 2026",
+    sections: [
+      {
+        title: "1. Postanowienia ogólne",
+        content: (
+          <p>
+            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>Antoniego Ziółka</strong>, zamieszkałego w <strong>Warszawie</strong> ("Usługodawca").<br />
+            2. Aplikacja wykorzystuje technologie sztucznej inteligencji (AI) do analizy danych wejściowych (wideo, audio, zdjęcia, tekst) i generowania raportów sugerujących potencjalne usterki pojazdów oraz maszyn.<br />
+            3. Korzystanie z Aplikacji wymaga zaakceptowania niniejszego Regulaminu oraz Polityki Prywatności.
+          </p>
+        )
+      },
+      {
+        title: "2. Charakter usługi i wyłączenie odpowiedzialności",
+        content: (
+          <p>
+            1. Raporty generowane przez Aplikację mają charakter <strong>wyłącznie informacyjny i pomocniczy</strong>. Oparte są na analizie danych z wykorzystaniem algorytmów AI (np. Google Vertex AI) i mogą zawierać błędy, nieścisłości lub fałszywe diagnozy (tzw. halucynacje AI).<br />
+            2. Diagnoza AI nie zastępuje profesjonalnego przeglądu, diagnostyki czy naprawy w autoryzowanym lub wykwalifikowanym serwisie mechanicznym.<br />
+            3. Usługodawca <strong>nie ponosi odpowiedzialności</strong> za jakiekolwiek szkody na osobie, mieniu, utratę danych czy zysków wynikające z podejmowania decyzji (np. prób samodzielnej naprawy lub ignorowania usterek) na podstawie raportów z Aplikacji.<br />
+            4. Użytkownik korzysta z sugestii Aplikacji oraz przeprowadza naprawy DIY na własne ryzyko. Zawsze zalecamy weryfikację usterki u specjalisty.
+          </p>
+        )
+      },
+      {
+        title: "3. Warunki świadczenia usług",
+        content: (
+          <p>
+            1. Do korzystania z pełni funkcjonalności Aplikacji wymagane jest założenie konta oraz posiadanie połączenia z siecią Internet.<br />
+            2. Aplikacja oferuje usługi darmowe (częściowe raporty, ograniczone do ogólnych wniosków) oraz płatne (Pakiety PRO, pełne odblokowanie raportów).<br />
+            3. Płatności są obsługiwane przez operatora zewnętrznego (Stripe). Cennik pakietów PRO dostępny jest w interfejsie Aplikacji przed dokonaniem zakupu.<br />
+            4. Użytkownik zobowiązuje się nie wgrywać do Aplikacji materiałów (audio/wideo/foto), które naruszają prawo, prawa autorskie osób trzecich, lub zawierają treści nieodpowiednie/obraźliwe.
+          </p>
+        )
+      },
+      {
+        title: "4. Odstąpienie od umowy i reklamacje",
+        content: (
+          <p>
+            1. Użytkownik będący konsumentem ma prawo odstąpić od umowy bez podania przyczyny w terminie 14 dni, <strong>jednakże</strong> rozpoczęcie świadczenia usługi cyfrowej (odblokowanie raportu za pomocą kredytu) przed upływem tego terminu, za wyraźną zgodą konsumenta, powoduje utratę prawa do odstąpienia od umowy w zakresie zużytego kredytu.<br />
+            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            3. Reklamacje będą rozpatrywane w terminie 14 dni roboczych.
+          </p>
+        )
+      },
+      {
+        title: "5. Postanowienia końcowe",
+        content: (
+          <p>
+            1. Usługodawca zastrzega sobie prawo do wprowadzania zmian w Regulaminie z ważnych przyczyn (np. zmiana funkcjonalności, zmiana prawa). O zmianach Użytkownicy zostaną powiadomieni.<br />
+            2. W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy prawa polskiego.<br />
+            3. Wszelkie spory rozstrzygane będą przez właściwe sądy powszechne.
+          </p>
+        )
+      }
+    ]
+  },
+  en: {
+    headerTitle: "Terms of Service",
+    title: "Terms of Service",
+    lastUpdate: "Last updated: May 11, 2026",
+    sections: [
+      {
+        title: "1. General Provisions",
+        content: (
+          <p>
+            1. These terms of service ("Terms") set out the rules for using the Sonic diagnostic application ("Application"), provided by <strong>Antoni Ziółek</strong>, residing in <strong>Warsaw</strong> ("Service Provider").<br />
+            2. The Application uses artificial intelligence (AI) technologies to analyze input data (video, audio, photos, text) and generate reports suggesting potential faults in vehicles and machinery.<br />
+            3. Using the Application requires acceptance of these Terms and the Privacy Policy.
+          </p>
+        )
+      },
+      {
+        title: "2. Nature of Service and Disclaimer",
+        content: (
+          <p>
+            1. Reports generated by the Application are <strong>strictly informational and auxiliary</strong>. They are based on data analysis using AI algorithms (e.g., Google Vertex AI) and may contain errors, inaccuracies, or false diagnoses (so-called AI hallucinations).<br />
+            2. AI diagnosis does not replace professional inspection, diagnostics, or repair in an authorized or qualified mechanical service.<br />
+            3. The Service Provider <strong>is not liable</strong> for any personal injury, property damage, data loss, or loss of profits resulting from decisions made (e.g., DIY repair attempts or ignoring faults) based on the Application's reports.<br />
+            4. The user relies on the Application's suggestions and performs DIY repairs at their own risk. We always recommend verifying faults with a specialist.
+          </p>
+        )
+      },
+      {
+        title: "3. Conditions of Service Provision",
+        content: (
+          <p>
+            1. Full use of the Application's functionality requires creating an account and having an Internet connection.<br />
+            2. The Application offers free services (partial reports, limited to general conclusions) and paid services (PRO packages, full report unlocking).<br />
+            3. Payments are handled by an external operator (Stripe). The PRO package pricing is available in the Application interface before purchase.<br />
+            4. The User agrees not to upload materials (audio/video/photo) to the Application that violate the law, third-party copyrights, or contain inappropriate/offensive content.
+          </p>
+        )
+      },
+      {
+        title: "4. Withdrawal and Complaints",
+        content: (
+          <p>
+            1. A user who is a consumer has the right to withdraw from the contract without giving any reason within 14 days, <strong>however</strong>, starting the provision of a digital service (unlocking a report using credit) before this period expires, with the consumer's explicit consent, results in the loss of the right to withdraw from the contract regarding the used credit.<br />
+            2. Complaints regarding the Application's operation (e.g., technical errors, failure to generate a report after fee deduction) should be reported to the email address: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            3. Complaints will be processed within 14 business days.
+          </p>
+        )
+      },
+      {
+        title: "5. Final Provisions",
+        content: (
+          <p>
+            1. The Service Provider reserves the right to make changes to the Terms for important reasons (e.g., change of functionality, change of law). Users will be notified of any changes.<br />
+            2. In matters not covered by these Terms, Polish law applies.<br />
+            3. Any disputes will be resolved by the competent common courts.
+          </p>
+        )
+      }
+    ]
+  },
+  de: {
+    headerTitle: "Nutzungsbedingungen",
+    title: "Nutzungsbedingungen",
+    lastUpdate: "Zuletzt aktualisiert: 11. Mai 2026",
+    sections: [
+      {
+        title: "1. Allgemeine Bestimmungen",
+        content: (
+          <p>
+            1. Diese Nutzungsbedingungen ("Bedingungen") legen die Regeln für die Nutzung der Sonic-Diagnose-App ("App") fest, bereitgestellt von <strong>Antoni Ziółek</strong>, wohnhaft in <strong>Warschau</strong> ("Dienstanbieter").<br />
+            2. Die App nutzt Technologien der künstlichen Intelligenz (KI), um Eingabedaten (Video, Audio, Fotos, Text) zu analysieren und Berichte zu erstellen, die auf potenzielle Fehler an Fahrzeugen und Maschinen hinweisen.<br />
+            3. Die Nutzung der App setzt die Annahme dieser Bedingungen und der Datenschutzerklärung voraus.
+          </p>
+        )
+      },
+      {
+        title: "2. Art der Dienstleistung und Haftungsausschluss",
+        content: (
+          <p>
+            1. Die von der App generierten Berichte dienen <strong>ausschließlich Informations- und Hilfszwecken</strong>. Sie basieren auf Datenanalysen mit KI-Algorithmen (z. B. Google Vertex AI) und können Fehler, Ungenauigkeiten oder falsche Diagnosen (sog. KI-Halluzinationen) enthalten.<br />
+            2. Die KI-Diagnose ersetzt keine professionelle Inspektion, Diagnose oder Reparatur in einer autorisierten oder qualifizierten Fachwerkstatt.<br />
+            3. Der Dienstanbieter <strong>haftet nicht</strong> für Personen-, Sach-, Daten- oder Gewinnverluste, die sich aus Entscheidungen ergeben (z. B. eigene Reparaturversuche oder Ignorieren von Fehlern), die auf der Grundlage der Berichte der App getroffen wurden.<br />
+            4. Der Benutzer verlässt sich auf die Vorschläge der App und führt DIY-Reparaturen auf eigenes Risiko durch. Wir empfehlen immer, Fehler von einem Fachmann überprüfen zu lassen.
+          </p>
+        )
+      },
+      {
+        title: "3. Bedingungen der Leistungserbringung",
+        content: (
+          <p>
+            1. Für die vollständige Nutzung der App-Funktionen ist die Erstellung eines Kontos und eine Internetverbindung erforderlich.<br />
+            2. Die App bietet kostenlose Dienste (Teilberichte, beschränkt auf allgemeine Schlussfolgerungen) und kostenpflichtige Dienste (PRO-Pakete, vollständige Freischaltung der Berichte).<br />
+            3. Zahlungen werden von einem externen Betreiber (Stripe) abgewickelt. Die Preise für PRO-Pakete sind in der App vor dem Kauf ersichtlich.<br />
+            4. Der Benutzer verpflichtet sich, keine Materialien (Audio/Video/Foto) in die App hochzuladen, die gegen das Gesetz oder Urheberrechte Dritter verstoßen oder unangemessene/beleidigende Inhalte enthalten.
+          </p>
+        )
+      },
+      {
+        title: "4. Widerruf und Beschwerden",
+        content: (
+          <p>
+            1. Ein Nutzer, der Verbraucher ist, hat das Recht, innerhalb von 14 Tagen ohne Angabe von Gründen vom Vertrag zurückzutreten. <strong>Jedoch</strong> führt der Beginn der Bereitstellung einer digitalen Dienstleistung (Freischaltung eines Berichts mit Guthaben) vor Ablauf dieser Frist mit ausdrücklicher Zustimmung des Verbrauchers zum Verlust des Widerrufsrechts für das verbrauchte Guthaben.<br />
+            2. Beschwerden bezüglich des Betriebs der App (z. B. technische Fehler, Fehler bei der Berichterstellung nach Gebührenabzug) sollten an die E-Mail-Adresse gemeldet werden: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            3. Beschwerden werden innerhalb von 14 Werktagen bearbeitet.
+          </p>
+        )
+      },
+      {
+        title: "5. Schlussbestimmungen",
+        content: (
+          <p>
+            1. Der Dienstanbieter behält sich das Recht vor, die Bedingungen aus wichtigem Grund zu ändern (z. B. Änderung der Funktionalität, Gesetzesänderung). Die Nutzer werden über Änderungen benachrichtigt.<br />
+            2. In Angelegenheiten, die in diesen Bedingungen nicht geregelt sind, gilt polnisches Recht.<br />
+            3. Etwaige Streitigkeiten werden von den zuständigen ordentlichen Gerichten entschieden.
+          </p>
+        )
+      }
+    ]
+  },
+  es: {
+    headerTitle: "Términos de Servicio",
+    title: "Términos de Servicio",
+    lastUpdate: "Última actualización: 11 de mayo de 2026",
+    sections: [
+      {
+        title: "1. Disposiciones Generales",
+        content: (
+          <p>
+            1. Estos términos de servicio ("Términos") establecen las reglas para usar la aplicación de diagnóstico Sonic ("Aplicación"), proporcionada por <strong>Antoni Ziółek</strong>, residente en <strong>Varsovia</strong> ("Proveedor de Servicios").<br />
+            2. La Aplicación utiliza tecnologías de inteligencia artificial (IA) para analizar datos de entrada (video, audio, fotos, texto) y generar informes que sugieren posibles fallas en vehículos y maquinaria.<br />
+            3. El uso de la Aplicación requiere la aceptación de estos Términos y la Política de Privacidad.
+          </p>
+        )
+      },
+      {
+        title: "2. Naturaleza del servicio y descargo de responsabilidad",
+        content: (
+          <p>
+            1. Los informes generados por la Aplicación son <strong>estrictamente informativos y auxiliares</strong>. Se basan en análisis de datos mediante algoritmos de IA (por ejemplo, Google Vertex AI) y pueden contener errores, inexactitudes o falsos diagnósticos (las llamadas alucinaciones de IA).<br />
+            2. El diagnóstico de IA no reemplaza la inspección, diagnóstico o reparación profesional en un servicio mecánico autorizado o calificado.<br />
+            3. El Proveedor de Servicios <strong>no es responsable</strong> por ninguna lesión personal, daño a la propiedad, pérdida de datos o pérdida de ganancias resultante de decisiones tomadas (por ejemplo, intentos de reparación de bricolaje o ignorar fallas) en base a los informes de la Aplicación.<br />
+            4. El usuario confía en las sugerencias de la Aplicación y realiza reparaciones de bricolaje bajo su propio riesgo. Siempre recomendamos verificar las fallas con un especialista.
+          </p>
+        )
+      },
+      {
+        title: "3. Condiciones de prestación de servicios",
+        content: (
+          <p>
+            1. El uso completo de la funcionalidad de la Aplicación requiere crear una cuenta y tener una conexión a Internet.<br />
+            2. La Aplicación ofrece servicios gratuitos (informes parciales, limitados a conclusiones generales) y servicios de pago (paquetes PRO, desbloqueo completo de informes).<br />
+            3. Los pagos son gestionados por un operador externo (Stripe). Los precios de los paquetes PRO están disponibles en la interfaz de la Aplicación antes de la compra.<br />
+            4. El Usuario acepta no subir materiales (audio/video/foto) a la Aplicación que violen la ley, los derechos de autor de terceros, o que contengan contenido inapropiado/ofensivo.
+          </p>
+        )
+      },
+      {
+        title: "4. Retiro y quejas",
+        content: (
+          <p>
+            1. Un usuario que es consumidor tiene derecho a retirarse del contrato sin dar ninguna razón dentro de los 14 días. <strong>Sin embargo</strong>, iniciar la prestación de un servicio digital (desbloquear un informe usando crédito) antes de que expire este período, con el consentimiento explícito del consumidor, resulta en la pérdida del derecho a retirarse del contrato con respecto al crédito usado.<br />
+            2. Las quejas sobre el funcionamiento de la Aplicación (por ejemplo, errores técnicos, falla al generar un informe después de deducir la tarifa) deben informarse a la dirección de correo electrónico: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            3. Las quejas se procesarán dentro de los 14 días hábiles.
+          </p>
+        )
+      },
+      {
+        title: "5. Disposiciones Finales",
+        content: (
+          <p>
+            1. El Proveedor de Servicios se reserva el derecho de realizar cambios a los Términos por razones importantes (por ejemplo, cambio de funcionalidad, cambio de ley). Se notificará a los usuarios sobre cualquier cambio.<br />
+            2. En los asuntos no cubiertos por estos Términos, se aplica la ley polaca.<br />
+            3. Cualquier disputa será resuelta por los tribunales comunes competentes.
+          </p>
+        )
+      }
+    ]
+  }
+};
 
 export default function TermsOfServicePage() {
+  const { language } = useLanguage();
+  const currentLang = translations[language as keyof typeof translations] || translations.en;
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
       <header className="flex items-center px-4 py-4 md:px-6 md:py-6 max-w-4xl mx-auto border-b border-foreground/5">
         <Link href="/" className="flex items-center justify-center w-10 h-10 rounded-full bg-surface hover:bg-foreground/5 transition-colors">
           <ChevronLeft className="w-5 h-5 text-muted" />
         </Link>
-        <h1 className="text-sm font-semibold tracking-widest text-muted uppercase ml-4">Regulamin Świadczenia Usług</h1>
+        <h1 className="text-sm font-semibold tracking-widest text-muted uppercase ml-4">{currentLang.headerTitle}</h1>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12 prose prose-invert prose-blue">
-        <h1 className="text-3xl font-bold mb-8">Regulamin Świadczenia Usług</h1>
-        <p className="text-sm text-muted mb-8">Ostatnia aktualizacja: 11 maja 2026</p>
+        <h1 className="text-3xl font-bold mb-8">{currentLang.title}</h1>
+        <p className="text-sm text-muted mb-8">{currentLang.lastUpdate}</p>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">1. Postanowienia ogólne</h2>
-          <p>
-            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>Antoniego Ziółka</strong>, zamieszkałego w <strong>Warszawie</strong> ("Usługodawca").<br/>
-            2. Aplikacja wykorzystuje technologie sztucznej inteligencji (AI) do analizy danych wejściowych (wideo, audio, zdjęcia, tekst) i generowania raportów sugerujących potencjalne usterki pojazdów oraz maszyn.<br/>
-            3. Korzystanie z Aplikacji wymaga zaakceptowania niniejszego Regulaminu oraz Polityki Prywatności.
-          </p>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">2. Charakter usługi i wyłączenie odpowiedzialności</h2>
-          <p>
-            1. Raporty generowane przez Aplikację mają charakter <strong>wyłącznie informacyjny i pomocniczy</strong>. Oparte są na analizie danych z wykorzystaniem algorytmów AI (np. Google Vertex AI) i mogą zawierać błędy, nieścisłości lub fałszywe diagnozy (tzw. halucynacje AI).<br/>
-            2. Diagnoza AI nie zastępuje profesjonalnego przeglądu, diagnostyki czy naprawy w autoryzowanym lub wykwalifikowanym serwisie mechanicznym.<br/>
-            3. Usługodawca <strong>nie ponosi odpowiedzialności</strong> za jakiekolwiek szkody na osobie, mieniu, utratę danych czy zysków wynikające z podejmowania decyzji (np. prób samodzielnej naprawy lub ignorowania usterek) na podstawie raportów z Aplikacji.<br/>
-            4. Użytkownik korzysta z sugestii Aplikacji oraz przeprowadza naprawy DIY na własne ryzyko. Zawsze zalecamy weryfikację usterki u specjalisty.
-          </p>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">3. Warunki świadczenia usług</h2>
-          <p>
-            1. Do korzystania z pełni funkcjonalności Aplikacji wymagane jest założenie konta oraz posiadanie połączenia z siecią Internet.<br/>
-            2. Aplikacja oferuje usługi darmowe (częściowe raporty, ograniczone do ogólnych wniosków) oraz płatne (Pakiety PRO, pełne odblokowanie raportów).<br/>
-            3. Płatności są obsługiwane przez operatora zewnętrznego (Stripe). Cennik pakietów PRO dostępny jest w interfejsie Aplikacji przed dokonaniem zakupu.<br/>
-            4. Użytkownik zobowiązuje się nie wgrywać do Aplikacji materiałów (audio/wideo/foto), które naruszają prawo, prawa autorskie osób trzecich, lub zawierają treści nieodpowiednie/obraźliwe.
-          </p>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">4. Odstąpienie od umowy i reklamacje</h2>
-          <p>
-            1. Użytkownik będący konsumentem ma prawo odstąpić od umowy bez podania przyczyny w terminie 14 dni, <strong>jednakże</strong> rozpoczęcie świadczenia usługi cyfrowej (odblokowanie raportu za pomocą kredytu) przed upływem tego terminu, za wyraźną zgodą konsumenta, powoduje utratę prawa do odstąpienia od umowy w zakresie zużytego kredytu.<br/>
-            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.<br/>
-            3. Reklamacje będą rozpatrywane w terminie 14 dni roboczych.
-          </p>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">5. Postanowienia końcowe</h2>
-          <p>
-            1. Usługodawca zastrzega sobie prawo do wprowadzania zmian w Regulaminie z ważnych przyczyn (np. zmiana funkcjonalności, zmiana prawa). O zmianach Użytkownicy zostaną powiadomieni.<br/>
-            2. W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy prawa polskiego.<br/>
-            3. Wszelkie spory rozstrzygane będą przez właściwe sądy powszechne.
-          </p>
-        </section>
+        {currentLang.sections.map((section, index) => (
+          <section key={index} className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
+            {section.content}
+          </section>
+        ))}
       </main>
     </div>
   );

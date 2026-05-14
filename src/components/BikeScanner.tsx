@@ -230,8 +230,6 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
         return;
       }
 
-      setIsLoadingFile(true);
-      await new Promise(r => setTimeout(r, 400));
       setPendingFile(file);
       setIsLoadingFile(false);
       e.target.value = '';
@@ -357,7 +355,12 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
             <AnimatePresence mode="wait">
               {pendingFile && !isAnalyzing ? (
                 <motion.button key="analyze" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} onClick={handleAnalyzeClick} className={`relative w-28 h-28 md:w-32 md:h-32 rounded-full flex flex-col items-center justify-center overflow-hidden bg-emerald-500/20 shadow-2xl shadow-emerald-500/10 border border-emerald-500/40 z-20 hover:bg-emerald-500/30 transition-opacity`}>
-                  <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-emerald-400 drop-shadow-md" />
+                  <div className="flex flex-col items-center gap-1">
+                    <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-emerald-400 drop-shadow-md" />
+                    <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-emerald-400/90">
+                      {language === 'pl' ? 'ANALIZUJ' : 'ANALYZE'}
+                    </span>
+                  </div>
                 </motion.button>
               ) : (
                 <motion.button

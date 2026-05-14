@@ -37,10 +37,11 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     capable: true,
   },
+  metadataBase: new URL("https://sonicly.app"),
   openGraph: {
     title: "Sonic AI - Mechanik w Twojej kieszeni",
     description: "Wykorzystaj moc AI do diagnozowania awarii samochodu lub roweru w kilka sekund.",
-    url: "https://sonic-diagnostic.vercel.app",
+    url: "https://sonicly.app",
     siteName: "Sonic AI",
     images: [
       {
