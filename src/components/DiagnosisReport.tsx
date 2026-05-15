@@ -67,7 +67,7 @@ export function DiagnosisReport({ onClose, data, diagnosisId, onOpenChat, isUnlo
   // A report is locked if the audio_analysis field is a string (locked placeholder)
   // OR if the database explicitly marks it as not unlocked (history view)
   const isLockedByData = typeof data.audio_analysis === 'string';
-  const isLocked = isUnlocked === false ? true : isLockedByData;
+  const isLocked = isUnlocked === true ? false : (isUnlocked === false ? true : isLockedByData);
 
   const complexity = parseComplexity(!isLocked ? (data.parameters as any).complexity : '5/5');
   const riskPercent = parsePercent(!isLocked ? (data.parameters as any).risk_level : '100%');

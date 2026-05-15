@@ -41,7 +41,7 @@ export function BikeDiagnosisReport({ onClose, data, diagnosisId, onOpenChat, is
   const recommendedActions = data?.recommended_actions;
 
   const isLockedByData = typeof audioAnalysis === 'string';
-  const isLocked = isUnlocked === false ? true : isLockedByData;
+  const isLocked = isUnlocked === true ? false : (isUnlocked === false ? true : isLockedByData);
 
   // Localized repair stages for bike
   const repairTimeData = [

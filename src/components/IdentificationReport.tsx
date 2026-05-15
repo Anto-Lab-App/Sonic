@@ -41,7 +41,7 @@ export function IdentificationReport({
     ]
   };
   const isLockedByData = typeof identifiedCar.name === "string" && identifiedCar.name.includes("UKRYTE") || identifiedCar.name.includes("HIDDEN") || identifiedCar.name.includes("OCULTO") || identifiedCar.name.includes("VERBORGEN");
-  const isLocked = isUnlocked === false ? true : isLockedByData;
+  const isLocked = isUnlocked === true ? false : (isUnlocked === false ? true : isLockedByData);
   const [showPricing, setShowPricing] = React.useState(isLocked);
 
   return (

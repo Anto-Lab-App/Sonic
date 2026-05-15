@@ -39,16 +39,16 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://sonicly.app"),
   openGraph: {
-    title: "Sonic AI - Mechanik w Twojej kieszeni",
-    description: "Wykorzystaj moc AI do diagnozowania awarii samochodu lub roweru w kilka sekund.",
+    title: "Sonic AI 🚗 Twój Osobisty Mechanik AI",
+    description: "Zaoszczędź na mechaniku! Nagraj dźwięk lub zrób zdjęcie usterki, a nasza Sztuczna Inteligencja zdiagnozuje problem w kilka sekund. Kliknij i sprawdź za darmo!",
     url: "https://sonicly.app",
-    siteName: "Sonic AI",
+    siteName: "Sonicly.app",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Sonic AI Diagnostic Preview",
+        alt: "Sonic AI - Diagnoza Usterek z AI",
       },
     ],
     locale: "pl_PL",
@@ -56,8 +56,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sonic AI - Diagnostyka Pojazdów",
-    description: "Błyskawiczna analiza usterek z Gemini AI.",
+    title: "Sonic AI 🚗 Twój Osobisty Mechanik AI",
+    description: "Zaoszczędź na mechaniku! Nagraj dźwięk lub zrób zdjęcie usterki, a AI zdiagnozuje problem w kilka sekund.",
     images: ["/og-image.png"],
   },
 };
