@@ -9,7 +9,7 @@ export function Header() {
   const { t } = useLanguage();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 md:px-6 md:py-4 flex items-center justify-start pointer-events-none">
+    <header className="fixed top-0 left-0 right-0 z-[100] px-4 pb-3 md:px-6 md:pb-4 pt-[max(env(safe-area-inset-top,12px),12px)] md:pt-[max(env(safe-area-inset-top,16px),16px)] flex items-center justify-start pointer-events-none">
       <div className="flex items-center gap-4 pointer-events-auto">
         {isLoaded && !isSignedIn && (
           <SignInButton mode="modal">

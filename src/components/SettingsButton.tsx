@@ -7,7 +7,7 @@ export function SettingsButton({ onClick }: { onClick?: () => void }) {
   return (
     <motion.button
       onClick={onClick}
-      className="fixed top-4 right-4 md:top-8 md:right-8 z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 backdrop-blur-2xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden"
+      className="fixed right-4 md:right-8 top-[max(env(safe-area-inset-top,16px),16px)] md:top-[max(env(safe-area-inset-top,32px),32px)] z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 backdrop-blur-2xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden"
       aria-label="Ustawienia"
       whileHover="hover"
       whileTap="tap"

@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles } from 'lucide-react';
+import { Upload, FileText, ChevronDown, AlertCircle, Mic, Camera, Image as ImageIcon, Loader2, X, Sparkles, Bluetooth, BluetoothConnected } from 'lucide-react';
 
 import { ContextModal } from './ContextModal';
+import { OBDManagerModal } from './OBDManagerModal';
+import { obdManager } from '@/lib/obd';
 import { DisclaimerModal } from './DisclaimerModal';
 import { DiagnosisReport } from './DiagnosisReport';
 import { NoCreditsModal } from './NoCreditsModal';
@@ -64,6 +66,10 @@ export function Scanner({
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showContextReminder, setShowContextReminder] = useState(false);
   const [stickyError, setStickyError] = useState<string | null>(null);
+
+  const [isOBDModalOpen, setIsOBDModalOpen] = useState(false);
+  const [obdCodes, setObdCodes] = useState<string[]>([]);
+  const [isObdConnected, setIsObdConnected] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -374,6 +380,7 @@ export function Scanner({
       if (diagnosticContext.yearEngine) ctxParts.push(`Rok i Silnik: ${diagnosticContext.yearEngine}`);
       if (diagnosticContext.mileage) ctxParts.push(`${t.auto.labels.mileage} ${diagnosticContext.mileage}`);
       if (diagnosticContext.obdCodes) ctxParts.push(`${t.auto.labels.obdCodes} ${diagnosticContext.obdCodes}`);
+      if (obdCodes.length > 0) ctxParts.push(`${t.auto.labels.obdCodes} (z OBD Bluetooth): ${obdCodes.join(', ')}`);
       if (diagnosticContext.condition) ctxParts.push(`${t.auto.labels.condition} ${diagnosticContext.condition}`);
       if (diagnosticContext.tags.length > 0) ctxParts.push(`${t.auto.labels.tags} ${diagnosticContext.tags.join(', ')}`);
       if (diagnosticContext.description) ctxParts.push(`${t.auto.labels.description} ${diagnosticContext.description}`);
@@ -631,7 +638,7 @@ export function Scanner({
       />
 
       {/* Mobile-perfect container */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[calc(env(safe-area-inset-bottom,0px)+120px)] md:pb-[calc(env(safe-area-inset-bottom,0px)+140px)]">
 
         {/* Top Inputs */}
         <motion.div
@@ -693,6 +700,27 @@ export function Scanner({
                 </Link>
               </div>
             </label>
+          </div>
+
+          {/* OBD Button */}
+          <div className="w-full px-2 mt-3">
+            <button
+              onClick={() => setIsOBDModalOpen(true)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${isObdConnected
+                  ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30 text-[#00D1FF] shadow-[0_0_15px_rgba(0,209,255,0.15)]'
+                  : 'bg-white/5 border-white/10 hover:bg-white/10 text-foreground/80'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                {isObdConnected ? <BluetoothConnected className="w-4 h-4" /> : <Bluetooth className="w-4 h-4" />}
+                <span className="text-[11px] font-bold tracking-widest uppercase">
+                  {isObdConnected ? 'OBD-II Połączono' : 'OBD-II Telemetry'}
+                </span>
+              </div>
+              <span className="text-[10px] opacity-60 uppercase font-semibold">
+                {obdCodes.length > 0 ? `${obdCodes.length} DTCs` : isObdConnected ? 'Live' : 'Connect'}
+              </span>
+            </button>
           </div>
         </motion.div>
 
@@ -1173,6 +1201,17 @@ export function Scanner({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <OBDManagerModal
+        isOpen={isOBDModalOpen}
+        onClose={() => {
+          setIsOBDModalOpen(false);
+          setIsObdConnected(obdManager.isConnected);
+        }}
+        onCodesFound={(codes) => {
+          setObdCodes(prev => Array.from(new Set([...prev, ...codes])));
+        }}
+      />
 
       <DisclaimerModal
         isOpen={isDisclaimerModalOpen}

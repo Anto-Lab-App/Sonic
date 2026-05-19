@@ -395,7 +395,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-primary/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--color-surface)_0%,transparent_100%)] pointer-events-none opacity-40" />
 
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[calc(env(safe-area-inset-bottom,0px)+120px)] md:pb-[calc(env(safe-area-inset-bottom,0px)+140px)]">
         {/* Title Section */}
         <motion.div
           animate={{ opacity: (isRecording || isAnalyzing) ? 0 : 1, y: (isRecording || isAnalyzing) ? -20 : 0 }}

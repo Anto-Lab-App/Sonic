@@ -246,7 +246,7 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
     <div className="h-[100dvh] bg-background text-foreground flex flex-col items-center font-sans relative overflow-hidden selection:bg-emerald-500/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--color-surface)_0%,transparent_100%)] opacity-40 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[100px] md:pb-[120px]">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full overflow-y-auto scrollbar-hide pb-[calc(env(safe-area-inset-bottom,0px)+120px)] md:pb-[calc(env(safe-area-inset-bottom,0px)+140px)]">
 
         <motion.div
           animate={{ opacity: isAnalyzing ? 0 : 1, y: isAnalyzing ? -20 : 0 }}
