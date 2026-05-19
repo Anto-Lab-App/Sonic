@@ -100,7 +100,28 @@ export const translations = {
                 { icon: '🎙️', tip: 'Nagraj wyraźnie słyszalną usterkę — silnik na biegu jałowym, jazda próbna, stukanie. Minimum 1 sekunda, unikaj szumu wiatru.' },
                 { icon: '🚗', tip: 'Podaj markę, model i rocznik pojazdu — AI dopasuje bazę awarii do Twojego konkretnego silnika.' },
                 { icon: '📋', tip: 'Masz kody OBD-II lub wiesz kiedy problem występuje np. "przy zimnym starcie"? Dodaj to w Kontekście.' }
-            ]
+            ],
+            obd: {
+                title: 'OBD-II Telemetry',
+                connectPrompt: 'Podłącz interfejs OBD',
+                searching: 'Szukanie urządzenia...',
+                connected: 'Połączono pomyślnie',
+                reading: 'Odczytywanie danych z ECU...',
+                success: 'Skanowanie zakończone',
+                error: 'Wystąpił błąd',
+                instructions: 'Upewnij się, że używasz adaptera ELM327 BLE (Bluetooth Low Energy) oraz włączyłeś zapłon w pojeździe.',
+                instructionsSearch: 'Wybierz swój adapter na liście pop-up przeglądarki.',
+                instructionsConnected: 'Adapter jest gotowy do odczytu błędów DTC z komputera pojazdu.',
+                instructionsReading: 'Pobieranie i dekodowanie ukrytych kodów błędów DTC...',
+                codesFound: 'Znaleziono kody: ',
+                noCodes: 'Brak (Błędy wykasowane)',
+                btnConnect: 'POŁĄCZ Z OBD BLE',
+                btnScan: 'SKANUJ BŁĘDY DTC',
+                btnDisconnect: 'Odłącz',
+                btnDone: 'GOTOWE',
+                connectionFailed: 'Nie udało się połączyć z urządzeniem OBD.',
+                readFailed: 'Nie udało się odczytać danych z pojazdu.'
+            }
         },
         bike: { section: 'Sekcja Roweru', protips: 'Protipy: Jak ująć awarię na zdjęciu/wideo', title: 'Zrób zdjęcie kasety / detalu', subtitle: 'Szukamy zagiętych zębów, uszkodzeń ramy lub pęknięć. Zrób fotkę makro.', gallery: 'Zdjęcie z galerii', addContext: 'Dodaj Kontekst', targets: ['Napęd (Rozciągnięcie, Przeskoki)', 'Hamulce (Piszczenie, Tracie)', 'Suport (Trzaski podczas pedałowania)', 'Przerzutka (Problem zrzucania)', 'Amortyzator / Łożyska ramy', 'Inne'], status: { init: 'Inicjalizacja AI...', analyze: 'Analiza struktury ze zdjęcia/wideo...', check: 'Analiza elementów mechanicznych...', dev: 'Opracowywanie diagnozy rowerowej...' }, pendingHints: ["Gotowe do diagnozy usterek", "Podaj kontekst by zwiększyć trafność", "Graj lub zrób zdjęcie łańcucha"], selectElement: "Wybierz element", visualScan: "Skan Wizualny", visualScanDesc: "Zrób zdjęcie ewidentnych uszkodzeń", protipsTitle: "Wskazówki Bikerów", protipsList: [{ icon: '⚠️', tip: 'Unieś koło, wkręć pedał przed skanem napędu, aby dźwięk był sterylny.' }, { icon: '📸', tip: 'Wgrywając zdjęcie ramy, dbaj o silne oświetlenie pęknięć karbonu / spawu.' }] },
         shazam: { title: 'Sonic Shazam', desc: 'Nagraj dźwięk silnika lub dodaj zdjęcie, aby inteligentna baza Sonic rozpoznała, z jakim autem masz do czynienia.', listening: 'Słucham...', status: { init: 'Inicjalizacja AI...', isoAudio: 'Izolowanie ścieżki dźwiękowej...', isoVisual: 'Analiza zdjęcia i kształtów...', search: 'Przeszukiwanie globalnej bazy modeli...', identify: 'Identyfikacja...' }, identificationComplete: 'Identyfikacja zakończona', askAiAboutThis: 'Zapytaj AI o ten element', screenshot: 'Zrzut ekranu', specs: { capacity: 'Pojemność', power: 'Moc szacunkowa', layout: 'Układ', type: 'Rodzaj' }, pendingHints: ["Dźwięk gotowy — naciśnij aby rozpoznać", "Możesz też dodać pliki z biblioteki", "Uruchom silnik AI"], tapToListen: "Dotknij, aby nasłuchiwać", protipsTitle: "Wskazówki Shazam", protipsList: [{ icon: '🌪️', tip: 'Unikaj wiatru — rejestruj wydech w miejscu osłoniętym od porywów wiatru.' }, { icon: '🔊', tip: 'Złap pełny dźwięk wkręcania silnika na wyższe obroty, nie tylko bieg jałowy.' }, { icon: '📸', tip: 'Wgrywając zdjęcie, upewnij się że detale (badge, zbieg wydechów) nie są zamazane.' }] },
@@ -198,7 +219,7 @@ export const translations = {
             inputAnalysis: 'Analiza wejściowa',
             aiReasoning: 'Tok rozumowania AI',
             aiAlgorithm: 'Algorytm identyfikacyjny AI',
-            recommendedActions: 'Recommended actions',
+            recommendedActions: 'Rekomendowane działania',
             bikeWorkshop: 'Warsztat rowerowy: Krok po kroku',
             analysisParams: 'Parametry analizy',
             repairData: 'Dane Naprawcze',
@@ -364,7 +385,28 @@ export const translations = {
                 { icon: '🎙️', tip: 'Record a clearly audible fault — engine idle, test drive, knocking. Minimum 1 second, avoid wind noise.' },
                 { icon: '🚗', tip: 'Provide vehicle make, model and year — AI will match the fault database to your specific engine.' },
                 { icon: '📋', tip: 'Do you have OBD-II codes or know when the problem occurs e.g. "on cold start"? Add it in Context.' }
-            ]
+            ],
+            obd: {
+                title: 'OBD-II Telemetry',
+                connectPrompt: 'Connect OBD interface',
+                searching: 'Searching for device...',
+                connected: 'Connected successfully',
+                reading: 'Reading data from ECU...',
+                success: 'Scanning complete',
+                error: 'An error occurred',
+                instructions: 'Ensure you are using an ELM327 BLE (Bluetooth Low Energy) adapter and turn on the vehicle ignition.',
+                instructionsSearch: 'Select your adapter in the browser popup list.',
+                instructionsConnected: 'Adapter is ready to read DTC fault codes from the vehicle computer.',
+                instructionsReading: 'Downloading and decoding hidden DTC fault codes...',
+                codesFound: 'Codes found: ',
+                noCodes: 'None (Codes cleared)',
+                btnConnect: 'CONNECT OBD BLE',
+                btnScan: 'SCAN DTC CODES',
+                btnDisconnect: 'Disconnect',
+                btnDone: 'DONE',
+                connectionFailed: 'Failed to connect to OBD device.',
+                readFailed: 'Failed to read data from vehicle.'
+            }
         },
         bike: { section: 'Bike Section', protips: 'Pro tips: How to capture the fault', title: 'Take a photo of the cassette / detail', subtitle: 'Looking for bent teeth, frame damage or cracks. Take a macro shot.', gallery: 'Photo from gallery', addContext: 'Add Context', targets: ['Drivetrain (Stretching, Skipping)', 'Brakes (Squeaking, Rubbing)', 'Bottom Bracket (Creaking when pedaling)', 'Derailleur (Shifting problem)', 'Shock absorber / Frame bearings', 'Other'], status: { init: 'Initializing AI...', analyze: 'Analyzing structure from photo/video...', check: 'Analyzing mechanical components...', dev: 'Developing bike diagnosis...' }, pendingHints: ["Ready for fault diagnosis", "Provide context to increase accuracy", "Play sound or take a photo of the chain"], selectElement: "Select component", visualScan: "Visual Scan", visualScanDesc: "Take a photo of evident damage", protipsTitle: "Biker Tips", protipsList: [{ icon: '⚠️', tip: 'Lift the wheel, spin the pedal before scanning to keep sound clean.' }, { icon: '📸', tip: 'When uploading frame photo, ensure strong lighting on carbon cracks/welds.' }] },
         shazam: { title: 'Sonic Shazam', desc: 'Record engine sound or add a photo so Sonic intelligent database can recognize the car.', listening: 'Listening...', status: { init: 'Initializing AI...', isoAudio: 'Isolating audio track...', isoVisual: 'Analyzing photo and shapes...', search: 'Searching global model database...', identify: 'Identifying...' }, identificationComplete: 'Identification Complete', askAiAboutThis: 'Ask AI about this part', screenshot: 'Screenshot', specs: { capacity: 'Capacity', power: 'Estimated Power', layout: 'Layout', type: 'Type' }, pendingHints: ["Sound ready — press to recognize", "You can also add files from library", "Start AI engine"], tapToListen: "Tap to listen", protipsTitle: "Shazam Tips", protipsList: [{ icon: '🌪️', tip: 'Avoid wind — record exhaust in a place sheltered from wind gusts.' }, { icon: '🔊', tip: 'Catch the full engine rev sound, not just idle.' }, { icon: '📸', tip: 'When uploading photo, ensure details (badge, exhaust) are not blurred.' }] },
@@ -373,7 +415,7 @@ export const translations = {
             title: 'Settings',
             logout: 'Log out',
             tabs: { profile: 'Your Profile', history: 'Analysis History', preferences: 'Preferences', notifications: 'Notifications', security: 'Security' },
-            preferences: { title: 'Preferences', desc: 'Manage language, appearance and region settings.', langTitle: 'App Language', langDesc: 'Choose the language for the interface.', themeTitle: 'Theme', themeDesc: 'Customize the appearance of the app.', themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' }, installApp: 'Install App', installDesc: 'Install Sonic AI on your phone for faster access.', iosInstallInst: "To install, tap the share icon in the browser bar and select 'Add to Home Screen'.", installAction: 'Install', maybeLater: 'Maybe later' },
+            preferences: { title: 'Preferences', desc: 'Manage language, appearance and region settings.', langTitle: 'App Language', langDesc: 'Choose the language for the interface.', themeTitle: 'Theme', themeDesc: 'Customize the appearance of the app.', themes: { system: 'System', light: 'Light', dark: 'Dark', pink: 'Pink' }, installApp: 'Install App', installDesc: 'Install Sonic AI on your phone for faster access.', iosInstallInst: "To install, tap the share icon at the bottom and select 'Add to Home Screen'.", installAction: 'Install', maybeLater: 'Maybe later' },
             history: {
                 title: 'Analysis History',
                 desc: 'Browse your previous diagnoses and generated reports.',
@@ -628,7 +670,28 @@ export const translations = {
                 { icon: '🎙️', tip: 'Nehmen Sie einen deutlich hörbaren Fehler auf — Leerlauf, Probefahrt, Klopfen. Mindestens 1 Sekunde, Windgeräusche vermeiden.' },
                 { icon: '🚗', tip: 'Geben Sie Marke, Modell und Jahr an — die KI passt die Fehlerdatenbank an Ihren Motor an.' },
                 { icon: '📋', tip: 'Haben Sie OBD-II-Codes oder wissen Sie, wann das Problem auftritt? Fügen Sie es im Kontext hinzu.' }
-            ]
+            ],
+            obd: {
+                title: 'OBD-II Telemetrie',
+                connectPrompt: 'OBD-Schnittstelle anschließen',
+                searching: 'Gerät wird gesucht...',
+                connected: 'Erfolgreich verbunden',
+                reading: 'Daten vom Steuergerät lesen...',
+                success: 'Scan abgeschlossen',
+                error: 'Ein Fehler ist aufgetreten',
+                instructions: 'Stellen Sie sicher, dass Sie einen ELM327 BLE (Bluetooth Low Energy) Adapter verwenden und schalten Sie die Zündung ein.',
+                instructionsSearch: 'Wählen Sie Ihren Adapter in der Popup-Liste des Browsers aus.',
+                instructionsConnected: 'Adapter ist bereit, DTC-Fehlercodes aus dem Fahrzeugcomputer zu lesen.',
+                instructionsReading: 'Versteckte DTC-Fehlercodes werden heruntergeladen und dekodiert...',
+                codesFound: 'Gefundene Codes: ',
+                noCodes: 'Keine (Codes gelöscht)',
+                btnConnect: 'MIT OBD BLE VERBINDEN',
+                btnScan: 'DTC-CODES SCANNEN',
+                btnDisconnect: 'Trennen',
+                btnDone: 'FERTIG',
+                connectionFailed: 'Verbindung zum OBD-Gerät fehlgeschlagen.',
+                readFailed: 'Fehler beim Lesen der Fahrzeugdaten.'
+            }
         },
         bike: { section: 'Fahrrad-Bereich', protips: 'Pro-Tipps: Wie man den Fehler aufnimmt', title: 'Foto der Kassette / des Details machen', subtitle: 'Wir suchen nach verbogenen Zähnen, Rahmenschäden oder Rissen. Machen Sie eine Makroaufnahme.', gallery: 'Foto aus der Galerie', addContext: 'Kontext hinzufügen', targets: ['Antrieb (Dehnung, Überspringen)', 'Bremsen (Quietschen, Reiben)', 'Tretlager (Knarren beim Treten)', 'Schaltwerk (Schaltproblem)', 'Stoßdämpfer / Rahmenlager', 'Andere'], status: { init: 'KI wird initialisiert...', analyze: 'Struktur aus Foto/Video analysieren...', check: 'Mechanische Komponenten analysieren...', dev: 'Fahrraddiagnose wird entwickelt...' }, pendingHints: ["Bereit für Fehlerdiagnose", "Kontext angeben, um Genauigkeit zu erhöhen", "Ton abspielen oder Foto der Kette machen"], selectElement: "Element auswählen", visualScan: "Visueller Scan", visualScanDesc: "Foto von offensichtlichen Schäden machen", protipsTitle: "Biker-Tipps", protipsList: [{ icon: '⚠️', tip: 'Heben Sie das Rad an, drehen Sie das Pedal vor dem Scan, um den Ton sauber zu halten.' }, { icon: '📸', tip: 'Achten Sie beim Hochladen des Rahmenfotos auf starke Beleuchtung von Karbonrissen/Schweißnähten.' }] },
         shazam: {
@@ -647,7 +710,7 @@ export const translations = {
         },
         instructions: { title: 'So nehmen Sie für die Analyse richtig auf', car: { light: 'Öffnen Sie die Motorhaube (Radio und Klima aus).', video: 'Nehmen Sie ein Video auf (Gibt der Diagnose mehr Kontext durch Vibrationen etc.).', secure: 'Sichern Sie das Auto (Handbremse, Neutral/P). Vorsicht vor beweglichen Teilen!', steps: '3 Schritte: Motor starten → 5 Sekunden warten → leicht Gas geben.' }, bike: { light: 'Sorgen Sie für gutes Licht. Fotografieren Sie die Kassette an einem hellen Ort.', video: 'Wenn Sie ein Video aufnehmen, drehen Sie die Kurbel manuell, vermeiden Sie Wind.', stable: 'Bleiben Sie stabil. Lehnen Sie das Fahrrad an oder nutzen Sie den Ständer. Nicht während der Fahrt filmen!' } },
         settings: {
-            title: 'Einstellungen', logout: 'Abmelden', tabs: { profile: 'Dein Profil', history: 'Analyse-Verlauf', preferences: 'Präferenzen', notifications: 'Benachrichtigungen', security: 'Sicherheit' }, preferences: { title: 'Präferenzen', desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.', langTitle: 'App-Sprache', langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.', themeTitle: 'Design', themeDesc: 'Passen Sie das Erscheinungsbild der App an.', themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' }, installApp: 'App installieren', installDesc: 'Installieren Sie Sonic AI auf Ihrem Telefon für schnelleren Zugriff.', iosInstallInst: "Tippen Sie auf das Teilen-Symbol in der Browserleiste und wählen Sie 'Zum Startbildschirm hinzufügen'.", installAction: 'Installieren', maybeLater: 'Vielleicht später' },
+            title: 'Einstellungen', logout: 'Abmelden', tabs: { profile: 'Dein Profil', history: 'Analyse-Verlauf', preferences: 'Präferenzen', notifications: 'Benachrichtigungen', security: 'Sicherheit' }, preferences: { title: 'Präferenzen', desc: 'Verwalten Sie Sprache, Erscheinungsbild und Region.', langTitle: 'App-Sprache', langDesc: 'Wählen Sie die Sprache für die Benutzeroberfläche.', themeTitle: 'Design', themeDesc: 'Passen Sie das Erscheinungsbild der App an.', themes: { system: 'System', light: 'Hell', dark: 'Dunkel', pink: 'Rosa' }, installApp: 'App installieren', installDesc: 'Installieren Sie Sonic AI auf Ihrem Telefon für schnelleren Zugriff.', iosInstallInst: "Tippen Sie auf das Teilen-Symbol unten und wählen Sie 'Zum Startbildschirm hinzufügen'.", installAction: 'Installieren', maybeLater: 'Vielleicht später' },
             history: {
                 title: 'Analyse-Verlauf',
                 desc: 'Durchsuchen Sie frühere Diagnosen und generierte Berichte.',
@@ -809,7 +872,28 @@ export const translations = {
                 { icon: '🎙️', tip: 'Graba una falla claramente audible: ralentí, prueba de manejo, golpeteo. Mínimo 1 segundo, evita el ruido del viento.' },
                 { icon: '🚗', tip: 'Indica marca, modelo y año: la IA ajustará la base de datos a tu motor específico.' },
                 { icon: '📋', tip: '¿Tienes códigos OBD-II o sabes cuándo ocurre el problema? Añádelo en el Contexto.' }
-            ]
+            ],
+            obd: {
+                title: 'Telemetría OBD-II',
+                connectPrompt: 'Conectar interfaz OBD',
+                searching: 'Buscando dispositivo...',
+                connected: 'Conectado con éxito',
+                reading: 'Leyendo datos de la ECU...',
+                success: 'Escaneo completado',
+                error: 'Ha ocurrido un error',
+                instructions: 'Asegúrate de usar un adaptador ELM327 BLE (Bluetooth Low Energy) y enciende el contacto del vehículo.',
+                instructionsSearch: 'Selecciona tu adaptador en la lista emergente del navegador.',
+                instructionsConnected: 'El adaptador está listo para leer los códigos de avería DTC del ordenador del vehículo.',
+                instructionsReading: 'Descargando y decodificando códigos de avería DTC ocultos...',
+                codesFound: 'Códigos encontrados: ',
+                noCodes: 'Ninguno (Códigos borrados)',
+                btnConnect: 'CONECTAR OBD BLE',
+                btnScan: 'ESCANEAR CÓDIGOS DTC',
+                btnDisconnect: 'Desconectar',
+                btnDone: 'HECHO',
+                connectionFailed: 'No se pudo conectar al dispositivo OBD.',
+                readFailed: 'No se pudieron leer los datos del vehículo.'
+            }
         },
         bike: { section: 'Bici', protips: 'Consejos', title: 'Toma foto de casete/detalle', subtitle: 'Buscamos dientes doblados o daños.', gallery: 'Galería', addContext: 'Contexto', targets: ['Transmisión', 'Frenos', 'Pedalier', 'Desviador', 'Amortiguador', 'Otro'], status: { init: 'Iniciando IA...', analyze: 'Analizando estructura...', check: 'Analizando componentes mecánicos...', dev: 'Desarrollando diagnóstico...' }, pendingHints: ["Listo para diagnóstico", "Indica el contexto para mayor precisión", "Graba sonido o foto de la cadena"], selectElement: "Seleccionar elemento", visualScan: "Escaneo Visual", visualScanDesc: "Toma foto de daños evident", protipsTitle: "Consejos para Ciclistas", protipsList: [{ icon: '⚠️', tip: 'Levanta la rueda, gira el pedal antes del escaneo para que el sonido sea limpio.' }, { icon: '📸', tip: 'Al subir la foto del cuadro, asegúrate de tener una iluminación fuerte en las grietas del carbono/soldadura.' }] },
         shazam: {
@@ -828,7 +912,7 @@ export const translations = {
         },
         instructions: { title: 'Instrucciones', car: { light: 'Abre el capó.', video: 'Graba vídeo para contexto.', secure: 'Asegura el coche.', steps: '3 pasos: Arranca → 5s → acelera levemente.' }, bike: { light: 'Buena iluminación.', video: 'Gira el pedal manualmente.', stable: 'Mantén la bici estable.' } },
         settings: {
-            title: 'Ajustes', logout: 'Cerrar sesión', tabs: { profile: 'Tu Perfil', history: 'Historial', preferences: 'Preferencias', notifications: 'Notificaciones', security: 'Seguridad' }, preferences: { title: 'Preferencias', desc: 'Configura idioma y apariencia.', langTitle: 'Idioma', langDesc: 'Elige tu idioma.', themeTitle: 'Tema', themeDesc: 'Elige el tema.', themes: { system: 'Sistema', light: 'Claro', dark: 'Oscuro', pink: 'Rosa' }, installApp: 'Instalar App', installDesc: 'Instala Sonic AI en tu teléfono para un acceso más rápido.', iosInstallInst: "Toca el icono de compartir en la barra del navegador y selecciona 'Añadir a la pantalla de inicio'.", installAction: 'Instalar', maybeLater: 'Quizás más tarde' },
+            title: 'Ajustes', logout: 'Cerrar sesión', tabs: { profile: 'Tu Perfil', history: 'Historial', preferences: 'Preferencias', notifications: 'Notificaciones', security: 'Seguridad' }, preferences: { title: 'Preferencias', desc: 'Configura idioma y apariencia.', langTitle: 'Idioma', langDesc: 'Elige tu idioma.', themeTitle: 'Tema', themeDesc: 'Elige el tema.', themes: { system: 'Sistema', light: 'Claro', dark: 'Oscuro', pink: 'Rosa' }, installApp: 'Instalar App', installDesc: 'Instala Sonic AI en tu teléfono para un acceso más rápido.', iosInstallInst: "Toca el icono de compartir en la parte inferior y selecciona 'Añadir a la pantalla de inicio'.", installAction: 'Instalar', maybeLater: 'Quizás más tarde' },
             history: {
                 title: 'Historial',
                 desc: 'Tus diagnósticos previos.',

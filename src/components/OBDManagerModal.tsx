@@ -88,7 +88,7 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                 <Bluetooth className="w-5 h-5" />
                             )}
                         </div>
-                        <h2 className="text-lg font-bold">OBD-II Telemetry</h2>
+                        <h2 className="text-lg font-bold">{t.auto.obd.title}</h2>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
                         <X className="w-5 h-5 text-foreground/50 hover:text-foreground" />
@@ -100,8 +100,8 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                         <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
                             <div className={`absolute inset-0 rounded-full border-2 border-dashed ${status === 'connecting' || status === 'reading' ? 'border-[#00D1FF]/50 animate-spin-slow' : 'border-foreground/10'}`} />
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg ${status === 'connected' || status === 'success' || status === 'reading' ? 'bg-[#00D1FF] text-white shadow-[#00D1FF]/30' :
-                                    status === 'error' ? 'bg-red-500 text-white shadow-red-500/30' :
-                                        'bg-surface-elevated text-foreground/50 border border-foreground/10'
+                                status === 'error' ? 'bg-red-500 text-white shadow-red-500/30' :
+                                    'bg-surface-elevated text-foreground/50 border border-foreground/10'
                                 }`}>
                                 {status === 'connected' ? <CheckCircle2 className="w-8 h-8" /> :
                                     status === 'success' ? <CheckCircle2 className="w-8 h-8" /> :
@@ -113,20 +113,20 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                         </div>
 
                         <h3 className="text-xl font-bold mb-2">
-                            {status === 'idle' ? 'Podłącz interfejs OBD' :
-                                status === 'connecting' ? 'Szukanie urządzenia...' :
-                                    status === 'connected' ? 'Połączono pomyślnie' :
-                                        status === 'reading' ? 'Odczytywanie danych z ECU...' :
-                                            status === 'success' ? 'Skanowanie zakończone' :
-                                                'Wystąpił błąd'}
+                            {status === 'idle' ? t.auto.obd.connectPrompt :
+                                status === 'connecting' ? t.auto.obd.searching :
+                                    status === 'connected' ? t.auto.obd.connected :
+                                        status === 'reading' ? t.auto.obd.reading :
+                                            status === 'success' ? t.auto.obd.success :
+                                                t.auto.obd.error}
                         </h3>
 
                         <p className="text-sm text-foreground/60 leading-relaxed max-w-[280px] mx-auto">
-                            {status === 'idle' ? 'Upewnij się, że używasz adaptera ELM327 BLE (Bluetooth Low Energy) oraz włączyłeś zapłon w pojeździe.' :
-                                status === 'connecting' ? 'Wybierz swój adapter na liście pop-up przeglądarki.' :
-                                    status === 'connected' ? 'Adapter jest gotowy do odczytu błędów DTC z komputera pojazdu.' :
-                                        status === 'reading' ? 'Pobieranie i dekodowanie ukrytych kodów błędów DTC...' :
-                                            status === 'success' ? `Znaleziono kody: ${dtcs.length > 0 ? dtcs.join(', ') : 'Brak (Błędy wykasowane)'}` :
+                            {status === 'idle' ? t.auto.obd.instructions :
+                                status === 'connecting' ? t.auto.obd.instructionsSearch :
+                                    status === 'connected' ? t.auto.obd.instructionsConnected :
+                                        status === 'reading' ? t.auto.obd.instructionsReading :
+                                            status === 'success' ? `${t.auto.obd.codesFound}${dtcs.length > 0 ? dtcs.join(', ') : t.auto.obd.noCodes}` :
                                                 errorMsg}
                         </p>
                     </div>
@@ -138,7 +138,7 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                 className="w-full bg-[#00D1FF] hover:bg-[#00D1FF]/90 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_4px_20px_rgba(0,209,255,0.3)]"
                             >
                                 <Bluetooth className="w-5 h-5" />
-                                POŁĄCZ Z OBD BLE
+                                {t.auto.obd.btnConnect}
                             </button>
                         ) : status === 'connected' ? (
                             <>
@@ -147,13 +147,13 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                     className="w-full bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] hover:bg-[#00D1FF]/20 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95"
                                 >
                                     <RefreshCw className="w-5 h-5" />
-                                    SKANUJ BŁĘDY DTC
+                                    {t.auto.obd.btnScan}
                                 </button>
                                 <button
                                     onClick={handleDisconnect}
                                     className="w-full text-foreground/50 hover:text-red-400 font-medium py-3 text-sm transition-colors"
                                 >
-                                    Odłącz
+                                    {t.auto.obd.btnDisconnect}
                                 </button>
                             </>
                         ) : status === 'success' ? (
@@ -161,7 +161,7 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                 onClick={onClose}
                                 className="w-full bg-surface-elevated border border-foreground/10 hover:bg-white/5 text-foreground font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95"
                             >
-                                GOTOWE
+                                {t.auto.obd.btnDone}
                             </button>
                         ) : null}
                     </div>

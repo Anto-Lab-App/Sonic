@@ -705,10 +705,16 @@ export function Scanner({
           {/* OBD Button */}
           <div className="w-full px-2 mt-3">
             <button
-              onClick={() => setIsOBDModalOpen(true)}
+              onClick={() => {
+                if (!isSignedIn) {
+                  setShowLoginModal(true);
+                  return;
+                }
+                setIsOBDModalOpen(true);
+              }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all ${isObdConnected
-                  ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30 text-[#00D1FF] shadow-[0_0_15px_rgba(0,209,255,0.15)]'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10 text-foreground/80'
+                ? 'bg-[#00D1FF]/10 border-[#00D1FF]/30 text-[#00D1FF] shadow-[0_0_15px_rgba(0,209,255,0.15)]'
+                : 'bg-white/5 border-white/10 hover:bg-white/10 text-foreground/80'
                 }`}
             >
               <div className="flex items-center gap-3">
