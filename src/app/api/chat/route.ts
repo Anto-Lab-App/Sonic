@@ -61,12 +61,13 @@ Posiadasz szeroką wiedzę ogólną o mechanice pojazdowej, którą powinieneś 
         const systemPromptWithLocale = systemInstruction + '\n\n' + `KRYTYCZNE: Wszystkie odpowiedzi na czacie MUSZĄ być napisane w języku oznaczonym kodem:${locale} (pl = Polski, en = Angielski, es = Hiszpański).`;
 
         const fallbackModels = [
-            "gemini-3.1-flash-preview", // primary per user request
+            "gemini-3.1-pro-preview",
+            "gemini-3.5-flash",
+            "gemini-3.5-pro",
+            "gemini-3.1-flash-preview",
             "gemini-3.0-pro",
             "gemini-3.0-flash",
-            "gemini-3.1-pro-preview",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash"
+            "gemini-2.0-flash"
         ];
 
         let rawText: string | null = null;

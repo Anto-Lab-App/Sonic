@@ -79,11 +79,11 @@ export async function POST(
     // ------------------------------------------------------------------
     const now = new Date();
     const lastScan = user.lastScanDate ? new Date(user.lastScanDate) : null;
-    
+
     // Check if it's a new day (UTC)
-    const isNewDay = !lastScan || 
-      lastScan.getUTCDate() !== now.getUTCDate() || 
-      lastScan.getUTCMonth() !== now.getUTCMonth() || 
+    const isNewDay = !lastScan ||
+      lastScan.getUTCDate() !== now.getUTCDate() ||
+      lastScan.getUTCMonth() !== now.getUTCMonth() ||
       lastScan.getUTCFullYear() !== now.getUTCFullYear();
 
     let currentDailyScans = isNewDay ? 0 : user.dailyFreeScans;
@@ -163,6 +163,8 @@ export async function POST(
     // ------------------------------------------------------------------
     const fallbackModels = [
       "gemini-3.1-pro-preview",
+      "gemini-3.5-flash",
+      "gemini-3.5-pro",
       "gemini-3.1-flash-lite-preview",
       "gemini-3.0-pro",
       "gemini-3.0-flash",
