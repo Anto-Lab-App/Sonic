@@ -120,7 +120,9 @@ export const translations = {
                 btnDisconnect: 'Odłącz',
                 btnDone: 'GOTOWE',
                 connectionFailed: 'Nie udało się połączyć z urządzeniem OBD.',
-                readFailed: 'Nie udało się odczytać danych z pojazdu.'
+                readFailed: 'Nie udało się odczytać danych z pojazdu.',
+                unsupportedTitle: 'Brak wsparcia przeglądarki',
+                unsupportedDesc: 'Twoja przeglądarka (np. Safari/iOS) blokuje połączenia Bluetooth. Użyj systemu Android, komputera PC lub dedykowanej przeglądarki z WebBLE (np. Bluefy).'
             }
         },
         bike: { section: 'Sekcja Roweru', protips: 'Protipy: Jak ująć awarię na zdjęciu/wideo', title: 'Zrób zdjęcie kasety / detalu', subtitle: 'Szukamy zagiętych zębów, uszkodzeń ramy lub pęknięć. Zrób fotkę makro.', gallery: 'Zdjęcie z galerii', addContext: 'Dodaj Kontekst', targets: ['Napęd (Rozciągnięcie, Przeskoki)', 'Hamulce (Piszczenie, Tracie)', 'Suport (Trzaski podczas pedałowania)', 'Przerzutka (Problem zrzucania)', 'Amortyzator / Łożyska ramy', 'Inne'], status: { init: 'Inicjalizacja AI...', analyze: 'Analiza struktury ze zdjęcia/wideo...', check: 'Analiza elementów mechanicznych...', dev: 'Opracowywanie diagnozy rowerowej...' }, pendingHints: ["Gotowe do diagnozy usterek", "Podaj kontekst by zwiększyć trafność", "Graj lub zrób zdjęcie łańcucha"], selectElement: "Wybierz element", visualScan: "Skan Wizualny", visualScanDesc: "Zrób zdjęcie ewidentnych uszkodzeń", protipsTitle: "Wskazówki Bikerów", protipsList: [{ icon: '⚠️', tip: 'Unieś koło, wkręć pedał przed skanem napędu, aby dźwięk był sterylny.' }, { icon: '📸', tip: 'Wgrywając zdjęcie ramy, dbaj o silne oświetlenie pęknięć karbonu / spawu.' }] },
@@ -405,7 +407,9 @@ export const translations = {
                 btnDisconnect: 'Disconnect',
                 btnDone: 'DONE',
                 connectionFailed: 'Failed to connect to OBD device.',
-                readFailed: 'Failed to read data from vehicle.'
+                readFailed: 'Failed to read data from vehicle.',
+                unsupportedTitle: 'Browser not supported',
+                unsupportedDesc: 'Your browser (e.g., Safari/iOS) blocks Bluetooth connections. Use Android, a PC, or a dedicated WebBLE browser (e.g., Bluefy).'
             }
         },
         bike: { section: 'Bike Section', protips: 'Pro tips: How to capture the fault', title: 'Take a photo of the cassette / detail', subtitle: 'Looking for bent teeth, frame damage or cracks. Take a macro shot.', gallery: 'Photo from gallery', addContext: 'Add Context', targets: ['Drivetrain (Stretching, Skipping)', 'Brakes (Squeaking, Rubbing)', 'Bottom Bracket (Creaking when pedaling)', 'Derailleur (Shifting problem)', 'Shock absorber / Frame bearings', 'Other'], status: { init: 'Initializing AI...', analyze: 'Analyzing structure from photo/video...', check: 'Analyzing mechanical components...', dev: 'Developing bike diagnosis...' }, pendingHints: ["Ready for fault diagnosis", "Provide context to increase accuracy", "Play sound or take a photo of the chain"], selectElement: "Select component", visualScan: "Visual Scan", visualScanDesc: "Take a photo of evident damage", protipsTitle: "Biker Tips", protipsList: [{ icon: '⚠️', tip: 'Lift the wheel, spin the pedal before scanning to keep sound clean.' }, { icon: '📸', tip: 'When uploading frame photo, ensure strong lighting on carbon cracks/welds.' }] },
@@ -690,7 +694,9 @@ export const translations = {
                 btnDisconnect: 'Trennen',
                 btnDone: 'FERTIG',
                 connectionFailed: 'Verbindung zum OBD-Gerät fehlgeschlagen.',
-                readFailed: 'Fehler beim Lesen der Fahrzeugdaten.'
+                readFailed: 'Fehler beim Lesen der Fahrzeugdaten.',
+                unsupportedTitle: 'Browser wird nicht unterstützt',
+                unsupportedDesc: 'Ihr Browser (z. B. Safari/iOS) blockiert Bluetooth-Verbindungen. Verwenden Sie Android, einen PC oder einen dedizierten WebBLE-Browser (z. B. Bluefy).'
             }
         },
         bike: { section: 'Fahrrad-Bereich', protips: 'Pro-Tipps: Wie man den Fehler aufnimmt', title: 'Foto der Kassette / des Details machen', subtitle: 'Wir suchen nach verbogenen Zähnen, Rahmenschäden oder Rissen. Machen Sie eine Makroaufnahme.', gallery: 'Foto aus der Galerie', addContext: 'Kontext hinzufügen', targets: ['Antrieb (Dehnung, Überspringen)', 'Bremsen (Quietschen, Reiben)', 'Tretlager (Knarren beim Treten)', 'Schaltwerk (Schaltproblem)', 'Stoßdämpfer / Rahmenlager', 'Andere'], status: { init: 'KI wird initialisiert...', analyze: 'Struktur aus Foto/Video analysieren...', check: 'Mechanische Komponenten analysieren...', dev: 'Fahrraddiagnose wird entwickelt...' }, pendingHints: ["Bereit für Fehlerdiagnose", "Kontext angeben, um Genauigkeit zu erhöhen", "Ton abspielen oder Foto der Kette machen"], selectElement: "Element auswählen", visualScan: "Visueller Scan", visualScanDesc: "Foto von offensichtlichen Schäden machen", protipsTitle: "Biker-Tipps", protipsList: [{ icon: '⚠️', tip: 'Heben Sie das Rad an, drehen Sie das Pedal vor dem Scan, um den Ton sauber zu halten.' }, { icon: '📸', tip: 'Achten Sie beim Hochladen des Rahmenfotos auf starke Beleuchtung von Karbonrissen/Schweißnähten.' }] },
@@ -892,7 +898,9 @@ export const translations = {
                 btnDisconnect: 'Desconectar',
                 btnDone: 'HECHO',
                 connectionFailed: 'No se pudo conectar al dispositivo OBD.',
-                readFailed: 'No se pudieron leer los datos del vehículo.'
+                readFailed: 'No se pudieron leer los datos del vehículo.',
+                unsupportedTitle: 'Navegador no compatible',
+                unsupportedDesc: 'Tu navegador (por ejemplo, Safari/iOS) bloquea las conexiones Bluetooth. Usa Android, un PC o un navegador WebBLE dedicado (por ejemplo, Bluefy).'
             }
         },
         bike: { section: 'Bici', protips: 'Consejos', title: 'Toma foto de casete/detalle', subtitle: 'Buscamos dientes doblados o daños.', gallery: 'Galería', addContext: 'Contexto', targets: ['Transmisión', 'Frenos', 'Pedalier', 'Desviador', 'Amortiguador', 'Otro'], status: { init: 'Iniciando IA...', analyze: 'Analizando estructura...', check: 'Analizando componentes mecánicos...', dev: 'Desarrollando diagnóstico...' }, pendingHints: ["Listo para diagnóstico", "Indica el contexto para mayor precisión", "Graba sonido o foto de la cadena"], selectElement: "Seleccionar elemento", visualScan: "Escaneo Visual", visualScanDesc: "Toma foto de daños evident", protipsTitle: "Consejos para Ciclistas", protipsList: [{ icon: '⚠️', tip: 'Levanta la rueda, gira el pedal antes del escaneo para que el sonido sea limpio.' }, { icon: '📸', tip: 'Al subir la foto del cuadro, asegúrate de tener una iluminación fuerte en las grietas del carbono/soldadura.' }] },

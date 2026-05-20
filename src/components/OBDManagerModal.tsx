@@ -14,11 +14,15 @@ interface OBDManagerModalProps {
 
 export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerModalProps) {
     const { t } = useLanguage();
-    const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'reading' | 'error' | 'success'>('idle');
+    const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'reading' | 'error' | 'success' | 'unsupported'>('idle');
     const [errorMsg, setErrorMsg] = useState('');
     const [dtcs, setDtcs] = useState<string[]>([]);
 
     useEffect(() => {
+        if (!navigator.bluetooth) {
+            setStatus('unsupported');
+            return;
+        }
         // If already connected, update status
         if (isOpen && obdManager.isConnected) {
             setStatus('connected');
@@ -100,13 +104,13 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                         <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
                             <div className={`absolute inset-0 rounded-full border-2 border-dashed ${status === 'connecting' || status === 'reading' ? 'border-[#00D1FF]/50 animate-spin-slow' : 'border-foreground/10'}`} />
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg ${status === 'connected' || status === 'success' || status === 'reading' ? 'bg-[#00D1FF] text-white shadow-[#00D1FF]/30' :
-                                status === 'error' ? 'bg-red-500 text-white shadow-red-500/30' :
+                                status === 'error' || status === 'unsupported' ? 'bg-red-500 text-white shadow-red-500/30' :
                                     'bg-surface-elevated text-foreground/50 border border-foreground/10'
                                 }`}>
                                 {status === 'connected' ? <CheckCircle2 className="w-8 h-8" /> :
                                     status === 'success' ? <CheckCircle2 className="w-8 h-8" /> :
                                         status === 'reading' ? <RefreshCw className="w-8 h-8 animate-spin" /> :
-                                            status === 'error' ? <AlertCircle className="w-8 h-8" /> :
+                                            status === 'error' || status === 'unsupported' ? <AlertCircle className="w-8 h-8" /> :
                                                 status === 'connecting' ? <BluetoothSearching className="w-8 h-8 animate-pulse" /> :
                                                     <Bluetooth className="w-8 h-8" />}
                             </div>
@@ -118,7 +122,8 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                     status === 'connected' ? t.auto.obd.connected :
                                         status === 'reading' ? t.auto.obd.reading :
                                             status === 'success' ? t.auto.obd.success :
-                                                t.auto.obd.error}
+                                                status === 'unsupported' ? t.auto.obd.unsupportedTitle :
+                                                    t.auto.obd.error}
                         </h3>
 
                         <p className="text-sm text-foreground/60 leading-relaxed max-w-[280px] mx-auto">
@@ -127,7 +132,8 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                                     status === 'connected' ? t.auto.obd.instructionsConnected :
                                         status === 'reading' ? t.auto.obd.instructionsReading :
                                             status === 'success' ? `${t.auto.obd.codesFound}${dtcs.length > 0 ? dtcs.join(', ') : t.auto.obd.noCodes}` :
-                                                errorMsg}
+                                                status === 'unsupported' ? t.auto.obd.unsupportedDesc :
+                                                    errorMsg}
                         </p>
                     </div>
 
@@ -139,6 +145,13 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
                             >
                                 <Bluetooth className="w-5 h-5" />
                                 {t.auto.obd.btnConnect}
+                            </button>
+                        ) : status === 'unsupported' ? (
+                            <button
+                                onClick={onClose}
+                                className="w-full bg-surface-elevated border border-foreground/10 hover:bg-white/5 text-foreground font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                            >
+                                {t.auto.obd.btnDone}
                             </button>
                         ) : status === 'connected' ? (
                             <>
