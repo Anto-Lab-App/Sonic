@@ -19,7 +19,7 @@ export function OBDManagerModal({ isOpen, onClose, onCodesFound }: OBDManagerMod
     const [dtcs, setDtcs] = useState<string[]>([]);
 
     useEffect(() => {
-        if (!navigator.bluetooth) {
+        if (!navigator.bluetooth || !navigator.bluetooth.requestDevice) {
             setStatus('unsupported');
             return;
         }

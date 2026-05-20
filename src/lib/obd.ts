@@ -32,7 +32,7 @@ export class OBDManager {
     public onDisconnect: (() => void) | null = null;
 
     async connect() {
-        if (!navigator.bluetooth) {
+        if (!navigator.bluetooth || !navigator.bluetooth.requestDevice) {
             throw new Error("Web Bluetooth API is not supported in this browser. Try Chrome on Android or Desktop.");
         }
 
