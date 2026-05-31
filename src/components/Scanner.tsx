@@ -684,7 +684,7 @@ export function Scanner({
               <div className="text-[11px] text-foreground/50 leading-relaxed group-hover:text-foreground/70 transition-colors select-none">
                 {t.disclaimer.checkbox}
                 <Link
-                  href="/regulamin"
+                  href="/terms"
                   target="_blank"
                   className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
                 >
@@ -692,7 +692,7 @@ export function Scanner({
                 </Link>
                 {t.disclaimer.and}
                 <Link
-                  href="/polityka-prywatnosci"
+                  href="/privacy"
                   target="_blank"
                   className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors font-medium"
                 >
