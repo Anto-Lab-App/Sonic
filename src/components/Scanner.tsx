@@ -390,6 +390,10 @@ export function Scanner({
       if (diagnosticContext.contextFiles && diagnosticContext.contextFiles.length > 0) {
         allFilesToUpload.push(...diagnosticContext.contextFiles);
       }
+      // Attach OBD-II photo file if any
+      if (diagnosticContext.obdFile) {
+        allFilesToUpload.push(diagnosticContext.obdFile);
+      }
     }
 
     if (forceComplete) {

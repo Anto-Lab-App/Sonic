@@ -12,6 +12,7 @@ export interface DiagnosticContextData {
   obdCodes: string;
   contextFiles: File[];
   yearEngine?: string;
+  obdFile?: File | null;
 }
 
 export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: {
@@ -28,8 +29,10 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
   const [obdCodes, setObdCodes] = useState(initialData?.obdCodes || '');
   const [yearEngine, setYearEngine] = useState(initialData?.yearEngine || '');
   const [contextFiles, setContextFiles] = useState<File[]>(initialData?.contextFiles || []);
+  const [obdFile, setObdFile] = useState<File | null>(initialData?.obdFile || null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const obdFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -105,20 +108,91 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
           </div>
 
           {/* Kody OBD-II lub Model osprzętu */}
-          <div className="space-y-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-              {variant === 'bike' ? t.context.obdBike : t.context.obdTitle}
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={obdCodes}
-                onChange={(e) => setObdCodes(e.target.value)}
-                placeholder={variant === 'bike' ? t.context.obdBikePh : t.context.obdPh}
-                className={`w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium ${variant === 'car' ? 'uppercase' : ''}`}
-              />
+          {variant === 'car' ? (
+            <div className="space-y-4 p-5 bg-white/[0.02] border border-white/5 rounded-3xl">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                Dane z komputera / OBD-II (Opcjonalne)
+              </label>
+              
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-muted tracking-wide block">
+                  Wpisz kody błędów (np. P0300, P0171)
+                </span>
+                <input
+                  type="text"
+                  value={obdCodes}
+                  onChange={(e) => setObdCodes(e.target.value)}
+                  placeholder="Wpisz kody błędów (np. P0300, P0171)"
+                  className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-4 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium uppercase"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <span className="text-[11px] font-semibold text-muted tracking-wide block">
+                  Zdjęcie diagnostyczne OBD-II / Kontrolka
+                </span>
+                
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={obdFileInputRef} 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setObdFile(e.target.files[0]);
+                    }
+                  }} 
+                />
+                
+                <button 
+                  type="button"
+                  onClick={() => obdFileInputRef.current?.click()}
+                  className="w-full bg-background border border-dashed border-foreground/[0.08] hover:border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.01] transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#131823] border border-foreground/[0.03] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Camera className="w-5 h-5 text-muted group-hover:text-foreground/90" />
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-center">
+                    <span className="text-xs font-bold text-muted group-hover:text-foreground/90">
+                      Wgraj zdjęcie ekranu ze skanera OBD lub świecącej kontrolki na desce rozdzielczej
+                    </span>
+                    <span className="text-[10px] text-muted/50 font-medium">JPEG, PNG, WEBP (Opcjonalnie)</span>
+                  </div>
+                </button>
+
+                {obdFile && (
+                  <div className="flex items-center justify-between p-3 bg-blue-500/10 text-blue-400 rounded-xl text-xs font-medium border border-blue-500/20">
+                    <div className="flex items-center gap-2 truncate">
+                      <FileImage className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{obdFile.name}</span>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setObdFile(null)} 
+                      className="hover:text-red-400 p-1"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+                {t.context.obdBike}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={obdCodes}
+                  onChange={(e) => setObdCodes(e.target.value)}
+                  placeholder={t.context.obdBikePh}
+                  className="w-full bg-background border border-foreground/[0.03] rounded-2xl p-5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-blue-500/30 transition-all font-medium"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Opis problemu */}
           <div className="space-y-4">
@@ -214,7 +288,7 @@ export function ContextModal({ onClose, onSave, initialData, variant = 'car' }: 
           <button onClick={onClose} className="flex-1 py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-muted bg-[#131823] border border-foreground/[0.03] hover:bg-surface-hover hover:text-foreground/90 transition-colors">
             {t.cancel}
           </button>
-          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes, contextFiles, yearEngine })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+          <button onClick={() => onSave({ mileage, description, tags: selectedTags, condition: selectedCondition, obdCodes, contextFiles, yearEngine, obdFile })} className="flex-[2] py-4 rounded-2xl font-bold text-xs tracking-[0.15em] uppercase text-foreground bg-blue-600 hover:bg-primary transition-colors shadow-[0_0_20px_rgba(37,99,235,0.2)]">
             {t.context.save}
           </button>
         </div>
