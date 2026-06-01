@@ -2,19 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { SettingsButton } from '@/components/SettingsButton';
-import { SettingsModal } from '@/components/SettingsModal';
-import { Scanner } from '@/components/Scanner';
-import { Chat } from '@/components/Chat';
-import { ShazamScanner } from '@/components/ShazamScanner';
-import { BikeScanner } from '@/components/BikeScanner';
-
 import { Header } from '@/components/Header';
-import { DiagnosisReport } from '@/components/DiagnosisReport';
-import { BikeDiagnosisReport } from '@/components/BikeDiagnosisReport';
-import { IdentificationReport } from '@/components/IdentificationReport';
-import { NoCreditsModal } from '@/components/NoCreditsModal';
+
+// Keep primary home component statically imported to avoid layout shifts on launch
+import { Scanner } from '@/components/Scanner';
+
+// Dynamically import other scanners and screens to minimize initial JS bundle size
+const Chat = dynamic(() => import('@/components/Chat').then(mod => mod.Chat), {
+  loading: () => (
+    <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  ),
+  ssr: false
+});
+
+const ShazamScanner = dynamic(() => import('@/components/ShazamScanner').then(mod => mod.ShazamScanner), {
+  loading: () => (
+    <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  ),
+  ssr: false
+});
+
+const BikeScanner = dynamic(() => import('@/components/BikeScanner').then(mod => mod.BikeScanner), {
+  loading: () => (
+    <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  ),
+  ssr: false
+});
+
+// Dynamic imports for modals and reports (rendered only on action/completion)
+const SettingsModal = dynamic(() => import('@/components/SettingsModal').then(mod => mod.SettingsModal), { ssr: false });
+const DiagnosisReport = dynamic(() => import('@/components/DiagnosisReport').then(mod => mod.DiagnosisReport), { ssr: false });
+const BikeDiagnosisReport = dynamic(() => import('@/components/BikeDiagnosisReport').then(mod => mod.BikeDiagnosisReport), { ssr: false });
+const IdentificationReport = dynamic(() => import('@/components/IdentificationReport').then(mod => mod.IdentificationReport), { ssr: false });
+const NoCreditsModal = dynamic(() => import('@/components/NoCreditsModal').then(mod => mod.NoCreditsModal), { ssr: false });
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('auto');
