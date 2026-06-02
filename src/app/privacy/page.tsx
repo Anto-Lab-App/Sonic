@@ -12,7 +12,7 @@ const translations = {
     sections: [
       {
         title: "1. Informacje ogólne",
-        content: <p>Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez użytkowników w związku z korzystaniem z aplikacji Sonic ("Aplikacja"), której właścicielem jest <strong>Antoni Ziółek</strong>, zamieszkały w <strong>Warszawie</strong> ("Administrator").</p>
+        content: <p>Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez użytkowników w związku z korzystaniem z aplikacji Sonic ("Aplikacja"), której właścicielem i administratorem jest <strong>Sonicly</strong> ("Administrator").</p>
       },
       {
         title: "2. Jakie dane przetwarzamy?",
@@ -71,7 +71,7 @@ const translations = {
       },
       {
         title: "6. Kontakt",
-        content: <p>W sprawach związanych z danymi osobowymi możesz skontaktować się z nami pod adresem e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.</p>
+        content: <p>W sprawach związanych z danymi osobowymi możesz skontaktować się z nami pod adresem e-mail: <strong>antoni@sonicly.app</strong>.</p>
       }
     ]
   },
@@ -81,7 +81,7 @@ const translations = {
     sections: [
       {
         title: "1. General Information",
-        content: <p>This Privacy Policy sets out the rules for processing and protecting personal data provided by users in connection with the use of the Sonic application ("Application"), owned by <strong>Antoni Ziółek</strong>, residing in <strong>Warsaw</strong> ("Administrator").</p>
+        content: <p>This Privacy Policy sets out the rules for processing and protecting personal data provided by users in connection with the use of the Sonic application ("Application"), owned and administered by <strong>Sonicly</strong> ("Administrator").</p>
       },
       {
         title: "2. What data do we process?",
@@ -140,7 +140,7 @@ const translations = {
       },
       {
         title: "6. Contact",
-        content: <p>For matters related to personal data, you can contact us at: <strong>anto.lab.kontakt@gmail.com</strong>.</p>
+        content: <p>For matters related to personal data, you can contact us at: <strong>antoni@sonicly.app</strong>.</p>
       }
     ]
   },
@@ -150,7 +150,7 @@ const translations = {
     sections: [
       {
         title: "1. Allgemeine Informationen",
-        content: <p>Diese Datenschutzerklärung regelt die Verarbeitung und den Schutz der von Nutzern im Zusammenhang mit der Nutzung der Sonic-App ("App") bereitgestellten personenbezogenen Daten. Eigentümer der App ist <strong>Antoni Ziółek</strong>, wohnhaft in <strong>Warschau</strong> ("Administrator").</p>
+        content: <p>Diese Datenschutzerklärung regelt die Verarbeitung und den Schutz der von Nutzern im Zusammenhang mit der Nutzung der Sonic-App ("App") bereitgestellten personenbezogenen Daten. Eigentümer und Administrator der App ist <strong>Sonicly</strong> ("Administrator").</p>
       },
       {
         title: "2. Welche Daten verarbeiten wir?",
@@ -209,7 +209,7 @@ const translations = {
       },
       {
         title: "6. Kontakt",
-        content: <p>Bei Fragen zu personenbezogenen Daten können Sie uns kontaktieren unter: <strong>anto.lab.kontakt@gmail.com</strong>.</p>
+        content: <p>Bei Fragen zu personenbezogenen Daten können Sie uns kontaktieren unter: <strong>antoni@sonicly.app</strong>.</p>
       }
     ]
   },
@@ -219,7 +219,7 @@ const translations = {
     sections: [
       {
         title: "1. Información General",
-        content: <p>Esta Política de Privacidad establece las reglas para el procesamiento y protección de los datos personales proporcionados por los usuarios en relación con el uso de la aplicación Sonic ("Aplicación"), propiedad de <strong>Antoni Ziółek</strong>, residente en <strong>Varsovia</strong> ("Administrador").</p>
+        content: <p>Esta Política de Privacidad establece las reglas para el procesamiento y protección de los datos personales proporcionados por los usuarios en relación con el uso de la aplicación Sonic ("Aplicación"), propiedad y administrada por <strong>Sonicly</strong> ("Administrador").</p>
       },
       {
         title: "2. ¿Qué datos procesamos?",
@@ -278,7 +278,7 @@ const translations = {
       },
       {
         title: "6. Contacto",
-        content: <p>Para asuntos relacionados con datos personales, contáctenos en: <strong>anto.lab.kontakt@gmail.com</strong>.</p>
+        content: <p>Para asuntos relacionados con datos personales, contáctenos en: <strong>antoni@sonicly.app</strong>.</p>
       }
     ]
   }

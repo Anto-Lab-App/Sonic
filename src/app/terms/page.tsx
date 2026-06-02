@@ -15,7 +15,7 @@ const translations = {
         title: "1. Postanowienia ogólne",
         content: (
           <p>
-            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>Antoniego Ziółka</strong>, zamieszkałego w <strong>Warszawie</strong> ("Usługodawca").<br />
+            1. Niniejszy regulamin ("Regulamin") określa zasady korzystania z aplikacji diagnostycznej Sonic ("Aplikacja"), udostępnianej przez <strong>Sonicly</strong> ("Usługodawca").<br />
             2. Aplikacja wykorzystuje technologie sztucznej inteligencji (AI) do analizy danych wejściowych (wideo, audio, zdjęcia, tekst) i generowania raportów sugerujących potencjalne usterki pojazdów oraz maszyn.<br />
             3. Korzystanie z Aplikacji wymaga zaakceptowania niniejszego Regulaminu oraz Polityki Prywatności.
           </p>
@@ -48,7 +48,7 @@ const translations = {
         content: (
           <p>
             1. Użytkownik będący konsumentem ma prawo odstąpić od umowy bez podania przyczyny w terminie 14 dni, <strong>jednakże</strong> rozpoczęcie świadczenia usługi cyfrowej (odblokowanie raportu za pomocą kredytu) przed upływem tego terminu, za wyraźną zgodą konsumenta, powoduje utratę prawa do odstąpienia od umowy w zakresie zużytego kredytu.<br />
-            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            2. Reklamacje związane z działaniem Aplikacji (np. błędy techniczne, niewygenerowanie raportu po pobraniu opłaty) należy zgłaszać na adres e-mail: <strong>antoni@sonicly.app</strong>.<br />
             3. Reklamacje będą rozpatrywane w terminie 14 dni roboczych.
           </p>
         )
@@ -74,7 +74,7 @@ const translations = {
         title: "1. General Provisions",
         content: (
           <p>
-            1. These terms of service ("Terms") set out the rules for using the Sonic diagnostic application ("Application"), provided by <strong>Antoni Ziółek</strong>, residing in <strong>Warsaw</strong> ("Service Provider").<br />
+            1. These terms of service ("Terms") set out the rules for using the Sonic diagnostic application ("Application"), provided by <strong>Sonicly</strong> ("Service Provider").<br />
             2. The Application uses artificial intelligence (AI) technologies to analyze input data (video, audio, photos, text) and generate reports suggesting potential faults in vehicles and machinery.<br />
             3. Using the Application requires acceptance of these Terms and the Privacy Policy.
           </p>
@@ -107,7 +107,7 @@ const translations = {
         content: (
           <p>
             1. A user who is a consumer has the right to withdraw from the contract without giving any reason within 14 days, <strong>however</strong>, starting the provision of a digital service (unlocking a report using credit) before this period expires, with the consumer's explicit consent, results in the loss of the right to withdraw from the contract regarding the used credit.<br />
-            2. Complaints regarding the Application's operation (e.g., technical errors, failure to generate a report after fee deduction) should be reported to the email address: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            2. Complaints regarding the Application's operation (e.g., technical errors, failure to generate a report after fee deduction) should be reported to the email address: <strong>antoni@sonicly.app</strong>.<br />
             3. Complaints will be processed within 14 business days.
           </p>
         )
@@ -133,7 +133,7 @@ const translations = {
         title: "1. Allgemeine Bestimmungen",
         content: (
           <p>
-            1. Diese Nutzungsbedingungen ("Bedingungen") legen die Regeln für die Nutzung der Sonic-Diagnose-App ("App") fest, bereitgestellt von <strong>Antoni Ziółek</strong>, wohnhaft in <strong>Warschau</strong> ("Dienstanbieter").<br />
+            1. Diese Nutzungsbedingungen ("Bedingungen") legen die Regeln für die Nutzung der Sonic-Diagnose-App ("App") fest, bereitgestellt von <strong>Sonicly</strong> ("Dienstanbieter").<br />
             2. Die App nutzt Technologien der künstlichen Intelligenz (KI), um Eingabedaten (Video, Audio, Fotos, Text) zu analysieren und Berichte zu erstellen, die auf potenzielle Fehler an Fahrzeugen und Maschinen hinweisen.<br />
             3. Die Nutzung der App setzt die Annahme dieser Bedingungen und der Datenschutzerklärung voraus.
           </p>
@@ -166,7 +166,7 @@ const translations = {
         content: (
           <p>
             1. Ein Nutzer, der Verbraucher ist, hat das Recht, innerhalb von 14 Tagen ohne Angabe von Gründen vom Vertrag zurückzutreten. <strong>Jedoch</strong> führt der Beginn der Bereitstellung einer digitalen Dienstleistung (Freischaltung eines Berichts mit Guthaben) vor Ablauf dieser Frist mit ausdrücklicher Zustimmung des Verbrauchers zum Verlust des Widerrufsrechts für das verbrauchte Guthaben.<br />
-            2. Beschwerden bezüglich des Betriebs der App (z. B. technische Fehler, Fehler bei der Berichterstellung nach Gebührenabzug) sollten an die E-Mail-Adresse gemeldet werden: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            2. Beschwerden bezüglich des Betriebs der App (z. B. technische Fehler, Fehler bei der Berichterstellung nach Gebührenabzug) sollten an die E-Mail-Adresse gemeldet werden: <strong>antoni@sonicly.app</strong>.<br />
             3. Beschwerden werden innerhalb von 14 Werktagen bearbeitet.
           </p>
         )
@@ -192,7 +192,7 @@ const translations = {
         title: "1. Disposiciones Generales",
         content: (
           <p>
-            1. Estos términos de servicio ("Términos") establecen las reglas para usar la aplicación de diagnóstico Sonic ("Aplicación"), proporcionada por <strong>Antoni Ziółek</strong>, residente en <strong>Varsovia</strong> ("Proveedor de Servicios").<br />
+            1. Estos términos de servicio ("Términos") establecen las reglas para usar la aplicación de diagnóstico Sonic ("Aplicación"), proporcionada por <strong>Sonicly</strong> ("Proveedor de Servicios").<br />
             2. La Aplicación utiliza tecnologías de inteligencia artificial (IA) para analizar datos de entrada (video, audio, fotos, texto) y generar informes que sugieren posibles fallas en vehículos y maquinaria.<br />
             3. El uso de la Aplicación requiere la aceptación de estos Términos y la Política de Privacidad.
           </p>
@@ -225,7 +225,7 @@ const translations = {
         content: (
           <p>
             1. Un usuario que es consumidor tiene derecho a retirarse del contrato sin dar ninguna razón dentro de los 14 días. <strong>Sin embargo</strong>, iniciar la prestación de un servicio digital (desbloquear un informe usando crédito) antes de que expire este período, con el consentimiento explícito del consumidor, resulta en la pérdida del derecho a retirarse del contrato con respecto al crédito usado.<br />
-            2. Las quejas sobre el funcionamiento de la Aplicación (por ejemplo, errores técnicos, falla al generar un informe después de deducir la tarifa) deben informarse a la dirección de correo electrónico: <strong>anto.lab.kontakt@gmail.com</strong>.<br />
+            2. Las quejas sobre el funcionamiento de la Aplicación (por ejemplo, errores técnicos, falla al generar un informe después de deducir la tarifa) deben informarse a la dirección de correo electrónico: <strong>antoni@sonicly.app</strong>.<br />
             3. Las quejas se procesarán dentro de los 14 días hábiles.
           </p>
         )

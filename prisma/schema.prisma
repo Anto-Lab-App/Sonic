@@ -29,3 +29,11 @@ model Diagnosis {
   createdAt        DateTime @default(now())
   user             User     @relation(fields: [userId], references: [id])
 }
+
+model SeoArticle {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
