@@ -88,7 +88,9 @@ export async function POST(
 
     let currentDailyScans = isNewDay ? 0 : user.dailyFreeScans;
 
-    if (currentDailyScans >= 5) {
+    const isUnlimitedUser = user.email.toLowerCase() === "antoni.ziolek2@gmail.com";
+
+    if (currentDailyScans >= 5 && !isUnlimitedUser) {
       return NextResponse.json(
         { status: "error", message: "Osiągnięto dzienny limit (5) darmowych skanów. Wróć jutro lub odblokuj istniejące raporty." },
         { status: 429 }
@@ -227,7 +229,7 @@ export async function POST(
     } else {
       console.log(`[Sonic] Diagnosis complete: "${aiResponse.final_diagnosis?.title}" (${aiResponse.final_diagnosis?.confidence_score}%)`);
 
-      const hasCredits = user.credits > 0;
+      const hasCredits = user.credits > 0 || isUnlimitedUser;
 
       // Transaction: Record diagnosis AND decrement credits if they have them
       const transactions: any[] = [];
@@ -249,7 +251,7 @@ export async function POST(
         lastScanDate: now
       };
 
-      if (hasCredits) {
+      if (hasCredits && !isUnlimitedUser) {
         userUpdateData.credits = { decrement: 1 };
       }
 

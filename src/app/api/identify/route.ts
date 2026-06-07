@@ -188,10 +188,11 @@ export async function POST(request: NextRequest) {
 
     const result = JSON.parse(rawText);
 
-    const hasCredits = user.credits > 0;
+    const isUnlimitedUser = user.email.toLowerCase() === "antoni.ziolek2@gmail.com";
+    const hasCredits = user.credits > 0 || isUnlimitedUser;
 
     // Transaction: Decrement credits on successful identification
-    if (hasCredits) {
+    if (hasCredits && !isUnlimitedUser) {
       await prisma.user.update({
         where: { id: user.id },
         data: { credits: { decrement: 1 } }

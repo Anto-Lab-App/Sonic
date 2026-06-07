@@ -26,12 +26,14 @@ export async function getUserProfile() {
             .join("")
             .toUpperCase() || email[0].toUpperCase();
 
+        const isUnlimited = email.toLowerCase() === "antoni.ziolek2@gmail.com";
+
         if (!user) {
             user = await prisma.user.create({
                 data: {
                     clerkUserId: userId,
                     email: email,
-                    credits: 1,
+                    credits: isUnlimited ? 999999 : 1,
                 }
             });
         }
@@ -39,7 +41,7 @@ export async function getUserProfile() {
         return {
             id: user.id,
             email: user.email,
-            credits: user.credits,
+            credits: isUnlimited ? 999999 : user.credits,
             fullName,
             initials
         };
