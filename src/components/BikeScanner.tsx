@@ -327,22 +327,22 @@ export function BikeScanner({ defaultTarget, onOpenChat }: BikeScannerProps) {
         </motion.div>
 
         {/* Central Record/Visualizer */}
-        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[180px] md:min-h-[280px]">
-          <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
+        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[240px] md:min-h-[280px]">
+          <div className="min-h-[3.5rem] md:min-h-[4rem] py-1 mb-2 md:mb-4 flex flex-col items-center justify-center z-10">
             <AnimatePresence mode="wait">
               {isAnalyzing ? (
                 <motion.div key="analyzing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
+                  <h2 className="text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-foreground text-center px-4">{t.loadingAI}</h2>
                   <p className="text-xs font-semibold tracking-widest text-emerald-400 uppercase">{analyzingText}</p>
                 </motion.div>
               ) : pendingFile ? (
                 <motion.div key="pending" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.auto.readyForAnalysis || "Gotowy do analizy"}</h2>
-                  <p className="text-sm text-emerald-400/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
+                  <h2 className="text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-foreground text-center px-4">{t.auto.readyForAnalysis || "Gotowy do analizy"}</h2>
+                  <p className="text-sm text-emerald-400/70 font-medium tracking-wide text-center px-4">{PENDING_HINTS[pendingHint]}</p>
                 </motion.div>
               ) : (
                 <motion.div key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center">
-                  <h2 className={`text-2xl font-bold tracking-wide mb-2 text-foreground/90`}>
+                  <h2 className={`text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-center px-4 text-foreground/90`}>
                     {t.bike.visualScan || 'Skan Wizualny'}
                   </h2>
                   <p className="text-sm text-foreground/50 tracking-wide text-center px-4">{t.bike.visualScanDesc || 'Zrób zdjęcie ewidentnych uszkodzeń'}</p>

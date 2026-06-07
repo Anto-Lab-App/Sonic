@@ -442,9 +442,9 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
         </motion.div>
 
         {/* Central Animation Area */}
-        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[220px] md:min-h-[280px]">
+        <div className="z-10 flex flex-col items-center w-full relative flex-1 justify-center min-h-[240px] md:min-h-[280px]">
           {/* Status Message */}
-          <div className="h-14 md:h-16 mb-2 md:mb-4 flex flex-col items-center justify-end z-10">
+          <div className="min-h-[3.5rem] md:min-h-[4rem] py-1 mb-2 md:mb-4 flex flex-col items-center justify-center z-10">
             <AnimatePresence mode="wait">
               {isAnalyzing ? (
                 <motion.div
@@ -454,7 +454,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                   className="flex flex-col items-center text-center px-2"
                 >
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.loadingAI}</h2>
+                  <h2 className="text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-foreground text-center px-4">{t.loadingAI}</h2>
                   <p className="text-xs font-semibold tracking-widest text-primary/80 uppercase">{analyzingText}</p>
                 </motion.div>
               ) : pendingFile ? (
@@ -465,8 +465,8 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                   className="flex flex-col items-center text-center px-2"
                 >
-                  <h2 className="text-2xl font-bold tracking-wide mb-2 text-foreground">{t.auto.status.ready}</h2>
-                  <p className="text-sm text-primary/70 font-medium tracking-wide">{PENDING_HINTS[pendingHint]}</p>
+                  <h2 className="text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-foreground text-center px-4">{t.auto.status.ready}</h2>
+                  <p className="text-sm text-primary/70 font-medium tracking-wide text-center px-4">{PENDING_HINTS[pendingHint]}</p>
                 </motion.div>
               ) : (
                 <motion.div
@@ -476,7 +476,7 @@ export function ShazamScanner({ onScanComplete, onOpenChat }: ShazamScannerProps
                   exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                   className="flex flex-col items-center text-center px-2"
                 >
-                  <h2 className={`text-2xl font-bold tracking-wide mb-2 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
+                  <h2 className={`text-xl md:text-2xl font-bold tracking-wide mb-1 md:mb-2 text-center px-4 ${isRecording ? 'text-foreground' : 'text-foreground/90'}`}>
                     {isRecording ? t.shazam.listening : t.shazam.tapToListen}
                   </h2>
                   {isDemoMode && isRecording && <span className="text-[10px] text-muted">{t.demoMode}</span>}
